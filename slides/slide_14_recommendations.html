@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #ffffff; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header { background: #28a745; color: white; padding: 15pt 20pt; flex-shrink: 0; }
+h1 { margin: 0; font-size: 32pt; font-weight: bold; }
+.content { flex: 1; padding: 20pt; }
+.recommendation {
+  background: #f0f0f0; padding: 12pt; margin-bottom: 10pt;
+  border-left: 4pt solid #28a745; border-radius: 4pt;
+}
+.rec-title { font-weight: bold; color: #28a745; font-size: 13pt; margin-bottom: 4pt; }
+.rec-text { color: #333; font-size: 12pt; line-height: 1.4; }
+.number { display: inline-block; background: #28a745; color: white;
+  width: 20pt; height: 20pt; border-radius: 50%;
+  text-align: center; line-height: 20pt; font-weight: bold;
+  margin-right: 8pt; font-size: 11pt; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Strategic Recommendations</h1>
+</div>
+<div class="content">
+  <div class="recommendation">
+    <p class="rec-title"><span class="number">1</span>Prioritize Ulsan Route Development</p>
+    <p class="rec-text">Deploy infrastructure investment toward Case 2-2 (Ulsan → Busan) route to achieve 38% cost savings and lowest NPC ($94.9M)</p>
+  </div>
+  <div class="recommendation">
+    <p class="rec-title"><span class="number">2</span>Optimize Fleet Composition</p>
+    <p class="rec-text">Use 5,000 m³ shuttle vessels for Cases 2-1 and 2-2. For Case 1, consider smaller 2,500 m³ vessels if storage infrastructure is committed</p>
+  </div>
+  <div class="recommendation">
+    <p class="rec-title"><span class="number">3</span>Reassess Busan Storage Investment</p>
+    <p class="rec-text">High tank CAPEX ($28.9M) in Case 1 limits cost competitiveness. Only viable if geographic positioning or other factors require local storage</p>
+  </div>
+  <div class="recommendation">
+    <p class="rec-title"><span class="number">4</span>Phased Implementation</p>
+    <p class="rec-text">Deploy 6-8 shuttles initially (2030), with 10% annual growth through 2050 to meet demand forecasts and minimize stranded assets</p>
+  </div>
+</div>
+</body>
+</html>

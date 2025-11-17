@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #ffffff; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header { background: #1f4788; color: white; padding: 15pt 20pt; flex-shrink: 0; }
+h1 { margin: 0; font-size: 32pt; font-weight: bold; }
+.content { flex: 1; padding: 20pt; }
+.finding {
+  background: #f5f5f5; padding: 12pt; margin-bottom: 10pt;
+  border-left: 4pt solid #1f4788; border-radius: 4pt;
+}
+.finding-title { font-weight: bold; color: #1f4788; font-size: 13pt; margin-bottom: 4pt; }
+.finding-text { color: #333; font-size: 12pt; line-height: 1.4; }
+.number { display: inline-block; background: #1f4788; color: white;
+  width: 20pt; height: 20pt; border-radius: 50%;
+  text-align: center; line-height: 20pt; font-weight: bold;
+  margin-right: 8pt; font-size: 11pt; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Key Findings</h1>
+</div>
+<div class="content">
+  <div class="finding">
+    <p class="finding-title"><span class="number">1</span>Ulsan Route Offers Significant Cost Advantage</p>
+    <p class="finding-text">Case 2-2 achieves 38.2% cost reduction compared to Case 1 ($94.9M vs $153.5M)</p>
+  </div>
+  <div class="finding">
+    <p class="finding-title"><span class="number">2</span>Storage Tank Burden in Case 1</p>
+    <p class="finding-text">The large storage tank (35,000 tons) contributes significantly to higher capital costs despite lower shuttle sizes</p>
+  </div>
+  <div class="finding">
+    <p class="finding-title"><span class="number">3</span>Optimal Equipment Sizing</p>
+    <p class="finding-text">5,000 m³ shuttles with 2,000 m³/h pumps optimal for long-distance routes (Cases 2-1, 2-2)</p>
+  </div>
+  <div class="finding">
+    <p class="finding-title"><span class="number">4</span>Route Distance Critical Factor</p>
+    <p class="finding-text">Shorter distance (25 nm) in Ulsan route reduces vessel fuel consumption by 33% vs Yeosu (86 nm)</p>
+  </div>
+</div>
+</body>
+</html>

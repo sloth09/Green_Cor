@@ -1,0 +1,17 @@
+# Core dependencies
+pulp>=2.7                   # Linear Programming solver interface
+pandas>=1.3.0               # Data analysis
+numpy>=1.21.0               # Numerical computing
+pyyaml>=5.4.0               # YAML configuration parsing
+
+# Optional visualization
+matplotlib>=3.4.0           # Plotting (used in original version)
+
+# Development
+python-dateutil>=2.8.0      # Date utilities
+
+# Note: PuLP requires a solver backend
+# CBC is the default free solver (included with pulp)
+# For better performance, consider:
+# - GLPK: conda install glpk
+# - CPLEX/Gurobi: Commercial solvers (if available)

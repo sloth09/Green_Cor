@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #ffffff; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header { background: #1f4788; color: white; padding: 15pt 20pt; flex-shrink: 0; }
+h1 { margin: 0; font-size: 32pt; font-weight: bold; }
+.content { flex: 1; padding: 20pt; display: flex; flex-direction: column;
+  justify-content: space-around; }
+.metric-row { display: flex; gap: 15pt; margin-bottom: 10pt; }
+.metric { flex: 1; background: #f5f5f5; padding: 12pt; border-radius: 4pt;
+  border-left: 4pt solid #1f4788; }
+.metric-label { font-size: 12pt; color: #666; font-weight: bold; margin-bottom: 5pt; }
+.metric-value { font-size: 24pt; color: #1f4788; font-weight: bold; }
+.insight { background: #e3f2fd; padding: 12pt; border-left: 4pt solid #2196f3;
+  border-radius: 4pt; font-size: 13pt; color: #333; margin-bottom: 10pt; }
+h3 { margin: 10pt 0 5pt 0; color: #1f4788; font-size: 14pt; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Economic Analysis</h1>
+</div>
+<div class="content">
+  <h3>Equipment Requirements</h3>
+  <div class="metric-row">
+    <div class="metric">
+      <p class="metric-label">Case 1: Shuttles (2030)</p>
+      <p class="metric-value">6</p>
+    </div>
+    <div class="metric">
+      <p class="metric-label">Case 2-1: Shuttles (2030)</p>
+      <p class="metric-value">8</p>
+    </div>
+    <div class="metric">
+      <p class="metric-label">Case 2-2: Shuttles (2030)</p>
+      <p class="metric-value">8</p>
+    </div>
+  </div>
+
+  <h3>Key Economic Metrics</h3>
+  <div class="insight">
+    <b>Cost per Tonne of Ammonia (Annual Average, 2050):</b>
+    <br>• Case 1: ~$45/tonne  • Case 2-1: ~$48/tonne  • Case 2-2: ~$28/tonne
+  </div>
+  <div class="insight">
+    <b>Operational Efficiency:</b>
+    <br>• Case 2-2 fuel consumption 33% lower than Case 2-1 due to distance advantage
+    <br>• Direct impact on variable OPEX across the 20-year horizon
+  </div>
+</div>
+</body>
+</html>

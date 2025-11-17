@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #ffffff; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header { background: #28a745; color: white; padding: 15pt 20pt; flex-shrink: 0; }
+h1 { margin: 0; font-size: 32pt; font-weight: bold; }
+.badge { display: inline-block; background: #ffc107; color: #333; padding: 5pt 10pt;
+  border-radius: 20pt; font-size: 12pt; font-weight: bold; margin-left: 10pt; }
+.content { flex: 1; padding: 20pt; display: flex; gap: 20pt; }
+.info { flex: 1; }
+.box { background: #e8f5e9; padding: 12pt; border-radius: 4pt; margin: 8pt 0;
+  border-left: 4pt solid #28a745; }
+h3 { margin: 0 0 8pt 0; color: #1f4788; font-size: 14pt; font-weight: bold; }
+p { margin: 4pt 0; font-size: 13pt; }
+.label { font-weight: bold; color: #333; }
+.value { color: #28a745; font-weight: bold; }
+ul { margin: 0; padding-left: 20pt; font-size: 13pt; }
+li { margin: 4pt 0; }
+.diagram {
+  flex: 1; background: #f0fdf4; border: 2pt solid #28a745;
+  border-radius: 4pt; padding: 15pt;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+}
+.route-text { text-align: center; font-size: 12pt; color: #666; margin: 8pt 0; }
+.distance { font-size: 18pt; font-weight: bold; color: #28a745; }
+.arrow { font-size: 24pt; margin: 5pt 0; }
+.highlight { color: #ffc107; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Case 2-2: Ulsan Route <span class="badge">OPTIMAL</span></h1>
+</div>
+<div class="content">
+  <div class="info">
+    <h3>Scenario Description</h3>
+    <p><span class="label">Type:</span> <span class="value">Short-distance shuttle</span></p>
+    <p><span class="label">Route:</span> Ulsan → Busan</p>
+    <p><span class="label">Distance:</span> 25 nautical miles</p>
+    <p><span class="label">Travel Time:</span> 1.67 hours</p>
+    <div class="box">
+      <h3>Optimal Configuration</h3>
+      <p><span class="label">Shuttle Size:</span> <span class="value">5,000 m³</span></p>
+      <p><span class="label">Pump Capacity:</span> <span class="value">2,000 m³/h</span></p>
+      <p><span class="label">NPC (20 years):</span> <span class="value" style="color: #28a745;">$94.9M</span></p>
+    </div>
+    <h3>Performance vs Case 1</h3>
+    <ul>
+      <li><span class="highlight">✓ -38.2% cost reduction</span></li>
+      <li>Shortest route</li>
+      <li>Lowest total NPC</li>
+    </ul>
+  </div>
+  <div class="diagram">
+    <div class="distance">Ulsan</div>
+    <div class="arrow">↓</div>
+    <div class="route-text">25 nm</div>
+    <div class="route-text">1.67 hrs</div>
+    <div class="arrow">↓</div>
+    <div class="distance">Busan</div>
+    <p style="margin-top: 20pt; font-size: 14pt; color: #28a745; font-weight: bold;">⭐ Recommended</p>
+  </div>
+</div>
+</body>
+</html>

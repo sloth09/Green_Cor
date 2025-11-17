@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #ffffff; font-family: Arial, sans-serif; display: flex;
+  flex-direction: column;
+}
+.header {
+  background: #1f4788; color: white; padding: 20pt;
+  flex-shrink: 0;
+}
+h1 { margin: 0; font-size: 36pt; font-weight: bold; }
+.content {
+  flex: 1; padding: 25pt; display: flex; flex-direction: column;
+  justify-content: space-around;
+}
+.row { display: flex; gap: 15pt; margin-bottom: 10pt; }
+.metric {
+  flex: 1; background: #f5f5f5; padding: 15pt;
+  border-left: 4pt solid #1f4788; border-radius: 4pt;
+}
+.metric-value { font-size: 28pt; font-weight: bold; color: #1f4788; }
+.metric-label { font-size: 12pt; color: #666; margin-top: 5pt; }
+.highlight { background: #fff3cd; color: #1f4788; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Executive Summary</h1>
+</div>
+<div class="content">
+  <div class="row">
+    <div class="metric">
+      <p class="metric-value">3</p>
+      <p class="metric-label">Operational Scenarios</p>
+    </div>
+    <div class="metric">
+      <p class="metric-value">270</p>
+      <p class="metric-label">Feasible Solutions</p>
+    </div>
+    <div class="metric">
+      <p class="metric-value">$153M</p>
+      <p class="metric-label">Case 1 Optimal NPC</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="metric">
+      <p class="metric-value">2,500m³</p>
+      <p class="metric-label">Case 1 Shuttle Size</p>
+    </div>
+    <div class="metric">
+      <p class="metric-value">5,000m³</p>
+      <p class="metric-label">Cases 2 Shuttle Size</p>
+    </div>
+    <div class="metric">
+      <p class="metric-value" style="color: #28a745;">$95M</p>
+      <p class="metric-label">Best Option (Case 2-2)</p>
+    </div>
+  </div>
+  <p style="font-size: 13pt; color: #333; margin-top: 10pt;">
+    <span class="highlight">✓ Ulsan route offers 38% cost advantage</span> compared to Case 1
+  </p>
+</div>
+</body>
+</html>

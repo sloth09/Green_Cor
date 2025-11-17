@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #ffffff; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header { background: #1f4788; color: white; padding: 15pt 20pt; flex-shrink: 0; }
+h1 { margin: 0; font-size: 32pt; font-weight: bold; }
+h2 { margin: 0; font-size: 14pt; font-weight: normal; opacity: 0.9; }
+.content { flex: 1; padding: 20pt; }
+.table-container {
+  background: white; border: 1pt solid #ddd;
+  border-radius: 4pt; overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; font-size: 12pt; }
+th {
+  background: #1f4788; color: white; padding: 8pt;
+  text-align: left; font-weight: bold; border-right: 1pt solid #1f4788;
+}
+td { padding: 8pt; border-right: 1pt solid #eee; }
+tr:nth-child(even) { background: #f9f9f9; }
+.case1 { color: #1f77b4; font-weight: bold; }
+.case2-1 { color: #ff7f0e; font-weight: bold; }
+.case2-2 { color: #28a745; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>NPC Breakdown by Component</h1>
+  <h2>20-Year Net Present Cost Analysis</h2>
+</div>
+<div class="content">
+  <div class="table-container">
+    <table>
+      <tr>
+        <th>Cost Component</th>
+        <th class="case1">Case 1</th>
+        <th class="case2-1">Case 2-1</th>
+        <th class="case2-2">Case 2-2</th>
+      </tr>
+      <tr>
+        <td><b>Total NPC</b></td>
+        <td class="case1">$153.5M</td>
+        <td class="case2-1">$158.2M</td>
+        <td class="case2-2">$94.9M</td>
+      </tr>
+      <tr>
+        <td>Shuttle CAPEX</td>
+        <td>$24.8M</td>
+        <td>$24.1M</td>
+        <td>$24.1M</td>
+      </tr>
+      <tr>
+        <td>Bunkering CAPEX</td>
+        <td>$9.8M</td>
+        <td>$9.8M</td>
+        <td>$9.8M</td>
+      </tr>
+      <tr>
+        <td>Tank CAPEX</td>
+        <td>$28.9M</td>
+        <td>$0</td>
+        <td>$0</td>
+      </tr>
+      <tr>
+        <td>Total OPEX</td>
+        <td>$90.0M</td>
+        <td>$124.3M</td>
+        <td>$61.0M</td>
+      </tr>
+    </table>
+  </div>
+</div>
+</body>
+</html>
