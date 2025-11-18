@@ -4,12 +4,13 @@ Unit tests for ShoreSupply module.
 
 import pytest
 import sys
-import os
+from pathlib import Path
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+# Add parent directory to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
-from shore_supply import ShoreSupply
+from src.shore_supply import ShoreSupply
 
 
 # Test configurations
