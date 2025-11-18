@@ -299,3 +299,68 @@ def format_currency(value: float, decimals: int = 2) -> str:
         return f"${value/1_000:.{decimals}f}M"
     else:
         return f"${value:.{decimals}f}"
+
+
+# ========== FINANCIAL ANNUALIZATION ==========
+
+def calculate_annuity_factor(
+    discount_rate: float,
+    years: int
+) -> float:
+    """
+    Calculate annuity factor for discounted cash flows.
+
+    Used to convert Net Present Cost (NPC) into annualized cost.
+
+    Formula:
+        Annuity_Factor = [1 - (1 + r)^(-n)] / r
+
+    Where:
+        r = discount rate (e.g., 0.07 for 7%)
+        n = number of years (e.g., 20)
+
+    Args:
+        discount_rate: Annual discount rate (0-1)
+        years: Number of years
+
+    Returns:
+        Annuity factor for converting NPC to annualized cost
+
+    Example:
+        >>> factor = calculate_annuity_factor(0.07, 20)
+        >>> factor  # approximately 10.594
+    """
+    if discount_rate == 0:
+        return float(years)
+
+    factor = (1.0 - (1.0 + discount_rate) ** (-years)) / discount_rate
+    return factor
+
+
+def annualize_npc(
+    npc_value: float,
+    annuity_factor: float
+) -> float:
+    """
+    Convert Net Present Cost (NPC) to annualized annual cost.
+
+    This represents the equivalent constant annual payment that equals
+    the total discounted costs over the project period.
+
+    Formula:
+        Annualized_Cost = NPC / Annuity_Factor
+
+    Args:
+        npc_value: Total Net Present Cost in USD
+        annuity_factor: Annuity factor from calculate_annuity_factor()
+
+    Returns:
+        Annualized annual cost in USD
+
+    Example:
+        >>> npc = 2_650_000_000  # $2,650M
+        >>> factor = 10.594
+        >>> annualized = annualize_npc(npc, factor)
+        >>> annualized  # approximately $250M per year
+    """
+    return npc_value / annuity_factor

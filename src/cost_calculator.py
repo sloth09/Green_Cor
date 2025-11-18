@@ -7,7 +7,9 @@ from typing import Dict, Tuple
 from .utils import (
     calculate_shuttle_capex,
     calculate_pump_power,
-    calculate_tank_volume_m3
+    calculate_tank_volume_m3,
+    calculate_annuity_factor,
+    annualize_npc
 )
 
 
@@ -354,4 +356,83 @@ class CostCalculator:
             "fixed_opex": self.calculate_tank_fixed_opex(),
             "variable_opex": self.calculate_tank_variable_opex(),
             "volume_m3": self.calculate_tank_volume_m3(),
+        }
+
+    # ========== ANNUALIZATION METHODS ==========
+
+    def get_annuity_factor(self) -> float:
+        """
+        Calculate annuity factor for the project period.
+
+        Uses discount rate and 20-year period from configuration.
+
+        Formula:
+            Annuity_Factor = [1 - (1 + r)^(-n)] / r
+
+        Returns:
+            Annuity factor
+
+        Example:
+            >>> cost_calc = CostCalculator(config)
+            >>> factor = cost_calc.get_annuity_factor()
+            >>> factor  # approximately 10.594 for r=7%, n=20
+        """
+        discount_rate = self.config["economy"]["discount_rate"]
+        project_years = 20  # Fixed: 2030-2050
+        return calculate_annuity_factor(discount_rate, project_years)
+
+    def annualize_scenario_npc(self, npc_total: float) -> float:
+        """
+        Convert total Net Present Cost to annualized annual cost.
+
+        This represents the equivalent constant annual payment that equals
+        the total discounted costs over the 20-year project period.
+
+        Args:
+            npc_total: Total Net Present Cost in USD
+
+        Returns:
+            Annualized annual cost in USD
+
+        Example:
+            >>> cost_calc = CostCalculator(config)
+            >>> npc = 2_650_000_000  # $2,650M
+            >>> annualized = cost_calc.annualize_scenario_npc(npc)
+            >>> annualized  # approximately $250M per year
+        """
+        annuity_factor = self.get_annuity_factor()
+        return annualize_npc(npc_total, annuity_factor)
+
+    def annualize_npc_components(
+        self,
+        npc_capex: float,
+        npc_fixed_opex: float,
+        npc_variable_opex: float
+    ) -> Dict[str, float]:
+        """
+        Convert NPC components to annualized costs.
+
+        Allows analysis of which cost components dominate on an annual basis.
+
+        Args:
+            npc_capex: Total capital costs (discounted)
+            npc_fixed_opex: Total fixed operating costs (discounted)
+            npc_variable_opex: Total variable operating costs (discounted)
+
+        Returns:
+            Dictionary with annualized components:
+            {
+                "capex": annualized CAPEX,
+                "fixed_opex": annualized Fixed OPEX,
+                "variable_opex": annualized Variable OPEX,
+                "total": annualized total
+            }
+        """
+        annuity_factor = self.get_annuity_factor()
+
+        return {
+            "capex": annualize_npc(npc_capex, annuity_factor),
+            "fixed_opex": annualize_npc(npc_fixed_opex, annuity_factor),
+            "variable_opex": annualize_npc(npc_variable_opex, annuity_factor),
+            "total": annualize_npc(npc_capex + npc_fixed_opex + npc_variable_opex, annuity_factor),
         }

@@ -370,23 +370,66 @@ class BunkeringOptimizer:
                     self.tank_variable_opex * N_tank_val
                 )
 
+        # Calculate annualized costs and LCOAmmonia
+        annuity_factor = self.cost_calc.get_annuity_factor()
+
+        # Calculate total supply over 20 years for LCOAmmonia
+        total_supply_m3 = 0.0
+        for t in self.years:
+            y_val = y[t].varValue
+            if self.has_storage_at_busan:
+                total_supply_m3 += y_val * self.bunker_volume_per_call_m3
+            else:
+                total_supply_m3 += y_val * shuttle_size
+
+        # Convert supply from m³ to tons for LCOAmmonia calculation
+        density_storage = self.config["ammonia"]["density_storage_ton_m3"]
+        total_supply_ton = total_supply_m3 * density_storage
+
+        # Avoid division by zero for LCOAmmonia
+        lco_ammonia = (npc_total / total_supply_ton) if total_supply_ton > 0 else 0.0
+
+        # Calculate annualized cost components
+        npc_total_capex = npc_shuttle_cap + npc_bunk_cap + npc_tank_cap
+        npc_total_fopex = npc_shuttle_fop + npc_bunk_fop + npc_tank_fop
+        npc_total_vopex = npc_shuttle_vop + npc_bunk_vop + npc_tank_vop
+
+        annualized_total = self.cost_calc.annualize_scenario_npc(npc_total)
+        annualized_capex = self.cost_calc.annualize_scenario_npc(npc_total_capex)
+        annualized_fopex = self.cost_calc.annualize_scenario_npc(npc_total_fopex)
+        annualized_vopex = self.cost_calc.annualize_scenario_npc(npc_total_vopex)
+
         # Scenario summary
         self.scenario_results.append({
+            # Identification and timing
             "Shuttle_Size_cbm": shuttle_size_int,
             "Pump_Size_m3ph": pump_size_int,
             "Call_Duration_hr": round(call_duration, 4),
             "Cycle_Duration_hr": round(cycle_duration, 4),
             "Trips_per_Call": trips_per_call,
-            "NPC_Total_USDm": npc_total / 1e6,
-            "NPC_Shuttle_CAPEX_USDm": npc_shuttle_cap / 1e6,
-            "NPC_Bunkering_CAPEX_USDm": npc_bunk_cap / 1e6,
-            "NPC_Terminal_CAPEX_USDm": npc_tank_cap / 1e6,
-            "NPC_Shuttle_fOPEX_USDm": npc_shuttle_fop / 1e6,
-            "NPC_Bunkering_fOPEX_USDm": npc_bunk_fop / 1e6,
-            "NPC_Terminal_fOPEX_USDm": npc_tank_fop / 1e6,
-            "NPC_Shuttle_vOPEX_USDm": npc_shuttle_vop / 1e6,
-            "NPC_Bunkering_vOPEX_USDm": npc_bunk_vop / 1e6,
-            "NPC_Terminal_vOPEX_USDm": npc_tank_vop / 1e6,
+
+            # ===== NPC (20-YEAR NET PRESENT COST, MILLIONS USD) =====
+            "NPC_Total_USDm": round(npc_total / 1e6, 2),
+            "NPC_Shuttle_CAPEX_USDm": round(npc_shuttle_cap / 1e6, 2),
+            "NPC_Bunkering_CAPEX_USDm": round(npc_bunk_cap / 1e6, 2),
+            "NPC_Terminal_CAPEX_USDm": round(npc_tank_cap / 1e6, 2),
+            "NPC_Shuttle_fOPEX_USDm": round(npc_shuttle_fop / 1e6, 2),
+            "NPC_Bunkering_fOPEX_USDm": round(npc_bunk_fop / 1e6, 2),
+            "NPC_Terminal_fOPEX_USDm": round(npc_tank_fop / 1e6, 2),
+            "NPC_Shuttle_vOPEX_USDm": round(npc_shuttle_vop / 1e6, 2),
+            "NPC_Bunkering_vOPEX_USDm": round(npc_bunk_vop / 1e6, 2),
+            "NPC_Terminal_vOPEX_USDm": round(npc_tank_vop / 1e6, 2),
+
+            # ===== ANNUALIZED COSTS (ANNUAL EQUIVALENT, MILLIONS USD/YEAR) =====
+            "Annuity_Factor": round(annuity_factor, 4),
+            "Annualized_Cost_USDm_per_year": round(annualized_total / 1e6, 2),
+            "Annualized_CAPEX_USDm_per_year": round(annualized_capex / 1e6, 2),
+            "Annualized_FixedOPEX_USDm_per_year": round(annualized_fopex / 1e6, 2),
+            "Annualized_VariableOPEX_USDm_per_year": round(annualized_vopex / 1e6, 2),
+
+            # ===== LEVELIZED COST OF AMMONIA (USD/TON) =====
+            "Total_Supply_20yr_ton": round(total_supply_ton, 2),
+            "LCOAmmonia_USD_per_ton": round(lco_ammonia, 2),
         })
 
         # Yearly results
@@ -402,16 +445,73 @@ class BunkeringOptimizer:
             demand = self.annual_demand[t]
             cycles_avail = N_val * (self.max_annual_hours / cycle_duration) if N_val > 0 else 0
 
+            # ===== COST BREAKDOWN (DISCOUNTED) =====
+            # CAPEX costs
+            capex_shuttle_usd = disc_factor * shuttle_capex * x_val
+            capex_pump_usd = disc_factor * bunk_capex * x_val
+            capex_tank_usd = 0.0
+            if self.tank_enabled:
+                x_tank_val = x_tank[t].varValue
+                capex_tank_usd = disc_factor * self.tank_capex * x_tank_val
+
+            capex_total_usd = capex_shuttle_usd + capex_pump_usd + capex_tank_usd
+
+            # Fixed OPEX costs
+            fopex_shuttle_usd = disc_factor * shuttle_fixed_opex * N_val
+            fopex_pump_usd = disc_factor * bunk_fixed_opex * N_val
+            fopex_tank_usd = 0.0
+            if self.tank_enabled:
+                N_tank_val = N_tank[t].varValue
+                fopex_tank_usd = disc_factor * self.tank_fixed_opex * N_tank_val
+
+            fopex_total_usd = fopex_shuttle_usd + fopex_pump_usd + fopex_tank_usd
+
+            # Variable OPEX costs
+            shuttle_vop = shuttle_fuel_per_cycle * cycles
+            pump_vop = pump_fuel_per_call * y_val
+            vopex_shuttle_usd = disc_factor * shuttle_vop
+            vopex_pump_usd = disc_factor * pump_vop
+            vopex_tank_usd = 0.0
+            if self.tank_enabled:
+                N_tank_val = N_tank[t].varValue
+                vopex_tank_usd = disc_factor * self.tank_variable_opex * N_tank_val
+
+            vopex_total_usd = vopex_shuttle_usd + vopex_pump_usd + vopex_tank_usd
+
+            total_year_cost_usd = capex_total_usd + fopex_total_usd + vopex_total_usd
+
             self.yearly_results.append({
+                # Identification
                 "Shuttle_Size_cbm": shuttle_size_int,
                 "Pump_Size_m3ph": pump_size_int,
                 "Year": t,
+                # Assets
                 "New_Shuttles": int(round(x_val)),
                 "Total_Shuttles": int(round(N_val)),
+                # Operations
                 "Annual_Calls": round(y_val, 4),
                 "Annual_Cycles": round(cycles, 4),
                 "Supply_m3": round(supply, 4),
                 "Demand_m3": round(demand, 4),
                 "Cycles_Available": round(cycles_avail, 4),
                 "Utilization_Rate": round((cycles / cycles_avail) if cycles_avail > 0 else 0, 6),
+                # ===== COSTS (MILLIONS USD, DISCOUNTED) =====
+                # CAPEX
+                "CAPEX_Shuttle_USDm": round(capex_shuttle_usd / 1e6, 4),
+                "CAPEX_Pump_USDm": round(capex_pump_usd / 1e6, 4),
+                "CAPEX_Tank_USDm": round(capex_tank_usd / 1e6, 4),
+                "CAPEX_Total_USDm": round(capex_total_usd / 1e6, 4),
+                # Fixed OPEX
+                "FixedOPEX_Shuttle_USDm": round(fopex_shuttle_usd / 1e6, 4),
+                "FixedOPEX_Pump_USDm": round(fopex_pump_usd / 1e6, 4),
+                "FixedOPEX_Tank_USDm": round(fopex_tank_usd / 1e6, 4),
+                "FixedOPEX_Total_USDm": round(fopex_total_usd / 1e6, 4),
+                # Variable OPEX
+                "VariableOPEX_Shuttle_USDm": round(vopex_shuttle_usd / 1e6, 4),
+                "VariableOPEX_Pump_USDm": round(vopex_pump_usd / 1e6, 4),
+                "VariableOPEX_Tank_USDm": round(vopex_tank_usd / 1e6, 4),
+                "VariableOPEX_Total_USDm": round(vopex_total_usd / 1e6, 4),
+                # Total
+                "Total_Year_Cost_Discounted_USDm": round(total_year_cost_usd / 1e6, 4),
+                "Discount_Factor": round(disc_factor, 4),
             })
