@@ -64,6 +64,95 @@ D:\code\Green_Cor\
 
 ---
 
+## 시간 구조 (Time Structure)
+
+### Case 1: 부산항 내 셔틀 운영
+
+**총 사이클 시간 구성**:
+```
+편도 이동 (부산항 내, 접안/계류 포함):        1시간
+호스 연결 및 기체 퍼징:                      1시간
+벙커링 시간 (연료 유체 흐름):                shuttle_size / pump_rate (시간)
+호스 분리 및 암모니아 퍼징:                  1시간
+부산항 내 회항 (편도 이동, 접안/계류):      1시간
+──────────────────────────────────────
+한 번의 완전한 사이클:                        3시간 + 펌핑시간
+
+고정 시간 = 3시간 (이동 + 연결/해제)
+펌핑 시간 = Shuttle_Size_m3 / Pump_Rate_m3ph
+```
+
+**육상 연료 공급 시간** (저장탱크에서 셔틀로 충전):
+```
+충전 시간 = Shuttle_Size_m3 / 1500 (고정값, m³/h)
+예: 5000 m³ 셔틀 = 3.33시간
+```
+
+**예시 (5,000 m³ 셔틀, 1,000 m³/h 펌프)**:
+```
+육상 적재:           3.33시간
+셔틀 편도:           1시간
+호스 연결:           0.5시간
+벙커링:              5시간 (5,000 ÷ 1,000)
+호스 해제:           0.5시간
+복귀:                1시간
+───────────────────────
+총 사이클:           11.33시간
+
+연간 최대 사이클: 8,000시간 ÷ 11.33시간 = 706회
+```
+
+### Case 2: 여수/울산 → 부산 장거리 운송
+
+**총 사이클 시간 구성**:
+```
+여수/울산에서 출발지 준비:                   1시간
+근거지 육상 연료 탱크에서 적재:             shuttle_size / 1500 (시간)
+여수 → 부산 편도 항해 (15노트):             여수: 5.63시간, 울산: 1.67시간
+부산항 진입 및 대기:                        1시간
+각 선박마다 반복 (vessels_per_trip회):
+  - 부산항 이동 (접안/계류):                1시간
+  - 호스 연결 및 기체 퍼징:                 1시간
+  - 벙커링 시간 (vessel당):                 5000 / pump_rate (시간)
+  - 호스 분리 및 암모니아 퍼징:             1시간
+부산 → 여수/울산 편도 항해:                 여수: 5.63시간, 울산: 1.67시간
+근거지 도착 및 정박:                        1시간
+──────────────────────────────────────
+한 번의 완전한 사이클:                        정상 시간 + (선박 수 × 펌핑 시간)
+```
+
+**예시 (Case 2-2: 울산, 25,000 m³ 셔틀, 1,000 m³/h 펌프, 5척 서빙)**:
+```
+울산 준비:           1시간
+육상 적재:           16.67시간 (25,000 ÷ 1,500)
+울산 → 부산:         1.67시간
+부산 진입:           1시간
+───────────────────────
+[5척의 선박, 각각 5,000 m³씩]
+  - 선박 1: 이동(1) + 연결(1) + 펌핑(5) + 해제(1) = 8시간
+  - 선박 2~5: 동일하게 8시간씩 = 32시간
+───────────────────────
+부산 → 울산:         1.67시간
+울산 도착:           1시간
+───────────────────────
+총 사이클:           63.01시간
+
+연간 최대 항해: 8,000시간 ÷ 63시간 = 127회
+```
+
+**Case 2-1 (여수) vs Case 2-2 (울산) 시간 비교**:
+```
+여수 → 부산 편도: 5.63시간 vs 울산 → 부산: 1.67시간
+───────────────────────────────────────────────
+Case 2-1 총 사이클: ~75시간 (5척 서빙)
+Case 2-2 총 사이클: ~63시간 (5척 서빙)
+
+Case 2-2의 시간 절감: 12시간 (약 16% 단축)
+연간 항해 능력: Case 2-1: 107회 < Case 2-2: 127회
+```
+
+---
+
 ## 세 가지 Case 설명
 
 ### Case 1: 부산항 저장소 기반
@@ -483,6 +572,446 @@ Top 10 Scenarios (by NPC)
               4000            1000         2698.12                   485.23                    127.45
               ...
 ```
+
+---
+
+## 변경 가능한 변수 목록 (Configurable Variables)
+
+본 모델에서 사용자가 YAML 파일을 통해 직접 조정 가능한 변수들:
+
+### 1. 셔틀 (Shuttle) 파라미터
+- **가용 크기**: Case 1: 500~5,000 m³, Case 2: 5,000~50,000 m³
+- **MCR (최대 연속 정격)**: 셔틀 크기별 엔진 파워 (kW)
+  - 기본값: 기존 데이터 + 선형 보간(4500, 5000) + 로그 외삽(Case 2)
+  - 수정 가능: case_X.yaml의 mcr_map_kw 수정
+
+### 2. 펌프 (Pump) 파라미터
+- **가용 유량**: 400, 600, 800, 1,000, 1,200, 1,400, 1,600, 1,800, 2,000 m³/h
+  - 기본 9종 모두 최적화 대상
+  - 특정 펌프 크기만 사용하고 싶으면 base.yaml의 pumps.available_flow_rates 수정
+
+### 3. 저장탱크 (Tank) 파라미터 (Case 1만)
+- **탱크 용량**: 기본값 35,000톤
+  - config/case_1.yaml의 tank_storage.size_tons 수정
+  - 예: 40,000톤, 50,000톤 등으로 변경 가능
+- **냉각 에너지**: 0.0378 kWh/kg (암모니아 냉각 유지용)
+- **여유 계수**: 2.0배 (안전 재고, 1.5~3.0 범위)
+  - config/base.yaml의 operations.tank_safety_factor 수정
+
+### 4. 시간 파라미터 (Time-related)
+- **Case 1 편도 이동 시간**: 기본값 2.0시간 (항만 내부)
+  - operations.travel_time_hours
+- **Case 2 항해 거리 기반**:
+  - Case 2-1 (여수): 86해리 → 5.63시간 (자동 계산)
+  - Case 2-2 (울산): 25해리 → 1.67시간 (자동 계산)
+- **호스 연결/해제 시간**: 각 0.5시간 (총 1시간)
+  - operations.setup_time_hours (기본값 0.5시간)
+- **육상 연료 공급 펌프 유량**: 1,500 m³/h (고정값, 변경 가능)
+  - config/base.yaml의 shore_supply_pump_rate_m3ph
+
+### 5. 경제 파라미터
+- **할인율**: 기본값 7%
+  - economy.discount_rate
+- **암모니아 연료 가격**: 기본값 600 USD/톤
+  - economy.fuel_price_usd_per_ton
+- **전기요금**: 기본값 0.0769 USD/kWh
+  - economy.electricity_price_usd_per_kwh
+- **유지보수비율**:
+  - 셔틀: CAPEX의 5%
+  - 펌프: CAPEX의 5%
+  - 탱크: CAPEX의 3%
+
+### 6. 수요 예측 파라미터
+- **초기 선박 수 (2030년)**: 50척
+  - shipping.start_vessels
+- **최종 선박 수 (2050년)**: 500척
+  - shipping.end_vessels
+- **항차당 연료량**: 기본값 5,000 m³
+  - bunkering.bunker_volume_per_call_m3
+- **선박당 연간 항차**: 12회
+  - shipping.voyages_per_year
+- **최대 연간 운영시간**: 8,000시간/년 (선박당)
+  - operations.max_annual_hours_per_vessel
+
+---
+
+## 도출 결과 목록 (Output Results)
+
+최적화 실행 후 다음과 같은 결과가 생성됩니다:
+
+### 1. 최적 Shuttle 크기 및 개수
+- **선택된 셔틀 크기**: 500~5,000 m³ (Case 1) 또는 5,000~50,000 m³ (Case 2)
+- **연도별 누적 셔틀 수**: 2030년부터 2050년까지의 선박 증감 일정
+- **신규 추가 셔틀 수**: 각 연도의 추가 구매 필요 선박 수
+
+**예시 출력** (MILP_per_year_results_case_X.csv):
+```
+Year,New_Shuttles,Total_Shuttles,Annual_Calls
+2030,1,1,382
+2035,2,3,896
+2040,2,5,1410
+2050,5,15,2856
+```
+
+### 2. 최적 펌프 유량
+- **선택된 펌프 크기**: 400~2,000 m³/h 중 최적값
+- **벙커링 시간 단축**: 펌프 크기에 따른 사이클 타임 감소
+- **CAPEX vs OPEX 트레이드오프**:
+  - 큰 펌프: 시간 단축 → 운영비 감소, 장비비 증가
+  - 작은 펌프: 시간 증가 → 셔틀 수 증가, 장비비 감소
+
+**선택 기준**:
+```
+pump_size = argmin(NPC)
+           = min(CAPEX(pump) + OPEX(all components))
+
+결과: 대부분 1,000~1,200 m³/h가 최적
+```
+
+### 3. 연도별 총 비용 (Annualized)
+생성되는 파일: MILP_per_year_results_case_X.csv
+
+**비용 항목별 분해**:
+```
+2030년 예시:
+├── CAPEX (자본비)
+│   ├── 셔틀 신규 구매: $18,917,000 × 1척 = $18.9M
+│   ├── 펌프: $505,600
+│   └── 탱크 (Case 1): $42,525,000
+│   총 CAPEX: $62.0M (2030년)
+│
+├── 고정 OPEX (유지보수비)
+│   ├── 셔틀: $945,850/년
+│   ├── 펌프: $25,280/년
+│   └── 탱크: $1,275,750/년
+│   총 고정: $2.2M/년
+│
+└── 변동 OPEX (연료비, 에너지비)
+    ├── 셔틀 연료: $293,000/년
+    ├── 펌프 에너지: $219,500/년
+    └── 탱크 냉각: $104,400/년
+    총 변동: $616,900/년
+```
+
+### 4. 선박 연료 암모니아 1톤당 가격 (LCOAmmonia)
+**계산식**:
+```
+LCOA = (20년 NPC 할인액) / (20년 총 공급량)
+     = Σ_t [Discount(t) × (CAPEX(t) + OPEX(t))] / Σ_t [Supply(t)]
+     = [USD] / [ton]
+```
+
+**예시**:
+```
+Case 1 (부산 저장소):   LCOA ≈ $280~350/ton
+Case 2-2 (울산):      LCOA ≈ $200~270/ton
+Case 2-1 (여수):      LCOA ≈ $220~290/ton
+
+참고: 시장가 600 USD/ton 대비
+20년 평균 추가 비용: 30~58%
+```
+
+### 5. 항차별 평균 시간 (Average Call Duration)
+각 벙커링 콜(Case 1) 또는 항해(Case 2)의 평균 소요 시간
+
+**Case 1 예시** (5,000 m³ 셔틀, 1,000 m³/h 펌프):
+```
+육상 적재:    3.33시간
+셔틀 항해:    2시간 (편도 × 2)
+호스 작업:    1시간
+벙커링:       5시간
+──────────
+총 시간:     11.33시간 (1회 완전 사이클)
+
+그러나 "콜"의 정의: 1회 선박 급유
+→ 콜당 시간 = 11.33 / (1회 왕복당 콜 수)
+             = 11.33 / 1 = 11.33시간/콜
+```
+
+**Case 2-2 예시** (25,000 m³ 셔틀, 1,000 m³/h 펌프):
+```
+근거지 준비:  1시간
+육상 적재:    16.67시간
+항해:         3.34시간 (편도 × 2)
+선박 서빙:    40시간 (5척 × 8시간)
+──────────
+총 시간:     61시간/항해
+
+항해당 서빙 선박: 5척
+→ 항해당 평균: 61 / 5 = 12.2시간/선박
+```
+
+### 6. 결과 파일 형식
+
+#### MILP_scenario_summary_case_X.csv
+```
+Shuttle_Size_cbm,Pump_Size_m3ph,NPC_Total_USDm,NPC_Shuttle_CAPEX_USDm,...
+3000,1000,2651.45,412.32,...
+3500,1200,2584.32,452.10,...
+5000,1000,2698.12,485.23,...
+```
+
+#### MILP_per_year_results_case_X.csv
+```
+Year,New_Shuttles,Total_Shuttles,Annual_Calls,Supply_m3,Demand_m3,Utilization_Rate
+2030,1,1,382,1910000,1905000,0.997
+2031,1,2,764,3820000,3810000,0.997
+```
+
+#### MILP_cases_summary.csv (다중 케이스)
+```
+Case,Shuttle_Size_cbm,Pump_Size_m3ph,NPC_Total_USDm,Ranking
+case_1,5000,1000,2698.12,1
+case_2_ulsan,5000,1000,1884.56,2
+case_2_yeosu,5000,1000,2015.23,3
+```
+
+---
+
+## 코드 구조 개선 계획 (Code Architecture Refactoring)
+
+### v2.3 예정 사항: 모듈화 및 구조 개선
+
+#### 1. 육상 연료 공급 모듈 분리 (Shore Supply Module)
+
+**현재 구조**:
+- 육상 연료 공급 로직이 optimizer.py에 섞여있음
+- Case별로 다르게 적용되지 않음
+
+**개선된 구조**:
+```
+src/
+├── shore_supply.py         [새 파일] 육상 연료 공급 관리
+│   ├── ShoreSupply 클래스
+│   ├── load_shuttle()      셔틀 적재 시간 계산
+│   ├── unload_shuttle()    셔틀 언로드 시간 계산
+│   └── is_shore_supply_enabled()
+│
+├── config_loader.py        (수정)
+│   └── shore_supply 섹션 추가
+│
+├── optimizer.py            (수정)
+│   └── ShoreSupply 인스턴스 호출
+│
+└── base.yaml               (수정)
+    └── shore_supply:
+          enabled: true/false
+          pump_rate_m3ph: 1500
+```
+
+**설정 파일 (config/base.yaml)**:
+```yaml
+shore_supply:
+  enabled: true                    # 활성화/비활성화
+  pump_rate_m3ph: 1500            # 육상 펌프 유량
+  loading_time_fixed_hours: 0      # 추가 고정 시간
+```
+
+**사용 예시**:
+```python
+# Case 1: 부산 저장탱크에서 적재 (활성화)
+# Case 2: 근거지 탱크에서 적재 (활성화)
+
+if config['shore_supply']['enabled']:
+    shore_supply = ShoreSupply(config)
+    load_time = shore_supply.load_shuttle(shuttle_size, pump_rate)
+    cycle_time += load_time
+```
+
+#### 2. 핵심 시간 로직 라이브러리화 (Core Time Calculation Library)
+
+**목표**: 1개 셔틀 왕복 시간 계산을 핵심 로직으로 독립화
+
+**새로운 파일**: `src/cycle_time_calculator.py`
+
+```python
+class CycleTimeCalculator:
+    """
+    한 번의 완전한 셔틀 왕복 사이클 시간 계산
+    """
+
+    def __init__(self, case_type, config):
+        self.case_type = case_type  # "case_1", "case_2_yeosu", "case_2_ulsan"
+        self.config = config
+
+    def calculate_single_cycle(self, shuttle_size, pump_rate, num_vessels=1):
+        """
+        단일 사이클 타임 계산 (모든 Case에 공통 적용)
+
+        Parameters:
+        -----------
+        shuttle_size : float
+            셔틀 용량 (m³)
+        pump_rate : float
+            펌프 유량 (m³/h)
+        num_vessels : int
+            한 항해에 서빙하는 선박 수 (Case 2에서만 사용, 기본값 1)
+
+        Returns:
+        --------
+        dict : {
+            'shore_loading': 시간,
+            'travel_outbound': 시간,
+            'setup_inbound': 시간,
+            'pumping': 시간,
+            'setup_outbound': 시간,
+            'travel_return': 시간,
+            'shore_unloading': 시간,
+            'total': 시간
+        }
+        """
+        pass
+```
+
+**구현 로직**:
+
+Case 1용:
+```python
+def calculate_single_cycle_case1(self, shuttle_size, pump_rate):
+    shore_loading = shuttle_size / 1500
+    travel_outbound = 1.0
+    setup = 1.0
+    pumping = shuttle_size / pump_rate
+    travel_return = 1.0
+    shore_unloading = 0  # Case 1에서는 펌핑 후 바로 복귀
+
+    return {
+        'shore_loading': shore_loading,
+        'travel': travel_outbound + travel_return,
+        'setup': setup,
+        'pumping': pumping,
+        'total': shore_loading + travel_outbound + setup + pumping + travel_return
+    }
+```
+
+Case 2용:
+```python
+def calculate_single_cycle_case2(self, shuttle_size, pump_rate, num_vessels):
+    shore_loading = shuttle_size / 1500
+    travel_outbound = self.config['operations']['travel_time_hours']
+    port_entry = 1.0
+
+    # 각 선박마다의 시간 (반복)
+    per_vessel = 1.0 + 1.0 + (5000 / pump_rate) + 1.0  # 이동+연결+펌핑+해제
+    pumping_total = per_vessel * num_vessels
+
+    travel_return = self.config['operations']['travel_time_hours']
+
+    return {
+        'shore_loading': shore_loading,
+        'travel_outbound': travel_outbound,
+        'port_entry': port_entry,
+        'per_vessel_time': per_vessel,
+        'pumping_total': pumping_total,
+        'travel_return': travel_return,
+        'total': shore_loading + travel_outbound + port_entry + pumping_total + travel_return
+    }
+```
+
+#### 3. Case별 최적화 호출 구조
+
+**현재 구조** (optimizer.py):
+```python
+class BunkeringOptimizer:
+    def __init__(self, config):
+        # 모든 로직이 혼합됨
+
+    def _solve_combination(self, shuttle_size, pump_size):
+        # Case 구분이 scattered
+        if self.has_storage_at_busan:
+            trips = ceil(bunker_vol / shuttle_size)
+        else:
+            vessels = floor(shuttle_size / bunker_vol)
+```
+
+**개선된 구조** (v2.3):
+```python
+class BunkeringOptimizer:
+    def __init__(self, config):
+        self.case_type = config['case_id']
+        self.cycle_calculator = CycleTimeCalculator(self.case_type, config)
+
+    def _solve_combination(self, shuttle_size, pump_size):
+        # 핵심 계산을 라이브러리에 위임
+        cycle_info = self.cycle_calculator.calculate_single_cycle(
+            shuttle_size,
+            pump_size,
+            num_vessels=self._calculate_vessels_per_trip(shuttle_size)
+        )
+
+        # Case별 제약식 적용
+        if self.case_type == 'case_1':
+            self._apply_case1_constraints(cycle_info)
+        elif self.case_type in ['case_2_yeosu', 'case_2_ulsan']:
+            self._apply_case2_constraints(cycle_info)
+```
+
+#### 4. 일일 피크 제약 삭제
+
+**현재 상태**:
+- 2.6.3절에서 일일 피크 제약식 존재:
+  ```
+  Daily_Capacity >= Daily_Demand × 1.5
+  ```
+
+**삭제 이유**:
+- 작업시간 제약(2.6.2)과 중복
+- 평균 수요 기반 일일 피크 가정이 비현실적
+- 실제 선박 스케줄은 예약 시스템으로 관리 가능
+
+**삭제 계획**:
+1. `src/optimizer.py` 라인 280-290 제약식 제거
+2. `PROJECT_ANALYSIS_REPORT.md` 2.6.3절 삭제
+3. 세 Case 비교 테이블 업데이트 (제약식 개수 감소)
+
+**수정 후**:
+```python
+# 제약식: 작업시간 제약만 남음 (이미 peak 처리 포함)
+y[t] × Trips_per_Call × Cycle_Duration <= N[t] × 8,000
+```
+
+#### 5. YAML 설정 최적화
+
+**Base.yaml 확장**:
+```yaml
+execution:
+  # ... 기존 필드 ...
+
+time_structure:
+  case_1:
+    travel_time_hours: 2.0
+    setup_time_hours: 0.5
+  case_2_yeosu:
+    travel_time_hours: 5.63
+    setup_time_hours: 0.5
+  case_2_ulsan:
+    travel_time_hours: 1.67
+    setup_time_hours: 0.5
+
+shore_supply:
+  enabled: true
+  pump_rate_m3ph: 1500
+
+cycle_calculation:
+  method: "lib"  # "lib" (라이브러리) or "legacy" (기존 방식)
+```
+
+#### 6. 구현 순서
+
+**Phase 1 (v2.3.1)**: 기초 작업
+- [ ] CycleTimeCalculator 클래스 구현
+- [ ] ShoreSupply 클래스 구현
+- [ ] 단위 테스트 작성
+
+**Phase 2 (v2.3.2)**: 통합
+- [ ] optimizer.py 리팩토링 (라이브러리 호출)
+- [ ] 일일 피크 제약 삭제
+- [ ] 회귀 테스트 (기존 결과와 동일 확인)
+
+**Phase 3 (v2.3.3)**: 문서화
+- [ ] CLAUDE.md 업데이트
+- [ ] PROJECT_ANALYSIS_REPORT.md 업데이트
+- [ ] 코드 주석 추가
 
 ---
 
