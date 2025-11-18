@@ -11,6 +11,8 @@ import numpy as np
 
 from .config_loader import ConfigLoader
 from .cost_calculator import CostCalculator
+from .cycle_time_calculator import CycleTimeCalculator
+from .shore_supply import ShoreSupply
 from .utils import (
     interpolate_mcr,
     calculate_m3_per_voyage,
@@ -110,6 +112,10 @@ class BunkeringOptimizer:
             self.tank_variable_opex = self.cost_calc.calculate_tank_variable_opex()
             self.tank_volume_m3 = self.cost_calc.calculate_tank_volume_m3()
 
+        # Initialize cycle time calculator and shore supply manager
+        self.cycle_calc = CycleTimeCalculator(self.config.get("case_id", "case_1"), self.config)
+        self.shore_supply = ShoreSupply(self.config)
+
     def solve(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Solve optimization problem for all shuttle/pump combinations.
@@ -162,64 +168,38 @@ class BunkeringOptimizer:
         if mcr == 0:
             return  # Skip if MCR not available
 
-        # Calculate timing
-        # Case 1 (has_storage_at_busan=True): Small shuttles make multiple trips per call
-        # Case 2 (has_storage_at_busan=False): Large shuttles service multiple vessels per trip
+        # Use CycleTimeCalculator to get complete timing breakdown
+        # Determine number of vessels per trip for Case 2
         if self.has_storage_at_busan:
-            # Case 1: Calculate trips needed to fulfill one 5,000 m³ call
-            trips_per_call = int(ceil(self.bunker_volume_per_call_m3 / shuttle_size))
-            volume_per_trip = shuttle_size
+            num_vessels = 1  # Case 1: Not used
         else:
-            # Case 2: Calculate vessels serviced per trip (shuttle makes one trip per "mega-call")
-            vessels_per_trip = max(1, int(shuttle_size // self.bunker_volume_per_call_m3))
-            trips_per_call = 1  # One trip per mega-call in Case 2
-            volume_per_trip = shuttle_size  # Full shuttle capacity per trip
+            # Case 2: Calculate vessels per trip based on shuttle size
+            num_vessels = max(1, int(shuttle_size // self.bunker_volume_per_call_m3))
 
-        # Time components
-        travel_hours_per_cycle = self.travel_time_hours  # One-way travel
-        pumping_time_hr_cycle = 2.0 * (shuttle_size / pump_size)  # Load + unload
-        # For pump fuel cost:
-        # Case 1: time to pump one call (5000 m3)
-        # Case 2: time to pump full shuttle
-        if self.has_storage_at_busan:
-            pumping_time_hr_call = 2.0 * (self.bunker_volume_per_call_m3 / pump_size)
-        else:
-            pumping_time_hr_call = 2.0 * (shuttle_size / pump_size)
+        cycle_info = self.cycle_calc.calculate_single_cycle(shuttle_size, pump_size, num_vessels)
 
-        # Call duration
-        # For Case 2: includes round-trip travel
-        # For Case 1: port internal movements
-        if self.has_storage_at_busan:
-            # Case 1: Within port operations
-            call_duration = trips_per_call * (travel_hours_per_cycle + 2.0 * self.setup_time_hours) + \
-                           pumping_time_hr_call
-        else:
-            # Case 2: Include round-trip travel (to Busan and back)
-            call_duration = trips_per_call * (2.0 * travel_hours_per_cycle + 2.0 * self.setup_time_hours) + \
-                           pumping_time_hr_call
+        # Extract timing information
+        call_duration = cycle_info["call_duration"]
+        cycle_duration = cycle_info["cycle_duration"]
+        trips_per_call = cycle_info["trips_per_call"]
 
         # Check call duration constraint
         if call_duration > self.max_call_hours:
             return  # Skip infeasible combination
 
-        # Cycle duration
-        # For Case 2: shuttle must travel to Busan and back to source (round-trip)
-        # For Case 1: shuttle operates within port (one-way concept but effectively round-trip in cycle)
-        if self.has_storage_at_busan:
-            # Case 1: Travel within port (one-way is sufficient for model)
-            cycle_duration = travel_hours_per_cycle + 2.0 * self.setup_time_hours + pumping_time_hr_cycle
-        else:
-            # Case 2: Round-trip travel (Ulsan -> Busan -> Ulsan)
-            cycle_duration = 2.0 * travel_hours_per_cycle + 2.0 * self.setup_time_hours + pumping_time_hr_cycle
-
-        # Fuel costs
-        if self.has_storage_at_busan:
-            # Case 1: One-way travel fuel
-            shuttle_fuel_per_cycle = (mcr * self.sfoc * travel_hours_per_cycle) / 1e6
-        else:
-            # Case 2: Round-trip travel fuel (Ulsan -> Busan -> Ulsan)
-            shuttle_fuel_per_cycle = (mcr * self.sfoc * 2.0 * travel_hours_per_cycle) / 1e6
+        # Calculate fuel costs using timing from cycle calculator
+        # For Case 1: One-way travel; Case 2: Round-trip travel
+        travel_factor = 1.0 if self.has_storage_at_busan else 2.0
+        shuttle_fuel_per_cycle = (mcr * self.sfoc * travel_factor * self.travel_time_hours) / 1e6
         shuttle_fuel_cost_per_cycle = shuttle_fuel_per_cycle * self.fuel_price
+
+        # Pump fuel cost based on actual pumping time
+        # Case 1: Time to pump one call (5000 m³)
+        # Case 2: Time to pump full shuttle
+        if self.has_storage_at_busan:
+            pumping_time_hr_call = 2.0 * (self.bunker_volume_per_call_m3 / pump_size)
+        else:
+            pumping_time_hr_call = 2.0 * (shuttle_size / pump_size)
 
         pump_fuel_per_call = (self.cost_calc.calculate_pump_power(pump_size,
                                                                    self.config["propulsion"]["pump_delta_pressure_bar"],
