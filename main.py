@@ -71,16 +71,43 @@ def run_single_scenario(config, shuttle_size_cbm, pump_size_m3ph, output_path):
                                                    config["operations"].get("shore_supply_pump_rate_m3ph", 1500.0))
         ship_fuel_per_call = config["bunkering"]["bunker_volume_per_call_m3"]
 
-        # Display time breakdown
+        # Display time breakdown - case-specific structure
         print("\n【1회 왕복 운항 시간 분석 (One Round-Trip Voyage Breakdown)】")
         print("-" * 60)
+
+        # Common first steps
         print(f"육상 적재 (Shore Loading):               {cycle_info['shore_loading']:.2f}h")
         print(f"  Land Pump: {land_pump_rate:.0f} m³/h × Shuttle: {shuttle_size_cbm} m³")
         print(f"편도 항해 (Outbound Travel):             {cycle_info['travel_outbound']:.2f}h")
-        print(f"호스 연결 (Connection & Purging):       {cycle_info['setup_inbound']:.2f}h")
-        print(f"벙커링 (Bunkering):                      {cycle_info['pumping_per_vessel']:.2f}h")
-        print(f"  Pump: {pump_size_m3ph} m³/h × Ship Fuel: {ship_fuel_per_call:.0f} m³")
-        print(f"호스 분리 (Disconnection & Purging):    {cycle_info['setup_outbound']:.2f}h")
+
+        # Case-specific: Port operations
+        is_case_1 = cycle_info['has_storage_at_busan']
+
+        if is_case_1:
+            # CASE 1: Shuttle makes multiple trips within port
+            print(f"호스 연결 (Connection & Purging):       {cycle_info['setup_inbound']:.2f}h")
+            print(f"벙커링 (Bunkering):                      {cycle_info['pumping_per_vessel']:.2f}h")
+            print(f"  Pump: {pump_size_m3ph} m³/h × Shuttle Capacity: {shuttle_size_cbm} m³")
+            print(f"호스 분리 (Disconnection & Purging):    {cycle_info['setup_outbound']:.2f}h")
+        else:
+            # CASE 2: One trip serves multiple vessels at destination port
+            if cycle_info['port_entry'] > 0:
+                print(f"부산항 진입 (Port Entry):                {cycle_info['port_entry']:.2f}h")
+
+            # Repeat per vessel at destination
+            num_vessels_display = cycle_info['vessels_per_trip']
+            if num_vessels_display > 1:
+                print(f"  [아래 내용이 {num_vessels_display}척 반복]")
+
+            print(f"  부산항 이동 (Docking/Movement):        {cycle_info['movement_per_vessel']:.2f}h")
+            print(f"  호스 연결 (Connection & Purging):      {cycle_info['setup_inbound']:.2f}h")
+            print(f"  벙커링 (Bunkering):                     {cycle_info['pumping_per_vessel']:.2f}h")
+            print(f"    Pump: {pump_size_m3ph} m³/h × Ship Fuel: {ship_fuel_per_call:.0f} m³")
+            print(f"  호스 분리 (Disconnection & Purging):   {cycle_info['setup_outbound']:.2f}h")
+
+            if cycle_info['port_exit'] > 0:
+                print(f"부산항 퇴출 (Port Exit):                 {cycle_info['port_exit']:.2f}h")
+
         print(f"복귀 항해 (Return Travel):               {cycle_info['travel_return']:.2f}h")
         print("-" * 60)
         print(f"★ 총 왕복 사이클 시간:                   {cycle_info['cycle_duration']:.2f}h")

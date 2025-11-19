@@ -90,14 +90,15 @@ class CycleTimeCalculator:
         --------
         dict with complete time breakdown including shore supply
         """
-        # Step 1: Use core library (applies equally to all cases)
+        # Step 1: Use core library (applies equally to all cases, but with different logic for Case 1 vs 2)
         is_round_trip = True  # All cases have return travel
         shuttle_cycle = self.shuttle_calculator.calculate(
             shuttle_size_m3=shuttle_size_m3,
             pump_size_m3ph=pump_size_m3ph,
             bunker_volume_per_call_m3=self.bunker_volume_per_call_m3,
             num_vessels=num_vessels,
-            is_round_trip=is_round_trip
+            is_round_trip=is_round_trip,
+            has_storage_at_busan=self.has_storage_at_busan
         )
 
         # Step 2: Add shore supply loading time (conditional)
@@ -128,6 +129,10 @@ class CycleTimeCalculator:
             'shore_loading': shore_loading,
             'travel_outbound': shuttle_cycle['travel_outbound_h'],
             'travel_return': shuttle_cycle['travel_return_h'],
+            'port_entry': shuttle_cycle['port_entry_h'],
+            'port_exit': shuttle_cycle['port_exit_h'],
+            'movement_per_vessel': shuttle_cycle['movement_per_vessel_h'],
+            'movement_total': shuttle_cycle['movement_total_h'],
             'setup_inbound': shuttle_cycle['setup_inbound_h'],
             'setup_outbound': shuttle_cycle['setup_outbound_h'],
             'pumping_per_vessel': shuttle_cycle['pumping_per_vessel_h'],
