@@ -7,6 +7,10 @@ pyyaml>=5.4.0               # YAML configuration parsing
 # Optional visualization
 matplotlib>=3.4.0           # Plotting (used in original version)
 
+# Export functionality
+openpyxl>=3.0.0             # Excel file export (.xlsx)
+python-docx>=0.8.11         # Word document export (.docx)
+
 # Development
 python-dateutil>=2.8.0      # Date utilities
 

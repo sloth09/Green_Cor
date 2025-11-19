@@ -56,10 +56,13 @@ class BunkeringOptimizer:
         # Shipping parameters
         self.kg_per_voyage = self.config["shipping"]["kg_per_voyage"]
         self.voyages_per_year = self.config["shipping"]["voyages_per_year"]
-        self.m3_per_voyage = calculate_m3_per_voyage(
-            self.kg_per_voyage,
-            self.config["ammonia"]["density_storage_ton_m3"]
-        )
+
+        # Bunkering call volume (load this first, as it's the source of truth for demand)
+        self.bunker_volume_per_call_m3 = self.config["bunkering"]["bunker_volume_per_call_m3"]
+
+        # Use bunker_volume_per_call_m3 as the source of truth for m3_per_voyage
+        # (This overrides the kg_per_voyage conversion as intended by config)
+        self.m3_per_voyage = self.bunker_volume_per_call_m3
 
         # Vessel growth
         self.vessel_growth = calculate_vessel_growth(
@@ -75,9 +78,6 @@ class BunkeringOptimizer:
             self.m3_per_voyage,
             self.voyages_per_year
         )
-
-        # Bunkering call volume
-        self.bunker_volume_per_call_m3 = self.config["bunkering"]["bunker_volume_per_call_m3"]
 
         # Operational parameters
         self.travel_time_hours = self.config["operations"]["travel_time_hours"]
