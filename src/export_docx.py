@@ -61,6 +61,7 @@ class WordExporter:
         self._add_executive_summary(doc, scenario_df, yearly_df)
         self._add_case_description(doc)
         self._add_optimal_solution(doc, scenario_df)
+        self._add_time_analysis(doc, scenario_df)
         self._add_scenario_analysis(doc, scenario_df)
         self._add_cost_breakdown(doc, scenario_df)
         self._add_appendix(doc, scenario_df, yearly_df)
@@ -202,6 +203,105 @@ over a {self.config['time_period']['end_year'] - self.config['time_period']['sta
         for idx, (cost_item, value) in enumerate(costs):
             cost_table.rows[idx].cells[0].text = cost_item
             cost_table.rows[idx].cells[1].text = str(value)
+
+    def _add_time_analysis(self, doc: Document, scenario_df: pd.DataFrame) -> None:
+        """Add operation time analysis section."""
+        doc.add_page_break()
+        doc.add_heading("운항 시간 분석 (Time Structure Analysis)", level=1)
+
+        best = scenario_df.nsmallest(1, "NPC_Total_USDm").iloc[0]
+
+        doc.add_heading("최적 시나리오의 운항 시간 구성", level=2)
+
+        intro = (
+            f"최적 시나리오 (Shuttle {int(best['Shuttle_Size_cbm'])} m³, "
+            f"Pump {int(best['Pump_Size_m3ph'])} m³/h)의 1회 왕복 운항 시간을 상세히 분석합니다. "
+            f"총 사이클 시간은 {best['Cycle_Duration_hr']:.2f}시간이며, "
+            f"이는 연간 최대 {best['Annual_Cycles_Max']:.0f}회의 운항을 가능하게 합니다."
+        )
+        doc.add_paragraph(intro)
+
+        # Time breakdown table
+        doc.add_heading("시간 구성 요소 분해", level=3)
+
+        time_table = doc.add_table(rows=9, cols=3)
+        time_table.style = "Light Grid Accent 1"
+
+        # Header
+        header_cells = time_table.rows[0].cells
+        header_cells[0].text = "시간 구성 요소"
+        header_cells[1].text = "시간 (h)"
+        header_cells[2].text = "비율 (%)"
+
+        # Make header bold
+        for cell in header_cells:
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    run.font.bold = True
+
+        # Time components
+        basic_cycle = best.get("Basic_Cycle_Duration_hr", 0)
+        components = [
+            ("육상 연료 적재", best.get("Shore_Loading_hr", 0)),
+            ("편도 항해", best.get("Travel_Outbound_hr", 0)),
+            ("호스 연결 및 퍼징", best.get("Setup_Inbound_hr", 0)),
+            ("벙커링 펌핑", best.get("Pumping_Per_Vessel_hr", 0)),
+            ("호스 분리 및 퍼징", best.get("Setup_Outbound_hr", 0)),
+            ("복귀 항해", best.get("Travel_Return_hr", 0)),
+            ("선박 이동 및 계류", best.get("Movement_Per_Vessel_hr", 0)),
+        ]
+
+        for idx, (name, hours) in enumerate(components, 1):
+            row_cells = time_table.rows[idx].cells
+            row_cells[0].text = name
+            row_cells[1].text = f"{hours:.2f}"
+            percentage = (hours / basic_cycle * 100) if basic_cycle > 0 else 0
+            row_cells[2].text = f"{percentage:.1f}%"
+
+        # Total row
+        total_row_cells = time_table.rows[8].cells
+        total_row_cells[0].text = "【총 사이클 시간】"
+        total_row_cells[1].text = f"{best['Cycle_Duration_hr']:.2f}"
+        total_row_cells[2].text = "100%"
+
+        for cell in total_row_cells:
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    run.font.bold = True
+
+        # Operating metrics
+        doc.add_heading("연간 운영 지표", level=3)
+
+        metrics_table = doc.add_table(rows=5, cols=2)
+        metrics_table.style = "Light Grid Accent 1"
+
+        metrics = [
+            ("연간 최대 항차", f"{best['Annual_Cycles_Max']:.0f} 회"),
+            ("연간 공급 용량", f"{best['Annual_Supply_m3']:.0f} m³"),
+            ("시간 활용도", f"{best['Time_Utilization_Ratio_percent']:.1f}%"),
+            ("셔틀당 평균 일정", f"{365/best['Annual_Cycles_Max']:.1f} 일" if best['Annual_Cycles_Max'] > 0 else "N/A"),
+        ]
+
+        for idx, (metric_name, value) in enumerate(metrics, 0):
+            metrics_table.rows[idx].cells[0].text = metric_name
+            metrics_table.rows[idx].cells[1].text = str(value)
+
+        # Analysis
+        doc.add_heading("시간 분석", level=3)
+
+        # Find which component takes the most time
+        max_component = max(components, key=lambda x: x[1])
+        max_percentage = (max_component[1] / basic_cycle * 100) if basic_cycle > 0 else 0
+
+        analysis_text = (
+            f"벙커링 펌핑이 전체 사이클의 {max_percentage:.1f}%를 차지하여, "
+            f"펌프 크기 선택이 가장 중요한 최적화 포인트입니다. "
+            f"기본 사이클 시간(육상 제외)은 {best['Basic_Cycle_Duration_hr']:.2f}시간이며, "
+            f"육상 연료 적재에 추가로 {best.get('Shore_Loading_hr', 0):.2f}시간이 소요됩니다. "
+            f"이 시간 구조는 연간 {best['Annual_Cycles_Max']:.0f}회의 운항을 가능하게 하며, "
+            f"총 20년간 약 {best['Annual_Supply_m3'] * 20 / 1e6:.1f}백만 m³의 암모니아 연료를 공급할 수 있습니다."
+        )
+        doc.add_paragraph(analysis_text)
 
     def _add_scenario_analysis(self, doc: Document, scenario_df: pd.DataFrame) -> None:
         """Add scenario analysis section."""

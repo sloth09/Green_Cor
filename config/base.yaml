@@ -98,7 +98,7 @@ execution:
   # "single"    : Run ONE case specified in 'single_case' field
   # "all"       : Run ALL available cases (case_1, case_2_yeosu, case_2_ulsan)
   # "multiple"  : Run specific cases listed in 'multi_cases' field
-  run_mode: "multiple"
+  run_mode: "single"
 
   # For run_mode: "single" - specify which case to run
   # Example values: "case_1", "case_2_yeosu", "case_2_ulsan"

@@ -56,6 +56,7 @@ class ExcelExporter:
 
         # Add sheets
         self._add_summary_sheet(wb, scenario_df)
+        self._add_time_breakdown_sheet(wb, scenario_df)
         self._add_yearly_sheet(wb, yearly_df)
         self._add_config_sheet(wb)
 
@@ -138,6 +139,127 @@ class ExcelExporter:
         ws.cell(row=stats_row + 4, column=1).value = "Average NPC (M USD):"
         ws.cell(row=stats_row + 4, column=2).value = df_sorted["NPC_Total_USDm"].mean()
         ws.cell(row=stats_row + 4, column=2).number_format = "0.00"
+
+    def _add_time_breakdown_sheet(self, wb: Workbook, scenario_df: pd.DataFrame) -> None:
+        """
+        Add time breakdown sheet for optimal scenario.
+
+        Args:
+            wb: Workbook object
+            scenario_df: Scenario DataFrame
+        """
+        ws = wb.create_sheet("Time Breakdown", 1)
+
+        # Find optimal scenario (minimum NPC)
+        optimal_idx = scenario_df["NPC_Total_USDm"].idxmin()
+        optimal = scenario_df.loc[optimal_idx]
+
+        # Title
+        ws.merge_cells("A1:C1")
+        title_cell = ws["A1"]
+        title_cell.value = f"【최적 시나리오 시간 분석】"
+        title_cell.font = Font(size=12, bold=True)
+        ws.row_dimensions[1].height = 20
+
+        # Case and scenario info
+        row = 3
+        ws.cell(row=row, column=1).value = "Case"
+        ws.cell(row=row, column=2).value = self.case_name
+        ws.cell(row=row + 1, column=1).value = "Shuttle Size (m³)"
+        ws.cell(row=row + 1, column=2).value = int(optimal["Shuttle_Size_cbm"])
+        ws.cell(row=row + 2, column=1).value = "Pump Size (m³/h)"
+        ws.cell(row=row + 2, column=2).value = int(optimal["Pump_Size_m3ph"])
+        ws.cell(row=row + 3, column=1).value = "NPC (M USD)"
+        ws.cell(row=row + 3, column=2).value = optimal["NPC_Total_USDm"]
+        ws.cell(row=row + 3, column=2).number_format = "0.00"
+        ws.cell(row=row + 4, column=1).value = "LCOA (USD/ton)"
+        ws.cell(row=row + 4, column=2).value = optimal.get("LCOAmmonia_USD_per_ton", 0)
+        ws.cell(row=row + 4, column=2).number_format = "0.00"
+
+        # Time breakdown table
+        row = 9
+        ws.merge_cells(f"A{row}:C{row}")
+        header_cell = ws[f"A{row}"]
+        header_cell.value = "1회 왕복 운항 시간 분해 (Time Breakdown)"
+        header_cell.font = Font(bold=True, size=11)
+
+        # Table header
+        row = 10
+        headers = ["시간 구성 요소", "시간 (h)", "비율 (%)"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=row, column=col)
+            cell.value = header
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill(start_color="70AD47", end_color="70AD47", fill_type="solid")
+            cell.alignment = Alignment(horizontal="center")
+
+        # Time components
+        basic_cycle = optimal.get("Basic_Cycle_Duration_hr", 0)
+        components = [
+            ("육상 적재", optimal.get("Shore_Loading_hr", 0)),
+            ("편도 항해", optimal.get("Travel_Outbound_hr", 0)),
+            ("호스 연결", optimal.get("Setup_Inbound_hr", 0)),
+            ("펌핑", optimal.get("Pumping_Per_Vessel_hr", 0)),
+            ("호스 분리", optimal.get("Setup_Outbound_hr", 0)),
+            ("복귀 항해", optimal.get("Travel_Return_hr", 0)),
+            ("이동", optimal.get("Movement_Per_Vessel_hr", 0)),
+        ]
+
+        row = 11
+        total_hours = 0
+        for name, hours in components:
+            ws.cell(row=row, column=1).value = name
+            ws.cell(row=row, column=2).value = round(hours, 2)
+            ws.cell(row=row, column=2).number_format = "0.00"
+            if basic_cycle > 0:
+                percentage = (hours / basic_cycle) * 100
+            else:
+                percentage = 0
+            ws.cell(row=row, column=3).value = round(percentage, 1)
+            ws.cell(row=row, column=3).number_format = "0.0\%"
+            ws.cell(row=row, column=3).alignment = Alignment(horizontal="right")
+            total_hours += hours
+            row += 1
+
+        # Total
+        ws.cell(row=row, column=1).value = "【총 사이클 시간】"
+        ws.cell(row=row, column=1).font = Font(bold=True)
+        ws.cell(row=row, column=2).value = optimal["Cycle_Duration_hr"]
+        ws.cell(row=row, column=2).font = Font(bold=True)
+        ws.cell(row=row, column=2).number_format = "0.00"
+        ws.cell(row=row, column=3).value = "100%"
+        ws.cell(row=row, column=3).font = Font(bold=True)
+
+        # Operating metrics
+        row += 2
+        ws.cell(row=row, column=1).value = "기본 사이클 (육상 제외)"
+        ws.cell(row=row, column=2).value = optimal.get("Basic_Cycle_Duration_hr", 0)
+        ws.cell(row=row, column=2).number_format = "0.00"
+
+        row += 2
+        ws.cell(row=row, column=1).value = "연간 운영 지표"
+        ws.cell(row=row, column=1).font = Font(bold=True, size=11)
+
+        row += 1
+        metrics = [
+            ("연간 최대 항차", optimal["Annual_Cycles_Max"], "회"),
+            ("연간 공급 용량", optimal["Annual_Supply_m3"], "m³"),
+            ("시간 활용도", optimal["Time_Utilization_Ratio_percent"], "%"),
+            ("선박당 일정", 365 / optimal["Annual_Cycles_Max"] if optimal["Annual_Cycles_Max"] > 0 else 0, "일"),
+        ]
+
+        for name, value, unit in metrics:
+            ws.cell(row=row, column=1).value = name
+            ws.cell(row=row, column=2).value = round(value, 2) if isinstance(value, float) else value
+            ws.cell(row=row, column=3).value = unit
+            if isinstance(value, float):
+                ws.cell(row=row, column=2).number_format = "0.00"
+            row += 1
+
+        # Column widths
+        ws.column_dimensions["A"].width = 30
+        ws.column_dimensions["B"].width = 18
+        ws.column_dimensions["C"].width = 12
 
     def _add_yearly_sheet(self, wb: Workbook, yearly_df: pd.DataFrame) -> None:
         """

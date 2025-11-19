@@ -305,7 +305,8 @@ class BunkeringOptimizer:
             call_duration, cycle_duration,
             shuttle_fuel_cost_per_cycle, pump_fuel_cost_per_call,
             shuttle_capex, shuttle_fixed_opex, bunk_capex, bunk_fixed_opex,
-            trips_per_call
+            trips_per_call,
+            cycle_info  # Pass complete time breakdown
         )
 
     def _extract_results(self,
@@ -315,7 +316,8 @@ class BunkeringOptimizer:
                         shuttle_fuel_per_cycle: float, pump_fuel_per_call: float,
                         shuttle_capex: float, shuttle_fixed_opex: float,
                         bunk_capex: float, bunk_fixed_opex: float,
-                        trips_per_call: int) -> None:
+                        trips_per_call: int,
+                        cycle_info: dict) -> None:
         """Extract results from optimized MILP solution."""
         shuttle_size_int = int(shuttle_size)
         pump_size_int = int(pump_size)
@@ -399,6 +401,12 @@ class BunkeringOptimizer:
         annualized_fopex = self.cost_calc.annualize_scenario_npc(npc_total_fopex)
         annualized_vopex = self.cost_calc.annualize_scenario_npc(npc_total_vopex)
 
+        # Calculate additional time metrics
+        annual_cycles_max = 8000 / cycle_duration if cycle_duration > 0 else 0
+        annual_supply_m3 = annual_cycles_max * shuttle_size
+        time_utilization_ratio = (annual_cycles_max * cycle_duration / 8000) * 100 if cycle_duration > 0 else 0
+        vessels_per_trip = cycle_info.get("vessels_per_trip", 1)
+
         # Scenario summary
         self.scenario_results.append({
             # Identification and timing
@@ -407,6 +415,23 @@ class BunkeringOptimizer:
             "Call_Duration_hr": round(call_duration, 4),
             "Cycle_Duration_hr": round(cycle_duration, 4),
             "Trips_per_Call": trips_per_call,
+
+            # ===== TIME BREAKDOWN (HOURS) =====
+            "Shore_Loading_hr": round(cycle_info.get("shore_loading", 0), 4),
+            "Travel_Outbound_hr": round(cycle_info.get("travel_outbound", 0), 4),
+            "Travel_Return_hr": round(cycle_info.get("travel_return", 0), 4),
+            "Setup_Inbound_hr": round(cycle_info.get("setup_inbound", 0), 4),
+            "Setup_Outbound_hr": round(cycle_info.get("setup_outbound", 0), 4),
+            "Movement_Per_Vessel_hr": round(cycle_info.get("movement_per_vessel", 0), 4),
+            "Pumping_Per_Vessel_hr": round(cycle_info.get("pumping_per_vessel", 0), 4),
+            "Pumping_Total_hr": round(cycle_info.get("pumping_total", 0), 4),
+            "Basic_Cycle_Duration_hr": round(cycle_info.get("basic_cycle_duration", 0), 4),
+
+            # ===== OPERATIONAL METRICS =====
+            "Annual_Cycles_Max": round(annual_cycles_max, 2),
+            "Vessels_per_Trip": vessels_per_trip,
+            "Annual_Supply_m3": round(annual_supply_m3, 0),
+            "Time_Utilization_Ratio_percent": round(time_utilization_ratio, 2),
 
             # ===== NPC (20-YEAR NET PRESENT COST, MILLIONS USD) =====
             "NPC_Total_USDm": round(npc_total / 1e6, 2),
