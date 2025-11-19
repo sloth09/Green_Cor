@@ -40,6 +40,15 @@ operations:
   daily_peak_factor: 1.5         # F_peak - daily peak demand factor
   transport_safety_factor: 1.0   # Redundancy prevention factor
 
+# Shore supply system (land-based facility for loading shuttles)
+# NOTE: Shore supply loading time is ALWAYS included in cycle time calculations.
+# The cost_include_shore_capex option below controls whether shore facility costs
+# are included in the CAPEX/OPEX calculations - NOT the time calculations.
+shore_supply:
+  enabled: true                  # Always enabled (time always includes shore loading)
+  pump_rate_m3ph: 1500.0         # Shore pump capacity for loading shuttles (m³/h)
+  loading_time_fixed_hours: 0.0  # Additional fixed time for setup/shutdown
+
 # Tank system (storage at Busan Port for Case 1)
 tank_storage:
   size_tons: 35000.0             # Tank capacity (tons)

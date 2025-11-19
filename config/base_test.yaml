@@ -1,0 +1,10 @@
+execution:
+  run_mode: "single_scenario"
+  single_case: "case_1"
+  single_scenario_shuttle_cbm: 5000
+  single_scenario_pump_m3ph: 1000
+  output_directory: "results"
+  export:
+    csv: true
+    excel: false
+    docx: false

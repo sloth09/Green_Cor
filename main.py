@@ -72,19 +72,18 @@ def run_single_scenario(config, shuttle_size_cbm, pump_size_m3ph, output_path):
         ship_fuel_per_call = config["bunkering"]["bunker_volume_per_call_m3"]
 
         # Display time breakdown
-        print("\n【1회 왕복 운항 시간 분석 (Shuttle Round-Trip Breakdown)】")
+        print("\n【1회 왕복 운항 시간 분석 (One Round-Trip Voyage Breakdown)】")
         print("-" * 60)
-        print(f"육상 적재 (Shuttle Load @ Land):       {cycle_info['shore_loading']:.2f}h")
-        print(f"  - Land Pump Rate: {land_pump_rate:.0f} m³/h, Shuttle Cap: {shuttle_size_cbm} m³")
+        print(f"육상 적재 (Shore Loading):               {cycle_info['shore_loading']:.2f}h")
+        print(f"  Land Pump: {land_pump_rate:.0f} m³/h × Shuttle: {shuttle_size_cbm} m³")
         print(f"편도 항해 (Outbound Travel):             {cycle_info['travel_outbound']:.2f}h")
-        print(f"호스 연결 (Connection Setup):           {cycle_info['setup_inbound']:.2f}h")
-        print(f"펌핑 (Bunkering @ Ship):                {cycle_info['pumping_per_vessel']:.2f}h")
-        print(f"  - Pump Rate: {pump_size_m3ph} m³/h, Ship Fuel: {ship_fuel_per_call} m³")
-        print(f"호스 분리 (Disconnection Setup):        {cycle_info['setup_outbound']:.2f}h")
-        print(f"복귀 항해 (Return Travel):              {cycle_info['travel_return']:.2f}h")
+        print(f"호스 연결 (Connection & Purging):       {cycle_info['setup_inbound']:.2f}h")
+        print(f"벙커링 (Bunkering):                      {cycle_info['pumping_per_vessel']:.2f}h")
+        print(f"  Pump: {pump_size_m3ph} m³/h × Ship Fuel: {ship_fuel_per_call:.0f} m³")
+        print(f"호스 분리 (Disconnection & Purging):    {cycle_info['setup_outbound']:.2f}h")
+        print(f"복귀 항해 (Return Travel):               {cycle_info['travel_return']:.2f}h")
         print("-" * 60)
-        print(f"기본 사이클 (육상 제외):                  {cycle_info['basic_cycle_duration']:.2f}h")
-        print(f"총 사이클 (육상 포함):                    {cycle_info['cycle_duration']:.2f}h")
+        print(f"★ 총 왕복 사이클 시간:                   {cycle_info['cycle_duration']:.2f}h")
         print("="*60)
 
         # Operating metrics
@@ -92,12 +91,14 @@ def run_single_scenario(config, shuttle_size_cbm, pump_size_m3ph, output_path):
         annual_supply_m3 = annual_cycles * shuttle_size_cbm
         time_utilization = (annual_cycles * cycle_info['cycle_duration'] / 8000.0) * 100
 
-        print("\n【연간 운영 지표】")
+        print("\n【연간 운영 지표 (Annual Operations Metrics)】")
         print("-" * 60)
-        print(f"연간 최대 항차:     {annual_cycles:.0f}회")
+        print(f"연간 운항 한도:     8,000 시간")
+        print(f"1회 운항 시간:      {cycle_info['cycle_duration']:.2f}시간")
+        print(f"연간 최대 항차:     {annual_cycles:.0f}회 ({annual_cycles * cycle_info['cycle_duration']:.0f}시간)")
         print(f"연간 공급 용량:     {annual_supply_m3:,.0f}m³")
         print(f"시간 활용도:        {time_utilization:.1f}%")
-        print(f"선박당 일정:        {365.0 / annual_cycles if annual_cycles > 0 else 0:.1f}일/회")
+        print(f"선박당 왕복 일정:   {365.0 / annual_cycles if annual_cycles > 0 else 0:.1f}일/회")
         print("="*60)
 
         # Export to CSV for single scenario
