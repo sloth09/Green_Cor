@@ -59,17 +59,29 @@ def run_single_scenario(config, shuttle_size_cbm, pump_size_m3ph, output_path):
         case_id = config.get("case_id", "unknown")
         calculator = CycleTimeCalculator(case_id, config)
 
+        # Get shuttle configuration details (before calculating num_vessels)
+        ship_fuel_per_call = config["bunkering"]["bunker_volume_per_call_m3"]
+        has_storage_at_busan = config["operations"].get("has_storage_at_busan", True)
+
+        # Calculate num_vessels based on case type
+        # Case 1: Always 1 vessel (shuttle makes multiple trips if needed)
+        # Case 2: Multiple vessels per trip (shuttle_size / bunker_volume)
+        if has_storage_at_busan:
+            num_vessels = 1
+        else:
+            # Case 2: Calculate how many vessels can be served per trip
+            num_vessels = max(1, int(shuttle_size_cbm // ship_fuel_per_call))
+
         # Calculate cycle time
         cycle_info = calculator.calculate_single_cycle(
             shuttle_size_m3=shuttle_size_cbm,
             pump_size_m3ph=pump_size_m3ph,
-            num_vessels=1
+            num_vessels=num_vessels
         )
 
-        # Get shuttle configuration details
+        # Get land pump rate
         land_pump_rate = config["operations"].get("port_pump_rate_m3h",
                                                    config["operations"].get("shore_supply_pump_rate_m3ph", 1500.0))
-        ship_fuel_per_call = config["bunkering"]["bunker_volume_per_call_m3"]
 
         # Display time breakdown - case-specific structure
         print("\n【1회 왕복 운항 시간 분석 (One Round-Trip Voyage Breakdown)】")
