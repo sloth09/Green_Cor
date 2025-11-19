@@ -276,29 +276,48 @@ pip install openpyxl python-docx
 
 **모든 실행은 `config/base.yaml`의 `execution` 섹션에서 제어됩니다. CLI arguments를 사용하지 않습니다.**
 
-#### base.yaml의 execution 섹션 (v2.2)
+#### base.yaml의 execution 섹션 (v2.3 - single_scenario 모드 추가)
 
 ```yaml
 execution:
-  # 실행 모드 선택: "single", "all", "multiple"
-  # - "single"   : 하나의 케이스만 실행 (single_case 필드 사용)
-  # - "all"      : 모든 케이스 자동 실행
-  # - "multiple" : 특정 여러 케이스만 실행 (multi_cases 리스트 사용)
+  # 실행 모드 선택: "single", "single_scenario", "all", "multiple"
+  #
+  # "single"           : 한 케이스의 모든 조합 실행 (90개 시나리오)
+  #                     느리지만 전체 최적화 가능
+  #
+  # "single_scenario"  : 한 케이스의 특정 조합 1개만 실행 (빠른 시간 계산)
+  #                     최적화 없이 지정된 셔틀+펌프의 시간만 계산
+  #                     필수: single_case, single_scenario_shuttle_cbm, single_scenario_pump_m3ph
+  #
+  # "all"              : 모든 케이스의 모든 조합 실행 (매우 느림)
+  #
+  # "multiple"         : 특정 여러 케이스의 모든 조합 실행
+  #                     multi_cases 리스트 사용
   run_mode: "single"
 
-  # run_mode="single"일 때: 실행할 단일 케이스 지정
+  # run_mode="single", "single_scenario", "all"일 때: 케이스 선택
   # 예시: "case_1", "case_2_yeosu", "case_2_ulsan"
-  # run_mode가 "all" 또는 "multiple"이면 이 필드는 무시됨
+  # run_mode="multiple"이면 이 필드는 무시됨
   single_case: "case_2_ulsan"
+
+  # run_mode="single_scenario"일 때: 셔틀 크기 지정 (m³)
+  # 예시: 500, 1000, 2000, 5000, 10000
+  # run_mode="single_scenario"일 때만 사용
+  single_scenario_shuttle_cbm: 5000
+
+  # run_mode="single_scenario"일 때: 펌프 유량 지정 (m³/h)
+  # 예시: 400, 600, 800, 1000, 1200, 1500, 2000
+  # run_mode="single_scenario"일 때만 사용
+  single_scenario_pump_m3ph: 1000
 
   # run_mode="multiple"일 때: 실행할 여러 케이스 지정
   # 예시: Case 1과 Case 2-2(울산)만 실행
-  # run_mode가 "single" 또는 "all"이면 이 필드는 무시됨
+  # run_mode="single", "single_scenario", "all"이면 무시됨
   multi_cases:
     - "case_1"
     - "case_2_ulsan"
 
-  # 병렬 실행 작업자 수 (run_mode="all" 또는 "multiple"일 때 사용)
+  # 병렬 실행 작업자 수 (run_mode="all" 또는 "multiple"일 때만 사용)
   # 1 = 순차 실행 (느리지만 메모리 효율적)
   # >1 = 병렬 실행 (예: 4 = 4개 케이스 동시 실행)
   num_jobs: 1
@@ -340,6 +359,53 @@ python main.py
 - `results/MILP_per_year_results_case_2_ulsan.csv`
 - `results/MILP_results_case_2_ulsan.xlsx`
 - `results/MILP_Report_case_2_ulsan.docx`
+
+---
+
+#### 시나리오 1-B: 단일 운항 시간 계산만 (빠른 실행)
+
+**목적**: 특정 셔틀+펌프 조합의 1회 왕복 시간만 빠르게 계산
+**특징**: 최적화 없이 지정된 조합만 계산 (2-3초)
+
+```yaml
+# config/base.yaml
+execution:
+  run_mode: "single_scenario"
+  single_case: "case_2_ulsan"
+  single_scenario_shuttle_cbm: 5000      # 5,000 m³ 셔틀
+  single_scenario_pump_m3ph: 1000        # 1,000 m³/h 펌프
+  num_jobs: 1
+  output_directory: "results"
+  export:
+    csv: true
+    excel: false
+    docx: false
+```
+
+```bash
+python main.py
+```
+
+**출력**:
+- Console: 시간 정보 출력 (육상 적재, 항해, 호스, 펌핑 등)
+- `results/time_calculation_case_2_ulsan_5000_1000.csv` (시간 상세 정보)
+
+**사용 사례**:
+- 빠른 시간 계산이 필요할 때
+- 특정 조합의 시간만 확인하고 싶을 때
+- 최적화 비용 없이 시간 분석만 필요할 때
+
+```yaml
+# 예시 1: Case 1 (부산) - 5,000 m³ + 2,000 m³/h
+single_case: "case_1"
+single_scenario_shuttle_cbm: 5000
+single_scenario_pump_m3ph: 2000
+
+# 예시 2: Case 2-1 (여수) - 10,000 m³ + 1,500 m³/h
+single_case: "case_2_yeosu"
+single_scenario_shuttle_cbm: 10000
+single_scenario_pump_m3ph: 1500
+```
 
 ---
 
