@@ -224,7 +224,7 @@ over a {self.config['time_period']['end_year'] - self.config['time_period']['sta
         # Time breakdown table
         doc.add_heading("시간 구성 요소 분해", level=3)
 
-        time_table = doc.add_table(rows=9, cols=3)
+        time_table = doc.add_table(rows=8, cols=3)
         time_table.style = "Light Grid Accent 1"
 
         # Header
@@ -248,7 +248,6 @@ over a {self.config['time_period']['end_year'] - self.config['time_period']['sta
             ("벙커링 펌핑", best.get("Pumping_Per_Vessel_hr", 0)),
             ("호스 분리 및 퍼징", best.get("Setup_Outbound_hr", 0)),
             ("복귀 항해", best.get("Travel_Return_hr", 0)),
-            ("선박 이동 및 계류", best.get("Movement_Per_Vessel_hr", 0)),
         ]
 
         for idx, (name, hours) in enumerate(components, 1):
@@ -259,7 +258,7 @@ over a {self.config['time_period']['end_year'] - self.config['time_period']['sta
             row_cells[2].text = f"{percentage:.1f}%"
 
         # Total row
-        total_row_cells = time_table.rows[8].cells
+        total_row_cells = time_table.rows[7].cells
         total_row_cells[0].text = "【총 사이클 시간】"
         total_row_cells[1].text = f"{best['Cycle_Duration_hr']:.2f}"
         total_row_cells[2].text = "100%"

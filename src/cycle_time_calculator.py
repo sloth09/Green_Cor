@@ -122,7 +122,6 @@ class CycleTimeCalculator:
             'travel_return': shuttle_cycle['travel_return_h'],
             'setup_inbound': shuttle_cycle['setup_inbound_h'],
             'setup_outbound': shuttle_cycle['setup_outbound_h'],
-            'movement_per_vessel': shuttle_cycle['movement_per_vessel_h'],
             'pumping_per_vessel': shuttle_cycle['pumping_per_vessel_h'],
             'pumping_total': shuttle_cycle['pumping_total_h'],
 

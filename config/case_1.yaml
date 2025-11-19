@@ -41,7 +41,8 @@ shuttle:
 # Operational parameters
 operations:
   # Travel time for shuttle (one-way port movement)
-  travel_time_hours: 2.0
+  # Case 1: Busan port internal movement (docking + movement) = 1 hour each way
+  travel_time_hours: 1.0
 
   # Whether storage tanks exist at Busan port
   has_storage_at_busan: true

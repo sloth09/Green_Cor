@@ -422,7 +422,6 @@ class BunkeringOptimizer:
             "Travel_Return_hr": round(cycle_info.get("travel_return", 0), 4),
             "Setup_Inbound_hr": round(cycle_info.get("setup_inbound", 0), 4),
             "Setup_Outbound_hr": round(cycle_info.get("setup_outbound", 0), 4),
-            "Movement_Per_Vessel_hr": round(cycle_info.get("movement_per_vessel", 0), 4),
             "Pumping_Per_Vessel_hr": round(cycle_info.get("pumping_per_vessel", 0), 4),
             "Pumping_Total_hr": round(cycle_info.get("pumping_total", 0), 4),
             "Basic_Cycle_Duration_hr": round(cycle_info.get("basic_cycle_duration", 0), 4),

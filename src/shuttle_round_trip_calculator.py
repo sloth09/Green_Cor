@@ -92,9 +92,9 @@ class ShuttleRoundTripCalculator:
         # Total pumping time (all vessels)
         pumping_total = pumping_per_vessel * num_vessels
 
-        # Movement time at destination per vessel (loading/unloading/docking)
-        movement_per_vessel = 1.0  # Fixed 1 hour for movement/docking per vessel
-        time_per_vessel_at_destination = movement_per_vessel + setup_inbound + pumping_per_vessel + setup_outbound
+        # Time per vessel at destination (setup connection/disconnection + pumping)
+        # Note: Movement/docking time is included in travel_time (port operations)
+        time_per_vessel_at_destination = setup_inbound + pumping_per_vessel + setup_outbound
 
         # Total time at destination for all vessels
         time_all_vessels_at_destination = time_per_vessel_at_destination * num_vessels
@@ -113,7 +113,6 @@ class ShuttleRoundTripCalculator:
             'travel_return_h': travel_return,
             'setup_inbound_h': setup_inbound,
             'setup_outbound_h': setup_outbound,
-            'movement_per_vessel_h': movement_per_vessel,
             'pumping_per_vessel_h': pumping_per_vessel,
             'pumping_total_h': pumping_total,
 

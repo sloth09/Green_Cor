@@ -202,7 +202,6 @@ class ExcelExporter:
             ("펌핑", optimal.get("Pumping_Per_Vessel_hr", 0)),
             ("호스 분리", optimal.get("Setup_Outbound_hr", 0)),
             ("복귀 항해", optimal.get("Travel_Return_hr", 0)),
-            ("이동", optimal.get("Movement_Per_Vessel_hr", 0)),
         ]
 
         row = 11
