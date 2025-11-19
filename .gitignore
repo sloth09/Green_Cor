@@ -28,7 +28,6 @@ htmlcov/
 results/
 *.csv
 *.xlsx
-*.docx
 
 # OS files
 .DS_Store
