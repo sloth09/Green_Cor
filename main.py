@@ -100,7 +100,7 @@ def run_single_scenario(config, shuttle_size_cbm, pump_size_m3ph, output_path):
         print(f"연간 공급 용량:     {annual_supply_m3:,.0f}m³")
         print(f"★ 벙커링 가능선박:   {ships_per_year:.0f}척/년 (1척 = {ship_fuel_per_call:.0f}m³)")
         print(f"시간 활용도:        {time_utilization:.1f}%")
-        print(f"선박당 왕복 일정:   {365.0 / annual_cycles if annual_cycles > 0 else 0:.1f}일/회")
+        print(f"선박당 왕복 일정:   {cycle_info['cycle_duration'] / 24 if cycle_info['cycle_duration'] > 0 else 0:.3f}일/회")
         print("="*60)
 
         # Export to CSV for single scenario
