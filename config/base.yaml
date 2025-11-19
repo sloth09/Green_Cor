@@ -121,7 +121,7 @@ execution:
   # For run_mode: "single", "single_scenario", "all" - which case to use
   # Example values: "case_1", "case_2_yeosu", "case_2_ulsan"
   # This field is IGNORED if run_mode is "multiple"
-  single_case: "case_2_ulsan"
+  single_case: "case_1"
 
   # For run_mode: "single_scenario" - specify shuttle size (m³)
   # Example values: 500, 1000, 2000, 5000, 10000, etc.
