@@ -265,7 +265,9 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
         vessel_growth = calculate_vessel_growth(start_year, end_year, start_vessels, end_vessels)
         vessels_in_year = vessel_growth[simulation_year]
 
-        m3_per_voyage = calculate_m3_per_voyage(kg_per_voyage, density_storage)
+        # Use bunker_volume_per_call_m3 directly for demand calculation
+        # (This overrides the kg_per_voyage conversion as intended by config)
+        m3_per_voyage = bunker_volume
         annual_demand_dict = calculate_annual_demand(vessel_growth, m3_per_voyage, voyages_per_year)
         demand_m3 = annual_demand_dict[simulation_year]
 
@@ -288,11 +290,26 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
         cycle_duration = cycle_info['cycle_duration']
 
         # Calculate annual operations
-        annual_calls = demand_m3 / bunker_volume  # Number of bunkering calls needed
+        annual_calls = demand_m3 / bunker_volume  # Number of vessel bunkering calls needed
 
-        # Calculate required shuttles
-        # Total operation hours needed = annual_calls × cycle_duration
-        total_hours_needed = annual_calls * cycle_duration
+        # Extract trips_per_call from cycle_info
+        # This is the key difference between bunkering calls and actual shuttle trips
+        trips_per_call = cycle_info.get('trips_per_call', 1)
+
+        # Calculate actual shuttle trips needed (Case 1 vs Case 2 difference)
+        if has_storage_at_busan:
+            # Case 1: Each vessel call requires multiple shuttle trips
+            # Example: 1,000 m³ shuttle serving 5,000 m³ vessel = 5 trips per call
+            total_trips = annual_calls * trips_per_call
+        else:
+            # Case 2: Each shuttle trip serves multiple vessels
+            # Example: 10,000 m³ shuttle serving 2 vessels (5,000 m³ each) = 600 calls / 2 = 300 trips
+            vessels_per_trip = num_vessels if num_vessels > 0 else 1
+            total_trips = ceil(annual_calls / vessels_per_trip)
+
+        # Calculate required shuttles based on actual shuttle trips
+        # Total operation hours needed = actual shuttle trips × cycle_duration
+        total_hours_needed = total_trips * cycle_duration
         required_shuttles = ceil(total_hours_needed / max_annual_hours)
 
         # Calculate utilization
@@ -300,8 +317,8 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
         available_hours = required_shuttles * max_annual_hours
         utilization = actual_hours / available_hours if available_hours > 0 else 0
 
-        # Calculate annual cycles
-        annual_cycles = annual_calls  # Same as calls for this calculation
+        # Calculate annual cycles (actual shuttle trips, not bunkering calls)
+        annual_cycles = total_trips  # Correct: shuttle trips, not calls
         cycles_per_shuttle = annual_cycles / required_shuttles if required_shuttles > 0 else 0
 
         # Calculate costs
@@ -330,8 +347,58 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
         total_fixed_opex = (shuttle_fixed_opex + bunkering_fixed_opex) * required_shuttles + tank_fixed_opex
 
         # Variable OPEX (fuel and energy costs)
-        # Simplified calculation - would need full cycle cost calculation for accuracy
-        total_variable_opex = 0  # Placeholder
+        # Uses same logic as optimizer.py for consistency
+
+        # 1. Shuttle fuel cost (travel time only, not total cycle)
+        mcr = config["shuttle"]["mcr_map_kw"].get(int(shuttle_size_cbm), 0)
+        if mcr == 0:
+            shuttle_fuel_annual = 0
+        else:
+            sfoc = config["propulsion"]["sfoc_g_per_kwh"]
+            fuel_price = config["economy"]["fuel_price_usd_per_ton"]
+            travel_time_hours = config["operations"]["travel_time_hours"]
+
+            # Travel factor: Case 1 = one-way, Case 2 = round-trip
+            travel_factor = 1.0 if has_storage_at_busan else 2.0
+
+            # Fuel per cycle (in tons): MCR × SFOC × travel_time / 1e6
+            shuttle_fuel_per_cycle = (mcr * sfoc * travel_factor * travel_time_hours) / 1e6
+            shuttle_fuel_cost_per_cycle = shuttle_fuel_per_cycle * fuel_price
+
+            # Annual cost: per-cycle cost × annual cycles
+            shuttle_fuel_annual = shuttle_fuel_cost_per_cycle * annual_cycles
+
+        # 2. Pump energy cost
+        # Case 1: pump bunker volume (5000 m³) each call
+        # Case 2: pump full shuttle capacity each trip
+        pump_power = cost_calculator.calculate_pump_power(pump_size_m3ph)
+        sfoc = config["propulsion"]["sfoc_g_per_kwh"]
+        fuel_price = config["economy"]["fuel_price_usd_per_ton"]
+
+        # Pumping time is based on volume per pump event (per-call basis)
+        # For both Case 1 and Case 2: pump one ship = bunker_volume m³
+        # The difference is in annual_pump_events calculation
+        pumping_time_hr_call = 2.0 * (bunker_volume / pump_size_m3ph)
+
+        if has_storage_at_busan:
+            # Case 1: Each bunkering call requires pumping
+            annual_pump_events = annual_calls
+        else:
+            # Case 2: Each bunkering call requires pumping (also call-based)
+            annual_pump_events = annual_calls
+
+        # Fuel per pump event (in tons): pump_power × pumping_time × SFOC / 1e6
+        pump_fuel_per_event = (pump_power * pumping_time_hr_call * sfoc) / 1e6
+        pump_fuel_cost_per_event = pump_fuel_per_event * fuel_price
+        pump_fuel_annual = pump_fuel_cost_per_event * annual_pump_events
+
+        # 3. Tank cooling cost (Case 1 only)
+        tank_variable_opex = 0
+        if config.get("tank_storage", {}).get("enabled", False):
+            tank_variable_opex = cost_calculator.calculate_tank_variable_opex()
+
+        # Total variable OPEX
+        total_variable_opex = shuttle_fuel_annual + pump_fuel_annual + tank_variable_opex
 
         total_opex = total_fixed_opex + total_variable_opex
 
@@ -349,7 +416,14 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
 
         print("\n【함대 요구사항 (Fleet Requirements)】")
         print("-" * 60)
-        print(f"Total Hours Needed:                      {total_hours_needed:>8,.0f} hours ({annual_calls:.0f} calls × {cycle_duration:.2f}h)")
+        if has_storage_at_busan:
+            # Case 1: Display trips_per_call conversion
+            print(f"Total Hours Needed:                      {total_hours_needed:>8,.0f} hours ({total_trips:.0f} trips × {cycle_duration:.2f}h)")
+            print(f"  Breakdown: {annual_calls:.0f} calls × {trips_per_call} trips/call = {total_trips:.0f} trips")
+        else:
+            # Case 2: Display vessels_per_trip conversion
+            print(f"Total Hours Needed:                      {total_hours_needed:>8,.0f} hours ({total_trips:.0f} trips × {cycle_duration:.2f}h)")
+            print(f"  Breakdown: {annual_calls:.0f} calls ÷ {num_vessels} vessels/trip = {total_trips:.0f} trips")
         print(f"Required Shuttles:                       {required_shuttles:>8} vessels (ceil({total_hours_needed:.0f}h ÷ {max_annual_hours:.0f}h))")
         print(f"Utilization Rate:                        {utilization*100:>8.1f}% ({total_hours_needed:.0f}h ÷ {available_hours:.0f}h)")
         print(f"Annual Cycles per Shuttle:               {cycles_per_shuttle:>8,.0f} trips")
@@ -367,6 +441,11 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
         print("OPEX (Annual):")
         print(f"  - Fixed (Maintenance):                 ${total_fixed_opex/1e6:>8.1f}M/year")
         print(f"  - Variable (Fuel + Energy):            ${total_variable_opex/1e6:>8.1f}M/year")
+        if shuttle_fuel_annual > 0 or pump_fuel_annual > 0 or tank_variable_opex > 0:
+            print(f"      * Shuttle Fuel Cost:              ${shuttle_fuel_annual/1e6:>8.3f}M/year")
+            print(f"      * Pump Energy Cost:               ${pump_fuel_annual/1e6:>8.3f}M/year")
+            if tank_variable_opex > 0:
+                print(f"      * Tank Cooling Cost:              ${tank_variable_opex/1e6:>8.3f}M/year")
         print(f"  Total OPEX:                            ${total_opex/1e6:>8.1f}M/year")
         print()
         print(f"First Year Total:                        ${first_year_cost/1e6:>8.1f}M")
@@ -401,6 +480,9 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
                     "Required_Annual_Calls",
                     "",
                     "=== FLEET REQUIREMENTS ===",
+                    "Annual_Bunkering_Calls",
+                    "Trips_Per_Call_or_Vessels_Per_Trip",
+                    "Total_Shuttle_Trips",
                     "Total_Hours_Needed",
                     "Annual_Hours_Max_Per_Shuttle",
                     "Required_Shuttles",
@@ -442,6 +524,9 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
                     annual_calls,
                     "",
                     "",
+                    annual_calls,
+                    trips_per_call if has_storage_at_busan else num_vessels,
+                    total_trips,
                     total_hours_needed,
                     max_annual_hours,
                     required_shuttles,
@@ -483,6 +568,9 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
                     "calls",
                     "",
                     "",
+                    "calls",
+                    "trips/call or vessels/trip",
+                    "trips",
                     "hours",
                     "hours/vessel",
                     "vessels",
