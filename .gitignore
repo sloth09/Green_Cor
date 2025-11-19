@@ -16,6 +16,9 @@ env/
 *.swo
 *~
 
+# Claude Code local settings
+.claude/settings.local.json
+
 # Test artifacts
 .pytest_cache/
 .coverage
