@@ -102,14 +102,18 @@ output:
 # ============================================================================
 execution:
   # Run mode: determines execution scope and parameters
-  # Options: "single", "single_scenario", "all", "multiple"
+  # Options: "single", "single_scenario", "annual_simulation", "all", "multiple"
   #
   # "single"           : Run ONE case with all shuttle/pump combinations (90 scenarios)
   #                     Slow but comprehensive optimization across all sizes
   #
   # "single_scenario"  : Run ONE case with ONE specific shuttle/pump combination
-  #                     Fast single time calculation only (no optimization)
+  #                     Fast single trip time calculation only (no optimization)
   #                     Requires: single_case, single_scenario_shuttle_cbm, single_scenario_pump_m3ph
+  #
+  # "annual_simulation": Run ONE case with ONE specific shuttle/pump for ONE year
+  #                     Calculates required shuttles, annual calls, utilization, costs
+  #                     Requires: single_case, single_scenario_shuttle_cbm, single_scenario_pump_m3ph, simulation_year
   #
   # "all"              : Run ALL available cases with all combinations
   #                     Very slow (3 cases × 90 scenarios each)
@@ -118,20 +122,25 @@ execution:
   #                     Medium speed (N cases × 90 scenarios each)
   run_mode: "single"
 
-  # For run_mode: "single", "single_scenario", "all" - which case to use
+  # For run_mode: "single", "single_scenario", "annual_simulation", "all" - which case to use
   # Example values: "case_1", "case_2_yeosu", "case_2_ulsan"
   # This field is IGNORED if run_mode is "multiple"
   single_case: "case_1"
 
-  # For run_mode: "single_scenario" - specify shuttle size (m³)
+  # For run_mode: "single_scenario", "annual_simulation" - specify shuttle size (m³)
   # Example values: 500, 1000, 2000, 5000, 10000, etc.
-  # This field is ONLY used when run_mode is "single_scenario"
-  single_scenario_shuttle_cbm: 1000
+  # This field is ONLY used when run_mode is "single_scenario" or "annual_simulation"
+  single_scenario_shuttle_cbm: 5000
 
-  # For run_mode: "single_scenario" - specify pump flow rate (m³/h)
+  # For run_mode: "single_scenario", "annual_simulation" - specify pump flow rate (m³/h)
   # Example values: 400, 600, 800, 1000, 1200, 1500, 2000
-  # This field is ONLY used when run_mode is "single_scenario"
+  # This field is ONLY used when run_mode is "single_scenario" or "annual_simulation"
   single_scenario_pump_m3ph: 1000
+
+  # For run_mode: "annual_simulation" - specify simulation year
+  # Example values: 2030, 2035, 2040, 2045, 2050
+  # This field is ONLY used when run_mode is "annual_simulation"
+  simulation_year: 2030
 
   # For run_mode: "multiple" - list specific cases to run
   # Example: run only Case 1 and Case 2-2 (Ulsan)

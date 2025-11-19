@@ -7,16 +7,22 @@ No command-line arguments needed - everything is set in config/base.yaml
 
 Edit config/base.yaml execution section to control:
   - Run mode: "single" (full optimization), "single_scenario" (quick time calc),
-             "all" (all cases), or "multiple" (selected cases)
+             "annual_simulation" (1-year simulation), "all" (all cases),
+             or "multiple" (selected cases)
   - Which case to run
   - Single vs multiple case execution
   - Output directory
   - Export formats
-  - (For single_scenario) Specific shuttle/pump combination
+  - (For single_scenario/annual_simulation) Specific shuttle/pump combination
 
-For single_scenario mode, also set:
+For single_scenario mode:
   - single_scenario_shuttle_cbm: Shuttle size in m³
   - single_scenario_pump_m3ph: Pump flow rate in m³/h
+
+For annual_simulation mode:
+  - single_scenario_shuttle_cbm: Shuttle size in m³
+  - single_scenario_pump_m3ph: Pump flow rate in m³/h
+  - simulation_year: Year to simulate (e.g., 2030, 2050)
 """
 
 import sys
@@ -30,6 +36,9 @@ from src import load_config, BunkeringOptimizer
 from src.export_excel import ExcelExporter
 from src.export_docx import WordExporter
 from src.cycle_time_calculator import CycleTimeCalculator
+from src.cost_calculator import CostCalculator
+from src.utils import calculate_vessel_growth, calculate_annual_demand, calculate_m3_per_voyage
+from math import ceil
 
 
 def run_single_scenario(config, shuttle_size_cbm, pump_size_m3ph, output_path):
@@ -173,6 +182,224 @@ def run_single_scenario(config, shuttle_size_cbm, pump_size_m3ph, output_path):
 
     except Exception as e:
         print(f"Error during single scenario calculation: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
+        return None
+
+
+def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_year, output_path):
+    """
+    Run a single-year simulation for a specific shuttle/pump combination.
+
+    Calculates required shuttles, annual operations, utilization, and costs
+    for one specific year without optimization.
+
+    Args:
+        config: Configuration dictionary
+        shuttle_size_cbm: Shuttle size in m³
+        pump_size_m3ph: Pump flow rate in m³/h
+        simulation_year: Year to simulate (e.g., 2030, 2050)
+        output_path: Output directory path
+
+    Returns:
+        Dictionary with simulation results
+    """
+    try:
+        print("\n" + "="*60)
+        print("Annual Simulation Mode (Single Year)")
+        print("="*60)
+        print(f"Case: {config.get('case_name', 'Unknown')}")
+        print(f"Case ID: {config.get('case_id', 'unknown')}")
+        print(f"Year: {simulation_year}")
+        print(f"Shuttle: {shuttle_size_cbm} m³")
+        print(f"Pump: {pump_size_m3ph} m³/h")
+        print("="*60)
+
+        # Initialize calculators
+        case_id = config.get("case_id", "unknown")
+        cycle_calculator = CycleTimeCalculator(case_id, config)
+        cost_calculator = CostCalculator(config)
+
+        # Get configuration parameters
+        start_year = config["time_period"]["start_year"]
+        end_year = config["time_period"]["end_year"]
+        start_vessels = config["shipping"]["start_vessels"]
+        end_vessels = config["shipping"]["end_vessels"]
+        kg_per_voyage = config["shipping"]["kg_per_voyage"]
+        voyages_per_year = config["shipping"]["voyages_per_year"]
+        density_storage = config["ammonia"]["density_storage_ton_m3"]
+        bunker_volume = config["bunkering"]["bunker_volume_per_call_m3"]
+        max_annual_hours = config["operations"]["max_annual_hours_per_vessel"]
+        has_storage_at_busan = config["operations"].get("has_storage_at_busan", True)
+
+        # Validate simulation year
+        if simulation_year < start_year or simulation_year > end_year:
+            print(f"[ERROR] Simulation year {simulation_year} out of range [{start_year}, {end_year}]",
+                  file=sys.stderr)
+            return None
+
+        # Calculate vessel growth and demand for the specific year
+        vessel_growth = calculate_vessel_growth(start_year, end_year, start_vessels, end_vessels)
+        vessels_in_year = vessel_growth[simulation_year]
+
+        m3_per_voyage = calculate_m3_per_voyage(kg_per_voyage, density_storage)
+        annual_demand_dict = calculate_annual_demand(vessel_growth, m3_per_voyage, voyages_per_year)
+        demand_m3 = annual_demand_dict[simulation_year]
+
+        # Calculate number of vessels per trip for Case 2
+        if has_storage_at_busan:
+            num_vessels = 1
+        else:
+            num_vessels = max(1, int(shuttle_size_cbm // bunker_volume))
+
+        # Calculate cycle time
+        cycle_info = cycle_calculator.calculate_single_cycle(
+            shuttle_size_m3=shuttle_size_cbm,
+            pump_size_m3ph=pump_size_m3ph,
+            num_vessels=num_vessels
+        )
+
+        cycle_duration = cycle_info['cycle_duration']
+
+        # Calculate annual operations
+        annual_calls = demand_m3 / bunker_volume  # Number of bunkering calls needed
+
+        # Calculate required shuttles
+        # Total operation hours needed = annual_calls × cycle_duration
+        total_hours_needed = annual_calls * cycle_duration
+        required_shuttles = ceil(total_hours_needed / max_annual_hours)
+
+        # Calculate utilization
+        actual_hours = total_hours_needed
+        available_hours = required_shuttles * max_annual_hours
+        utilization = actual_hours / available_hours if available_hours > 0 else 0
+
+        # Calculate annual cycles
+        annual_cycles = annual_calls  # Same as calls for this calculation
+        cycles_per_shuttle = annual_cycles / required_shuttles if required_shuttles > 0 else 0
+
+        # Calculate costs
+        shuttle_capex = cost_calculator.calculate_shuttle_capex(shuttle_size_cbm)
+        pump_capex = cost_calculator.calculate_pump_capex(pump_size_m3ph)
+        bunkering_capex = cost_calculator.calculate_bunkering_capex(shuttle_size_cbm, pump_size_m3ph)
+
+        # Fixed OPEX
+        shuttle_fixed_opex = cost_calculator.calculate_shuttle_fixed_opex(shuttle_size_cbm)
+        bunkering_fixed_opex = cost_calculator.calculate_bunkering_fixed_opex(shuttle_size_cbm, pump_size_m3ph)
+
+        # Total CAPEX
+        total_shuttle_capex = shuttle_capex * required_shuttles
+        total_bunkering_capex = bunkering_capex * required_shuttles
+        total_capex = total_shuttle_capex + total_bunkering_capex
+
+        # Tank CAPEX (Case 1 only)
+        tank_capex = 0
+        tank_fixed_opex = 0
+        if config.get("tank_storage", {}).get("enabled", False):
+            tank_capex = cost_calculator.calculate_tank_capex()
+            tank_fixed_opex = cost_calculator.calculate_tank_fixed_opex()
+            total_capex += tank_capex
+
+        # Annual OPEX
+        total_fixed_opex = (shuttle_fixed_opex + bunkering_fixed_opex) * required_shuttles + tank_fixed_opex
+
+        # Variable OPEX (fuel and energy costs)
+        # Simplified calculation - would need full cycle cost calculation for accuracy
+        total_variable_opex = 0  # Placeholder
+
+        total_opex = total_fixed_opex + total_variable_opex
+
+        # First year total cost
+        first_year_cost = total_capex + total_opex
+
+        # Display results
+        print("\n【Operating Parameters】")
+        print("-" * 60)
+        print(f"Vessels in Year {simulation_year}:        {vessels_in_year:>8} vessels")
+        print(f"Annual Demand:                           {demand_m3:>8,.0f} m³")
+        print(f"Bunker Volume per Call:                  {bunker_volume:>8,.0f} m³")
+        print(f"Annual Bunkering Calls:                  {annual_calls:>8,.0f} calls")
+        print(f"Cycle Time per Call:                     {cycle_duration:>8.2f} hours")
+        print(f"Max Annual Hours per Shuttle:            {max_annual_hours:>8,.0f} hours/year")
+        print("-" * 60)
+
+        print("\n【Fleet Requirements】")
+        print("-" * 60)
+        print(f"Total Hours Needed:                      {total_hours_needed:>8,.0f} hours")
+        print(f"Required Shuttles:                       {required_shuttles:>8} vessels")
+        print(f"Utilization Rate:                        {utilization*100:>8.1f}%")
+        print(f"Annual Cycles per Shuttle:               {cycles_per_shuttle:>8,.0f} trips")
+        print(f"Total Operation Hours (Fleet):           {actual_hours:>8,.0f} hours")
+        print("-" * 60)
+
+        print(f"\n【Cost Breakdown (Year {simulation_year})】")
+        print("-" * 60)
+        print("CAPEX:")
+        print(f"  - Shuttle:                             ${total_shuttle_capex/1e6:>8.1f}M")
+        print(f"  - Bunkering Equipment:                 ${total_bunkering_capex/1e6:>8.1f}M")
+        if tank_capex > 0:
+            print(f"  - Storage Tank:                        ${tank_capex/1e6:>8.1f}M")
+        print(f"  Total CAPEX:                           ${total_capex/1e6:>8.1f}M")
+        print()
+        print("OPEX (Annual):")
+        print(f"  - Fixed (Maintenance):                 ${total_fixed_opex/1e6:>8.1f}M/year")
+        print(f"  - Variable (Fuel + Energy):            ${total_variable_opex/1e6:>8.1f}M/year")
+        print(f"  Total OPEX:                            ${total_opex/1e6:>8.1f}M/year")
+        print()
+        print(f"First Year Total:                        ${first_year_cost/1e6:>8.1f}M")
+        print("-" * 60)
+
+        # Export to CSV
+        export_config = config.get("execution", {}).get("export", {})
+        if export_config.get("csv", True):
+            result_data = {
+                "Parameter": [
+                    "Case", "Case_ID", "Simulation_Year", "Shuttle_Size_cbm", "Pump_Size_m3ph",
+                    "", "Vessels_in_Year", "Annual_Demand_m3", "Bunker_per_Call_m3", "Annual_Calls",
+                    "", "Cycle_Time_Hours", "Annual_Hours_Max", "Required_Shuttles", "Utilization_Rate",
+                    "", "CAPEX_Shuttle_USDm", "CAPEX_Bunkering_USDm", "CAPEX_Tank_USDm", "CAPEX_Total_USDm",
+                    "", "OPEX_Fixed_USDm", "OPEX_Variable_USDm", "OPEX_Total_USDm",
+                    "", "First_Year_Cost_USDm"
+                ],
+                "Value": [
+                    config.get('case_name', 'Unknown'), case_id, simulation_year, shuttle_size_cbm, pump_size_m3ph,
+                    "", vessels_in_year, demand_m3, bunker_volume, annual_calls,
+                    "", cycle_duration, max_annual_hours, required_shuttles, utilization,
+                    "", total_shuttle_capex/1e6, total_bunkering_capex/1e6, tank_capex/1e6, total_capex/1e6,
+                    "", total_fixed_opex/1e6, total_variable_opex/1e6, total_opex/1e6,
+                    "", first_year_cost/1e6
+                ],
+                "Unit": [
+                    "", "", "", "m³", "m³/h",
+                    "", "vessels", "m³", "m³", "calls",
+                    "", "hours", "hours/vessel", "vessels", "%",
+                    "", "$M", "$M", "$M", "$M",
+                    "", "$M/year", "$M/year", "$M/year",
+                    "", "$M"
+                ]
+            }
+
+            result_df = pd.DataFrame(result_data)
+            result_file = output_path / f"annual_simulation_{case_id}_{simulation_year}_{shuttle_size_cbm}_{pump_size_m3ph}.csv"
+            result_df.to_csv(result_file, index=False, encoding="utf-8-sig")
+            print(f"\n[OK] Results saved to: {result_file}")
+
+        return {
+            'year': simulation_year,
+            'shuttle_size': shuttle_size_cbm,
+            'pump_size': pump_size_m3ph,
+            'demand_m3': demand_m3,
+            'annual_calls': annual_calls,
+            'required_shuttles': required_shuttles,
+            'utilization': utilization,
+            'cycle_time': cycle_duration,
+            'total_capex': total_capex,
+            'total_opex': total_opex,
+            'first_year_cost': first_year_cost
+        }
+
+    except Exception as e:
+        print(f"Error during annual simulation: {e}", file=sys.stderr)
         import traceback
         traceback.print_exc()
         return None
@@ -325,9 +552,37 @@ def main():
                 traceback.print_exc()
                 return 1
 
+        elif run_mode == "annual_simulation":
+            # Annual simulation mode - simulate ONE specific year with ONE shuttle/pump combination
+            # NO optimization, calculates required shuttles, operations, and costs for one year
+            shuttle_size = execution_config.get("single_scenario_shuttle_cbm")
+            pump_size = execution_config.get("single_scenario_pump_m3ph")
+            simulation_year = execution_config.get("simulation_year", 2030)
+
+            if shuttle_size is None or pump_size is None:
+                print("[ERROR] annual_simulation mode requires:", file=sys.stderr)
+                print("  - single_scenario_shuttle_cbm: Shuttle size in m³", file=sys.stderr)
+                print("  - single_scenario_pump_m3ph: Pump flow rate in m³/h", file=sys.stderr)
+                print("  - simulation_year: Year to simulate (e.g., 2030, 2050)", file=sys.stderr)
+                return 1
+
+            print(f"Running annual simulation: {single_case}")
+            print(f"  Shuttle: {shuttle_size}m³")
+            print(f"  Pump: {pump_size}m³/h")
+            print(f"  Year: {simulation_year}")
+
+            try:
+                config = load_config(single_case)
+                run_annual_simulation(config, shuttle_size, pump_size, simulation_year, output_path)
+            except Exception as e:
+                print(f"Failed to run annual simulation: {e}", file=sys.stderr)
+                import traceback
+                traceback.print_exc()
+                return 1
+
         else:
             print(f"Unknown run_mode: {run_mode}", file=sys.stderr)
-            print("Valid modes: single, single_scenario, all, multiple")
+            print("Valid modes: single, single_scenario, annual_simulation, all, multiple")
             return 1
 
         print("\n" + "="*60)
