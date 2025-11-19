@@ -430,6 +430,7 @@ class BunkeringOptimizer:
             "Annual_Cycles_Max": round(annual_cycles_max, 2),
             "Vessels_per_Trip": vessels_per_trip,
             "Annual_Supply_m3": round(annual_supply_m3, 0),
+            "Ships_Per_Year": round(annual_supply_m3 / self.bunker_volume_per_call_m3, 2),
             "Time_Utilization_Ratio_percent": round(time_utilization_ratio, 2),
 
             # ===== NPC (20-YEAR NET PRESENT COST, MILLIONS USD) =====

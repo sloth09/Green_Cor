@@ -87,7 +87,11 @@ class ShuttleRoundTripCalculator:
         setup_outbound = 2.0 * self.setup_time_hours
 
         # Pumping time per vessel
-        pumping_per_vessel = bunker_volume_per_call_m3 / pump_size_m3ph
+        # NOTE: Key fix - pump rate is limited by shuttle capacity, not bunker volume
+        # Example: shuttle=1000m³, pump=1000m³/h, ship_fuel=5000m³
+        # → 1회 펌핑: 1000/1000 = 1h (not 5000/1000 = 5h)
+        # → 5000m³ 공급: 5회 필요
+        pumping_per_vessel = shuttle_size_m3 / pump_size_m3ph
 
         # Total pumping time (all vessels)
         pumping_total = pumping_per_vessel * num_vessels

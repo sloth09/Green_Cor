@@ -86,9 +86,10 @@ def run_single_scenario(config, shuttle_size_cbm, pump_size_m3ph, output_path):
         print(f"★ 총 왕복 사이클 시간:                   {cycle_info['cycle_duration']:.2f}h")
         print("="*60)
 
-        # Operating metrics
-        annual_cycles = calculator.get_annual_operations_per_shuttle(cycle_info['cycle_duration'])
-        annual_supply_m3 = annual_cycles * shuttle_size_cbm
+        # Operating metrics - use values from cycle_info for consistency
+        annual_cycles = cycle_info['annual_cycles']
+        annual_supply_m3 = cycle_info['annual_supply_m3']
+        ships_per_year = cycle_info['ships_per_year']
         time_utilization = (annual_cycles * cycle_info['cycle_duration'] / 8000.0) * 100
 
         print("\n【연간 운영 지표 (Annual Operations Metrics)】")
@@ -97,6 +98,7 @@ def run_single_scenario(config, shuttle_size_cbm, pump_size_m3ph, output_path):
         print(f"1회 운항 시간:      {cycle_info['cycle_duration']:.2f}시간")
         print(f"연간 최대 항차:     {annual_cycles:.0f}회 ({annual_cycles * cycle_info['cycle_duration']:.0f}시간)")
         print(f"연간 공급 용량:     {annual_supply_m3:,.0f}m³")
+        print(f"★ 벙커링 가능선박:   {ships_per_year:.0f}척/년 (1척 = {ship_fuel_per_call:.0f}m³)")
         print(f"시간 활용도:        {time_utilization:.1f}%")
         print(f"선박당 왕복 일정:   {365.0 / annual_cycles if annual_cycles > 0 else 0:.1f}일/회")
         print("="*60)
@@ -119,6 +121,7 @@ def run_single_scenario(config, shuttle_size_cbm, pump_size_m3ph, output_path):
                 "Basic_Cycle_Duration_hr": [cycle_info['basic_cycle_duration']],
                 "Annual_Cycles_Max": [annual_cycles],
                 "Annual_Supply_m3": [annual_supply_m3],
+                "Ships_Per_Year": [ships_per_year],
                 "Time_Utilization_Ratio_percent": [time_utilization],
             }
             scenario_df = pd.DataFrame(scenario_data)
