@@ -436,3 +436,33 @@ class CostCalculator:
             "variable_opex": annualize_npc(npc_variable_opex, annuity_factor),
             "total": annualize_npc(npc_capex + npc_fixed_opex + npc_variable_opex, annuity_factor),
         }
+
+    def calculate_annualized_capex_yearly(
+        self,
+        asset_value: float
+    ) -> float:
+        """
+        Calculate annualized CAPEX for year-by-year comparison.
+
+        Converts a capital asset value to equivalent constant annual depreciation.
+        This allows fair year-to-year comparison even when CAPEX is lumpy.
+
+        Formula:
+            Annualized CAPEX = Asset Value / Annuity Factor
+
+        Args:
+            asset_value: Total asset value in USD (shuttle + equipment currently owned)
+
+        Returns:
+            Annualized annual CAPEX in USD
+
+        Example:
+            >>> cost_calc = CostCalculator(config)
+            >>> shuttle_value = 18_917_000  # $18.917M per shuttle
+            >>> pump_value = 505_600  # $0.5056M per pump
+            >>> total_asset = shuttle_value + pump_value  # 2 shuttles + pumps
+            >>> annualized = cost_calc.calculate_annualized_capex_yearly(total_asset)
+            >>> annualized  # approximately $1.8M per year (consistent across all years)
+        """
+        annuity_factor = self.get_annuity_factor()
+        return asset_value / annuity_factor if annuity_factor > 0 else 0.0
