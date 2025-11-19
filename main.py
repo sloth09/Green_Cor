@@ -41,6 +41,71 @@ from src.utils import calculate_vessel_growth, calculate_annual_demand, calculat
 from math import ceil
 
 
+def print_cycle_time_breakdown(cycle_info, config, shuttle_size_cbm, pump_size_m3ph):
+    """
+    Print detailed breakdown of single round-trip cycle time.
+
+    Reusable function for both single_scenario and annual_simulation modes.
+
+    Args:
+        cycle_info: Dictionary with cycle time breakdown from CycleTimeCalculator
+        config: Configuration dictionary
+        shuttle_size_cbm: Shuttle size in m³
+        pump_size_m3ph: Pump flow rate in m³/h
+    """
+    # Get land pump rate
+    land_pump_rate = config["operations"].get("port_pump_rate_m3h",
+                                               config["operations"].get("shore_supply_pump_rate_m3ph", 1500.0))
+    ship_fuel_per_call = config["bunkering"]["bunker_volume_per_call_m3"]
+
+    # Display time breakdown - case-specific structure
+    print("\n【1회 왕복 운항 시간 분석 (Single Round-Trip Voyage Breakdown)】")
+    print("-" * 60)
+
+    # Common first steps
+    print(f"육상 적재 (Shore Loading):               {cycle_info['shore_loading']:.2f}h")
+    print(f"  Land Pump: {land_pump_rate:.0f} m³/h × Shuttle: {shuttle_size_cbm} m³")
+    print(f"편도 항해 (Outbound Travel):             {cycle_info['travel_outbound']:.2f}h")
+
+    # Case-specific: Port operations
+    is_case_1 = cycle_info['has_storage_at_busan']
+
+    if is_case_1:
+        # CASE 1: Shuttle makes multiple trips within port
+        print(f"호스 연결 (Connection & Purging):       {cycle_info['setup_inbound']:.2f}h")
+        print(f"벙커링 (Bunkering):                      {cycle_info['pumping_per_vessel']:.2f}h")
+        print(f"  Pump: {pump_size_m3ph} m³/h × Shuttle Capacity: {shuttle_size_cbm} m³")
+        print(f"호스 분리 (Disconnection & Purging):    {cycle_info['setup_outbound']:.2f}h")
+    else:
+        # CASE 2: One trip serves multiple vessels at destination port
+        if cycle_info['port_entry'] > 0:
+            print(f"부산항 진입 (Port Entry):                {cycle_info['port_entry']:.2f}h")
+
+        # Repeat per vessel at destination
+        num_vessels_display = cycle_info['vessels_per_trip']
+        if num_vessels_display > 1:
+            print(f"  [아래 내용이 {num_vessels_display}척 반복]")
+
+        print(f"  부산항 이동 (Docking/Movement):        {cycle_info['movement_per_vessel']:.2f}h")
+        print(f"  호스 연결 (Connection & Purging):      {cycle_info['setup_inbound']:.2f}h")
+        print(f"  벙커링 (Bunkering):                     {cycle_info['pumping_per_vessel']:.2f}h")
+        print(f"    Pump: {pump_size_m3ph} m³/h × Ship Fuel: {ship_fuel_per_call:.0f} m³")
+        print(f"  호스 분리 (Disconnection & Purging):   {cycle_info['setup_outbound']:.2f}h")
+
+        if cycle_info['port_exit'] > 0:
+            print(f"부산항 퇴출 (Port Exit):                 {cycle_info['port_exit']:.2f}h")
+
+    print(f"복귀 항해 (Return Travel):               {cycle_info['travel_return']:.2f}h")
+    print("-" * 60)
+    print(f"★ 총 왕복 사이클 시간:                   {cycle_info['cycle_duration']:.2f}h")
+
+    # Calculate and display annual capacity for one shuttle
+    max_annual_hours = config["operations"]["max_annual_hours_per_vessel"]
+    annual_cycles_max = max_annual_hours / cycle_info['cycle_duration'] if cycle_info['cycle_duration'] > 0 else 0
+    print(f"★ 연간 최대 항차 (1대):                  {annual_cycles_max:.0f}회 ({max_annual_hours:.0f}h ÷ {cycle_info['cycle_duration']:.2f}h)")
+    print("-" * 60)
+
+
 def run_single_scenario(config, shuttle_size_cbm, pump_size_m3ph, output_path):
     """
     Run a single scenario calculation (no optimization).
@@ -88,50 +153,8 @@ def run_single_scenario(config, shuttle_size_cbm, pump_size_m3ph, output_path):
             num_vessels=num_vessels
         )
 
-        # Get land pump rate
-        land_pump_rate = config["operations"].get("port_pump_rate_m3h",
-                                                   config["operations"].get("shore_supply_pump_rate_m3ph", 1500.0))
-
-        # Display time breakdown - case-specific structure
-        print("\n【1회 왕복 운항 시간 분석 (One Round-Trip Voyage Breakdown)】")
-        print("-" * 60)
-
-        # Common first steps
-        print(f"육상 적재 (Shore Loading):               {cycle_info['shore_loading']:.2f}h")
-        print(f"  Land Pump: {land_pump_rate:.0f} m³/h × Shuttle: {shuttle_size_cbm} m³")
-        print(f"편도 항해 (Outbound Travel):             {cycle_info['travel_outbound']:.2f}h")
-
-        # Case-specific: Port operations
-        is_case_1 = cycle_info['has_storage_at_busan']
-
-        if is_case_1:
-            # CASE 1: Shuttle makes multiple trips within port
-            print(f"호스 연결 (Connection & Purging):       {cycle_info['setup_inbound']:.2f}h")
-            print(f"벙커링 (Bunkering):                      {cycle_info['pumping_per_vessel']:.2f}h")
-            print(f"  Pump: {pump_size_m3ph} m³/h × Shuttle Capacity: {shuttle_size_cbm} m³")
-            print(f"호스 분리 (Disconnection & Purging):    {cycle_info['setup_outbound']:.2f}h")
-        else:
-            # CASE 2: One trip serves multiple vessels at destination port
-            if cycle_info['port_entry'] > 0:
-                print(f"부산항 진입 (Port Entry):                {cycle_info['port_entry']:.2f}h")
-
-            # Repeat per vessel at destination
-            num_vessels_display = cycle_info['vessels_per_trip']
-            if num_vessels_display > 1:
-                print(f"  [아래 내용이 {num_vessels_display}척 반복]")
-
-            print(f"  부산항 이동 (Docking/Movement):        {cycle_info['movement_per_vessel']:.2f}h")
-            print(f"  호스 연결 (Connection & Purging):      {cycle_info['setup_inbound']:.2f}h")
-            print(f"  벙커링 (Bunkering):                     {cycle_info['pumping_per_vessel']:.2f}h")
-            print(f"    Pump: {pump_size_m3ph} m³/h × Ship Fuel: {ship_fuel_per_call:.0f} m³")
-            print(f"  호스 분리 (Disconnection & Purging):   {cycle_info['setup_outbound']:.2f}h")
-
-            if cycle_info['port_exit'] > 0:
-                print(f"부산항 퇴출 (Port Exit):                 {cycle_info['port_exit']:.2f}h")
-
-        print(f"복귀 항해 (Return Travel):               {cycle_info['travel_return']:.2f}h")
-        print("-" * 60)
-        print(f"★ 총 왕복 사이클 시간:                   {cycle_info['cycle_duration']:.2f}h")
+        # Display single round-trip cycle time breakdown
+        print_cycle_time_breakdown(cycle_info, config, shuttle_size_cbm, pump_size_m3ph)
         print("="*60)
 
         # Operating metrics - use values from cycle_info for consistency
@@ -259,6 +282,9 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
             num_vessels=num_vessels
         )
 
+        # Display single round-trip cycle time breakdown
+        print_cycle_time_breakdown(cycle_info, config, shuttle_size_cbm, pump_size_m3ph)
+
         cycle_duration = cycle_info['cycle_duration']
 
         # Calculate annual operations
@@ -312,24 +338,21 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
         # First year total cost
         first_year_cost = total_capex + total_opex
 
-        # Display results
-        print("\n【Operating Parameters】")
+        # Display annual operation parameters
+        print("\n【연간 운영 파라미터 (Annual Operation Parameters)】")
         print("-" * 60)
         print(f"Vessels in Year {simulation_year}:        {vessels_in_year:>8} vessels")
         print(f"Annual Demand:                           {demand_m3:>8,.0f} m³")
         print(f"Bunker Volume per Call:                  {bunker_volume:>8,.0f} m³")
-        print(f"Annual Bunkering Calls:                  {annual_calls:>8,.0f} calls")
-        print(f"Cycle Time per Call:                     {cycle_duration:>8.2f} hours")
-        print(f"Max Annual Hours per Shuttle:            {max_annual_hours:>8,.0f} hours/year")
+        print(f"Required Annual Calls:                   {annual_calls:>8,.0f} calls")
         print("-" * 60)
 
-        print("\n【Fleet Requirements】")
+        print("\n【함대 요구사항 (Fleet Requirements)】")
         print("-" * 60)
-        print(f"Total Hours Needed:                      {total_hours_needed:>8,.0f} hours")
-        print(f"Required Shuttles:                       {required_shuttles:>8} vessels")
-        print(f"Utilization Rate:                        {utilization*100:>8.1f}%")
+        print(f"Total Hours Needed:                      {total_hours_needed:>8,.0f} hours ({annual_calls:.0f} calls × {cycle_duration:.2f}h)")
+        print(f"Required Shuttles:                       {required_shuttles:>8} vessels (ceil({total_hours_needed:.0f}h ÷ {max_annual_hours:.0f}h))")
+        print(f"Utilization Rate:                        {utilization*100:>8.1f}% ({total_hours_needed:.0f}h ÷ {available_hours:.0f}h)")
         print(f"Annual Cycles per Shuttle:               {cycles_per_shuttle:>8,.0f} trips")
-        print(f"Total Operation Hours (Fleet):           {actual_hours:>8,.0f} hours")
         print("-" * 60)
 
         print(f"\n【Cost Breakdown (Year {simulation_year})】")
@@ -352,30 +375,132 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
         # Export to CSV
         export_config = config.get("execution", {}).get("export", {})
         if export_config.get("csv", True):
+            # Calculate max annual cycles for one shuttle
+            annual_cycles_max = max_annual_hours / cycle_duration if cycle_duration > 0 else 0
+
             result_data = {
                 "Parameter": [
                     "Case", "Case_ID", "Simulation_Year", "Shuttle_Size_cbm", "Pump_Size_m3ph",
-                    "", "Vessels_in_Year", "Annual_Demand_m3", "Bunker_per_Call_m3", "Annual_Calls",
-                    "", "Cycle_Time_Hours", "Annual_Hours_Max", "Required_Shuttles", "Utilization_Rate",
-                    "", "CAPEX_Shuttle_USDm", "CAPEX_Bunkering_USDm", "CAPEX_Tank_USDm", "CAPEX_Total_USDm",
-                    "", "OPEX_Fixed_USDm", "OPEX_Variable_USDm", "OPEX_Total_USDm",
-                    "", "First_Year_Cost_USDm"
+                    "",
+                    "=== SINGLE ROUND-TRIP BREAKDOWN ===",
+                    "Shore_Loading_Hours",
+                    "Travel_Outbound_Hours",
+                    "Port_Entry_Hours",
+                    "Setup_Inbound_Hours",
+                    "Pumping_Per_Vessel_Hours",
+                    "Setup_Outbound_Hours",
+                    "Travel_Return_Hours",
+                    "Port_Exit_Hours",
+                    "Total_Cycle_Duration_Hours",
+                    "Annual_Cycles_Max_Per_Shuttle",
+                    "",
+                    "=== ANNUAL OPERATION PARAMETERS ===",
+                    "Vessels_in_Year",
+                    "Annual_Demand_m3",
+                    "Bunker_per_Call_m3",
+                    "Required_Annual_Calls",
+                    "",
+                    "=== FLEET REQUIREMENTS ===",
+                    "Total_Hours_Needed",
+                    "Annual_Hours_Max_Per_Shuttle",
+                    "Required_Shuttles",
+                    "Available_Hours_Total",
+                    "Utilization_Rate",
+                    "Annual_Cycles_Per_Shuttle",
+                    "",
+                    "=== COST BREAKDOWN ===",
+                    "CAPEX_Shuttle_USDm",
+                    "CAPEX_Bunkering_USDm",
+                    "CAPEX_Tank_USDm",
+                    "CAPEX_Total_USDm",
+                    "",
+                    "OPEX_Fixed_USDm",
+                    "OPEX_Variable_USDm",
+                    "OPEX_Total_USDm",
+                    "",
+                    "First_Year_Cost_USDm"
                 ],
                 "Value": [
                     config.get('case_name', 'Unknown'), case_id, simulation_year, shuttle_size_cbm, pump_size_m3ph,
-                    "", vessels_in_year, demand_m3, bunker_volume, annual_calls,
-                    "", cycle_duration, max_annual_hours, required_shuttles, utilization,
-                    "", total_shuttle_capex/1e6, total_bunkering_capex/1e6, tank_capex/1e6, total_capex/1e6,
-                    "", total_fixed_opex/1e6, total_variable_opex/1e6, total_opex/1e6,
-                    "", first_year_cost/1e6
+                    "",
+                    "",
+                    cycle_info['shore_loading'],
+                    cycle_info['travel_outbound'],
+                    cycle_info.get('port_entry', 0),
+                    cycle_info['setup_inbound'],
+                    cycle_info['pumping_per_vessel'],
+                    cycle_info['setup_outbound'],
+                    cycle_info['travel_return'],
+                    cycle_info.get('port_exit', 0),
+                    cycle_duration,
+                    annual_cycles_max,
+                    "",
+                    "",
+                    vessels_in_year,
+                    demand_m3,
+                    bunker_volume,
+                    annual_calls,
+                    "",
+                    "",
+                    total_hours_needed,
+                    max_annual_hours,
+                    required_shuttles,
+                    available_hours,
+                    utilization,
+                    cycles_per_shuttle,
+                    "",
+                    "",
+                    total_shuttle_capex/1e6,
+                    total_bunkering_capex/1e6,
+                    tank_capex/1e6,
+                    total_capex/1e6,
+                    "",
+                    total_fixed_opex/1e6,
+                    total_variable_opex/1e6,
+                    total_opex/1e6,
+                    "",
+                    first_year_cost/1e6
                 ],
                 "Unit": [
                     "", "", "", "m³", "m³/h",
-                    "", "vessels", "m³", "m³", "calls",
-                    "", "hours", "hours/vessel", "vessels", "%",
-                    "", "$M", "$M", "$M", "$M",
-                    "", "$M/year", "$M/year", "$M/year",
-                    "", "$M"
+                    "",
+                    "",
+                    "hours",
+                    "hours",
+                    "hours",
+                    "hours",
+                    "hours",
+                    "hours",
+                    "hours",
+                    "hours",
+                    "hours",
+                    "cycles",
+                    "",
+                    "",
+                    "vessels",
+                    "m³",
+                    "m³",
+                    "calls",
+                    "",
+                    "",
+                    "hours",
+                    "hours/vessel",
+                    "vessels",
+                    "hours",
+                    "%",
+                    "trips",
+                    "",
+                    "",
+                    "$M",
+                    "$M",
+                    "$M",
+                    "$M",
+                    "",
+                    "$M/year",
+                    "$M/year",
+                    "$M/year",
+                    "",
+                    "$M"
                 ]
             }
 
