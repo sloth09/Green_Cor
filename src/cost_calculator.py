@@ -76,16 +76,20 @@ class CostCalculator:
     def calculate_shuttle_fuel_cost_per_cycle(
         self,
         shuttle_size_cbm: float,
-        travel_time_hours: float
+        travel_time_hours: float,
+        travel_factor: float = 1.0
     ) -> float:
         """
         Calculate fuel cost for shuttle per operating cycle.
 
-        Fuel consumed = MCR × SFOC × travel_time / 1e6
+        Fuel consumed = MCR × SFOC × travel_time × travel_factor / 1e6
 
         Args:
             shuttle_size_cbm: Shuttle size in m3
-            travel_time_hours: Travel time in hours
+            travel_time_hours: Travel time per leg in hours
+            travel_factor: Multiplier for round-trip vs one-way
+                          - Case 1 (Busan port, one-way): 1.0
+                          - Case 2 (long distance, round-trip): 2.0
 
         Returns:
             Fuel cost in USD per cycle
@@ -104,8 +108,8 @@ class CostCalculator:
         sfoc = self.config["propulsion"]["sfoc_g_per_kwh"]
         fuel_price = self.config["economy"]["fuel_price_usd_per_ton"]
 
-        # Fuel per cycle in tons
-        fuel_ton = (mcr * sfoc * travel_time_hours) / 1e6
+        # Fuel per cycle in tons (with travel_factor for Case 1 vs Case 2)
+        fuel_ton = (mcr * sfoc * travel_time_hours * travel_factor) / 1e6
 
         return fuel_ton * fuel_price
 
@@ -376,10 +380,14 @@ class CostCalculator:
         Example:
             >>> cost_calc = CostCalculator(config)
             >>> factor = cost_calc.get_annuity_factor()
-            >>> factor  # approximately 10.594 for r=7%, n=20
+            >>> factor  # approximately 10.594 for r=7%, n=20 (or 11.062 for n=21)
         """
         discount_rate = self.config["economy"]["discount_rate"]
-        project_years = 20  # Fixed: 2030-2050
+        # Calculate project years dynamically from time_period config
+        # Range: 2030 to 2050 inclusive = 21 years (2050 - 2030 + 1)
+        start_year = self.config["time_period"]["start_year"]
+        end_year = self.config["time_period"]["end_year"]
+        project_years = end_year - start_year + 1
         return calculate_annuity_factor(discount_rate, project_years)
 
     def annualize_scenario_npc(self, npc_total: float) -> float:

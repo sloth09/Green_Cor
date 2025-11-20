@@ -116,10 +116,12 @@ class CycleTimeCalculator:
         call_duration = trips_per_call * basic_cycle
 
         # Annual operations and supply metrics
+        # NOTE: These represent MAXIMUM THEORETICAL values for a single shuttle at 100% utilization
+        # Actual optimization (y[t]) may use lower values based on demand constraints
         annual_cycles = 8000.0 / cycle_duration if cycle_duration > 0 else 0
         annual_supply_m3 = annual_cycles * shuttle_size_m3
 
-        # Ships per year: how many ships can be bunkered annually
+        # Ships per year: maximum theoretical ships that can be bunkered annually
         # Example: 828 cycles × 1000 m³ = 828,000 m³ / 5000 m³ per ship = 165 ships
         ships_per_year = annual_supply_m3 / self.bunker_volume_per_call_m3
 
@@ -145,7 +147,7 @@ class CycleTimeCalculator:
             # Call duration (fulfilling one demand call)
             'call_duration': call_duration,
 
-            # Operational metrics
+            # Operational metrics (theoretical maximum)
             'trips_per_call': trips_per_call,
             'vessels_per_trip': num_vessels,
             'annual_cycles': annual_cycles,

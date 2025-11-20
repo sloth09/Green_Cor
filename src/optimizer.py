@@ -400,8 +400,10 @@ class BunkeringOptimizer:
         annualized_vopex = self.cost_calc.annualize_scenario_npc(npc_total_vopex)
 
         # Calculate additional time metrics
+        # NOTE: These are THEORETICAL MAXIMUMS for a single shuttle at 100% utilization
+        # Actual supply from optimization (y[t]) will be lower or equal based on demand
         annual_cycles_max = 8000 / cycle_duration if cycle_duration > 0 else 0
-        annual_supply_m3 = annual_cycles_max * shuttle_size
+        annual_supply_m3 = annual_cycles_max * shuttle_size  # MAXIMUM theoretical supply
         time_utilization_ratio = (annual_cycles_max * cycle_duration / 8000) * 100 if cycle_duration > 0 else 0
         vessels_per_trip = cycle_info.get("vessels_per_trip", 1)
 
@@ -424,11 +426,13 @@ class BunkeringOptimizer:
             "Pumping_Total_hr": round(cycle_info.get("pumping_total", 0), 4),
             "Basic_Cycle_Duration_hr": round(cycle_info.get("basic_cycle_duration", 0), 4),
 
-            # ===== OPERATIONAL METRICS =====
+            # ===== OPERATIONAL METRICS (THEORETICAL MAXIMUM - 100% UTILIZATION) =====
+            # NOTE: Annual_Cycles_Max, Annual_Supply_m3, Ships_Per_Year show maximum theoretical capacity
+            # Actual optimization results may use lower values based on demand constraints
             "Annual_Cycles_Max": round(annual_cycles_max, 2),
             "Vessels_per_Trip": vessels_per_trip,
-            "Annual_Supply_m3": round(annual_supply_m3, 0),
-            "Ships_Per_Year": round(annual_supply_m3 / self.bunker_volume_per_call_m3, 2),
+            "Annual_Supply_m3": round(annual_supply_m3, 0),  # Maximum theoretical supply per shuttle
+            "Ships_Per_Year": round(annual_supply_m3 / self.bunker_volume_per_call_m3, 2),  # Maximum theoretical
             "Time_Utilization_Ratio_percent": round(time_utilization_ratio, 2),
 
             # ===== NPC (20-YEAR NET PRESENT COST, MILLIONS USD) =====
