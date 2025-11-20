@@ -24,11 +24,6 @@ env/
 .coverage
 htmlcov/
 
-# Results and outputs
-results/
-*.csv
-*.xlsx
-
 # OS files
 .DS_Store
 Thumbs.db
