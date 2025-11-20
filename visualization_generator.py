@@ -19,6 +19,10 @@ from pathlib import Path
 from matplotlib import rcParams
 import sys
 import json
+import warnings
+
+# matplotlib 경고 무시 (한글 폰트 관련 UserWarning)
+warnings.filterwarnings('ignore', category=UserWarning)
 
 # ============================================================================
 # 설정
@@ -27,8 +31,8 @@ results_dir = Path("results")
 figures_dir = results_dir / "figures"
 figures_dir.mkdir(parents=True, exist_ok=True)
 
-# 한글 폰트 설정
-rcParams['font.sans-serif'] = ['Arial Unicode MS', 'DejaVu Sans']
+# 한글 폰트 설정 (Windows/Mac/Linux 모두 지원)
+rcParams['font.sans-serif'] = ['Malgun Gothic', 'SimHei', 'DejaVu Sans']
 rcParams['axes.unicode_minus'] = False
 
 # 색상 정의
