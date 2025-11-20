@@ -369,23 +369,20 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
             shuttle_fuel_annual = shuttle_fuel_cost_per_cycle * annual_cycles
 
         # 2. Pump energy cost
-        # Case 1: pump bunker volume (5000 m³) each call
-        # Case 2: pump full shuttle capacity each trip
+        # Both Case 1 and Case 2: One bunkering call = one pumping event = 5000 m³
+        # - Case 1: Shuttle makes multiple trips for one call (shuttle < bunker_volume)
+        # - Case 2: One shuttle trip serves multiple calls (shuttle > bunker_volume)
+        # But pump is activated PER CALL, not per trip
         pump_power = cost_calculator.calculate_pump_power(pump_size_m3ph)
         sfoc = config["propulsion"]["sfoc_g_per_kwh"]
         fuel_price = config["economy"]["fuel_price_usd_per_ton"]
 
-        # Pumping time is based on volume per pump event (per-call basis)
-        # For both Case 1 and Case 2: pump one ship = bunker_volume m³
-        # The difference is in annual_pump_events calculation
-        pumping_time_hr_call = 2.0 * (bunker_volume / pump_size_m3ph)
+        # Pumping time per bunkering call
+        pumping_time_hr_call = bunker_volume / pump_size_m3ph
 
-        if has_storage_at_busan:
-            # Case 1: Each bunkering call requires pumping
-            annual_pump_events = annual_calls
-        else:
-            # Case 2: Each bunkering call requires pumping (also call-based)
-            annual_pump_events = annual_calls
+        # Annual pump events = number of vessel bunkering calls
+        # This is the same for both Case 1 and Case 2
+        annual_pump_events = annual_calls
 
         # Fuel per pump event (in tons): pump_power × pumping_time × SFOC / 1e6
         pump_fuel_per_event = (pump_power * pumping_time_hr_call * sfoc) / 1e6

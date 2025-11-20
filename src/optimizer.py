@@ -193,13 +193,13 @@ class BunkeringOptimizer:
         shuttle_fuel_per_cycle = (mcr * self.sfoc * travel_factor * self.travel_time_hours) / 1e6
         shuttle_fuel_cost_per_cycle = shuttle_fuel_per_cycle * self.fuel_price
 
-        # Pump fuel cost based on actual pumping time
-        # Case 1: Time to pump one call (5000 m³)
-        # Case 2: Time to pump full shuttle
-        if self.has_storage_at_busan:
-            pumping_time_hr_call = 2.0 * (self.bunker_volume_per_call_m3 / pump_size)
-        else:
-            pumping_time_hr_call = 2.0 * (shuttle_size / pump_size)
+        # Pump fuel cost based on pumping time per bunkering call
+        # Both Case 1 and Case 2: One bunkering call = one pumping event = 5000 m³
+        # The difference is in how many shuttle trips are needed:
+        # - Case 1: Multiple shuttle trips for one call (shuttle < bunker_volume)
+        # - Case 2: Multiple calls per shuttle trip (shuttle > bunker_volume)
+        # But pump is activated PER CALL, not per trip
+        pumping_time_hr_call = self.bunker_volume_per_call_m3 / pump_size
 
         pump_fuel_per_call = (self.cost_calc.calculate_pump_power(pump_size,
                                                                    self.config["propulsion"]["pump_delta_pressure_bar"],
