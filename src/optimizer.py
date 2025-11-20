@@ -367,14 +367,14 @@ class BunkeringOptimizer:
             # CAPEX
             npc_shuttle_cap += disc_factor * shuttle_capex * x_val
             npc_bunk_cap += disc_factor * bunk_capex * x_val
-            if self.tank_enabled:
+            if self.tank_enabled and self.shore_supply_enabled:
                 x_tank_val = x_tank[t].varValue
                 npc_tank_cap += disc_factor * self.tank_capex * x_tank_val
 
             # Fixed OPEX
             npc_shuttle_fop += disc_factor * shuttle_fixed_opex * N_val
             npc_bunk_fop += disc_factor * bunk_fixed_opex * N_val
-            if self.tank_enabled:
+            if self.tank_enabled and self.shore_supply_enabled:
                 N_tank_val = N_tank[t].varValue
                 npc_tank_fop += disc_factor * self.tank_fixed_opex * N_tank_val
 
@@ -383,7 +383,7 @@ class BunkeringOptimizer:
             bunk_vop = pump_fuel_per_call * y_val
             npc_shuttle_vop += disc_factor * shuttle_vop
             npc_bunk_vop += disc_factor * bunk_vop
-            if self.tank_enabled:
+            if self.tank_enabled and self.shore_supply_enabled:
                 N_tank_val = N_tank[t].varValue
                 npc_tank_vop += disc_factor * self.tank_variable_opex * N_tank_val
 
@@ -392,7 +392,7 @@ class BunkeringOptimizer:
                 shuttle_fixed_opex * N_val + bunk_fixed_opex * N_val +
                 shuttle_vop + bunk_vop
             )
-            if self.tank_enabled:
+            if self.tank_enabled and self.shore_supply_enabled:
                 npc_total += disc_factor * (
                     self.tank_capex * x_tank_val +
                     self.tank_fixed_opex * N_tank_val +

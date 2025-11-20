@@ -344,16 +344,28 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
         total_bunkering_capex = bunkering_capex * required_shuttles
         total_capex = total_shuttle_capex + total_bunkering_capex
 
-        # Tank CAPEX (Case 1 only)
+        # Shore supply costs (Tank + Pump): controlled by shore_supply.enabled
         tank_capex = 0
         tank_fixed_opex = 0
-        if config.get("tank_storage", {}).get("enabled", False):
-            tank_capex = cost_calculator.calculate_tank_capex()
-            tank_fixed_opex = cost_calculator.calculate_tank_fixed_opex()
-            total_capex += tank_capex
+        shore_pump_capex = 0
+        shore_pump_fixed_opex = 0
+
+        shore_supply_enabled = config.get("shore_supply", {}).get("enabled", False)
+        if shore_supply_enabled:
+            # Tank CAPEX and OPEX (Case 1 only)
+            if config.get("tank_storage", {}).get("enabled", False):
+                tank_capex = cost_calculator.calculate_tank_capex()
+                tank_fixed_opex = cost_calculator.calculate_tank_fixed_opex()
+                total_capex += tank_capex
+
+            # Shore pump CAPEX (one-time, 1500 m³/h fixed)
+            shore_pump_capex = cost_calculator.calculate_shore_pump_capex()
+            shore_pump_fixed_opex = cost_calculator.calculate_shore_pump_fixed_opex()
+            total_capex += shore_pump_capex
 
         # Annual OPEX
-        total_fixed_opex = (shuttle_fixed_opex + bunkering_fixed_opex) * required_shuttles + tank_fixed_opex
+        total_fixed_opex = ((shuttle_fixed_opex + bunkering_fixed_opex) * required_shuttles +
+                           tank_fixed_opex + shore_pump_fixed_opex)
 
         # Variable OPEX (fuel and energy costs)
         # Uses same logic as optimizer.py for consistency
@@ -398,9 +410,9 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
         pump_fuel_cost_per_event = pump_fuel_per_event * fuel_price
         pump_fuel_annual = pump_fuel_cost_per_event * annual_pump_events
 
-        # 3. Tank cooling cost (Case 1 only)
+        # 3. Tank cooling cost (Case 1 only, if shore_supply enabled)
         tank_variable_opex = 0
-        if config.get("tank_storage", {}).get("enabled", False):
+        if shore_supply_enabled and config.get("tank_storage", {}).get("enabled", False):
             tank_variable_opex = cost_calculator.calculate_tank_variable_opex()
 
         # Total variable OPEX
@@ -442,6 +454,8 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
         print(f"  - Bunkering Equipment:                 ${total_bunkering_capex/1e6:>8.1f}M")
         if tank_capex > 0:
             print(f"  - Storage Tank:                        ${tank_capex/1e6:>8.1f}M")
+        if shore_pump_capex > 0:
+            print(f"  - Shore Supply Pump:                   ${shore_pump_capex/1e6:>8.3f}M")
         print(f"  Total CAPEX:                           ${total_capex/1e6:>8.1f}M")
         print()
         print("OPEX (Annual):")
