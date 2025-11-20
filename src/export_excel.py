@@ -9,6 +9,7 @@ import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.utils import get_column_letter
 
 
 class ExcelExporter:
@@ -305,7 +306,7 @@ class ExcelExporter:
 
         # Adjust column widths
         for col in range(1, len(headers) + 1):
-            ws.column_dimensions[chr(64 + col)].width = 16
+            ws.column_dimensions[get_column_letter(col)].width = 16
 
     def _add_config_sheet(self, wb: Workbook) -> None:
         """
