@@ -269,12 +269,12 @@ class BunkeringOptimizer:
                     prob += N_tank[t] == N_tank[self.years[i - 1]] + x_tank[t]
 
             # Demand satisfaction
-            # For Case 2 (no storage): y[t] represents trips, each delivering full shuttle capacity
-            # For Case 1 (with storage): y[t] represents calls, each delivering bunker_volume_per_call
-            if self.has_storage_at_busan:
-                prob += y[t] * self.bunker_volume_per_call_m3 >= self.annual_demand[t]
-            else:
-                prob += y[t] * shuttle_size >= self.annual_demand[t]
+            # NOTE: y[t] represents ANNUAL VESSEL BUNKERING CALLS for BOTH cases
+            # Case 1: Each call delivers bunker_volume_per_call (5000 m³)
+            # Case 2: Each call ALSO delivers bunker_volume_per_call (5000 m³)
+            #         (shuttle may serve multiple vessels per trip, but y[t] counts calls, not trips)
+            # UNIFIED LOGIC: Both use bunker_volume_per_call
+            prob += y[t] * self.bunker_volume_per_call_m3 >= self.annual_demand[t]
 
             # Working time capacity
             prob += y[t] * trips_per_call * cycle_duration <= N[t] * self.max_annual_hours
@@ -374,13 +374,13 @@ class BunkeringOptimizer:
         annuity_factor = self.cost_calc.get_annuity_factor()
 
         # Calculate total supply over 20 years for LCOAmmonia
+        # NOTE: y[t] represents annual vessel bunkering calls for BOTH cases
+        # This is now unified for consistency with demand constraint and yearly results
         total_supply_m3 = 0.0
         for t in self.years:
             y_val = y[t].varValue
-            if self.has_storage_at_busan:
-                total_supply_m3 += y_val * self.bunker_volume_per_call_m3
-            else:
-                total_supply_m3 += y_val * shuttle_size
+            # Both Case 1 and Case 2: Each call delivers bunker_volume_per_call (5000 m³)
+            total_supply_m3 += y_val * self.bunker_volume_per_call_m3
 
         # Convert supply from m³ to tons for LCOAmmonia calculation
         density_storage = self.config["ammonia"]["density_storage_ton_m3"]

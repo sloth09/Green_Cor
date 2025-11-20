@@ -1,0 +1,215 @@
+================================================================================
+GREEN CORRIDOR CODEBASE - NON-UNIFIED CALCULATION ANALYSIS
+COMPLETE REPORT
+================================================================================
+
+ANALYSIS COMPLETED: 2025-11-20
+SCOPE: Deep analysis of duplicate/non-unified calculations across:
+  - src/optimizer.py
+  - main.py  
+  - src/cost_calculator.py
+  - src/cycle_time_calculator.py
+  - src/fleet_sizing_calculator.py
+  - src/shuttle_round_trip_calculator.py
+  - src/utils.py
+  - src/shore_supply.py
+
+FINDINGS SUMMARY
+================================================================================
+
+8 DISTINCT CALCULATION ISSUES IDENTIFIED
+
+CRITICAL ISSUES (Fix Immediately)
+-----------
+1. PUMP FUEL COST CALCULATION - 2.0 FACTOR INCONSISTENCY
+   Location: src/cost_calculator.py line 214 vs optimizer.py line 204 vs main.py line 390
+   Impact: 2x cost discrepancy for pump fuel calculations
+   Status: Partially fixed in v2.3.1 (optimizer/main fixed, but cost_calculator still broken)
+   
+2. TOTAL SUPPLY CALCULATION - CASE 2 USES WRONG VARIABLE
+   Location: src/optimizer.py lines 376-383
+   Impact: 2x overcount of total supply in Case 2, understates LCOAmmonia cost
+   Status: Inconsistency between Case 1 and Case 2 logic
+
+HIGH PRIORITY ISSUES (Should Fix)
+----------
+3. ANNUAL SUPPLY CALCULATION - THEORETICAL VS ACTUAL MISMATCH
+   Location: Multiple files use different approaches
+   Impact: Ships_Per_Year metric overstates actual capacity
+   Status: Scenario-level metrics use theoretical max, yearly use actual
+
+4. DEMAND SATISFACTION CONSTRAINT - SEMANTIC INCONSISTENCY (CASE 2)
+   Location: src/optimizer.py lines 274-277
+   Impact: Constraint incorrectly specified for Case 2
+   Status: Treats y[t] as "trips" in demand but as "calls" in working time
+
+MEDIUM PRIORITY ISSUES (Should Review)
+--------------------
+5. ANNUITY FACTOR CALCULATION - 20 VS 21 YEARS
+   Location: src/cost_calculator.py line 381
+   Impact: Small but systematic error in annualized cost calculation
+   Status: Hardcoded 20 years but actual range is 21 (2030-2050)
+
+6. SHUTTLE FUEL COST - MISSING TRAVEL FACTOR IN COST_CALCULATOR
+   Location: src/cost_calculator.py lines 76-110
+   Impact: Cannot handle Case 1 vs Case 2 round-trip differences
+   Status: Low risk because optimizer/main calculate their own; but is dead code
+
+7. ANNUAL CYCLES - MULTIPLE DEFINITIONS
+   Location: Multiple files use different semantics
+   Impact: Ambiguous naming - theoretical vs actual
+   Status: "annual_cycles" sometimes means max, sometimes means actual trips
+
+8. FLEET SIZING - MULTIPLE IMPLEMENTATIONS
+   Location: main.py (explicit) vs optimizer.py (implicit via MILP)
+   Impact: Risk of divergence if MILP constraints change
+   Status: Two separate implementations of same logic
+
+================================================================================
+DETAILED REPORTS GENERATED
+================================================================================
+
+Two comprehensive reference documents have been created:
+
+1. ANALYSIS_NON_UNIFIED_CALCULATIONS.txt (11 KB, 279 lines)
+   - Executive summary
+   - Detailed finding for each issue
+   - Summary by priority
+   - Recommendations
+
+2. DETAILED_CALCULATION_REFERENCE.md (16 KB, 445 lines)
+   - Issue-by-issue deep dive
+   - Code examples from all affected files
+   - Side-by-side comparisons
+   - Impact analysis for each issue
+   - Summary tables
+   - Recommended fix order
+
+Both files are in markdown/text format for easy reading and documentation.
+
+================================================================================
+KEY STATISTICS
+================================================================================
+
+Issues Found:                      8
+Critical Issues:                   2
+High Priority Issues:              2
+Medium Priority Issues:            4
+
+Files Affected:
+  - src/optimizer.py              (Issues: 1, 2, 3, 4, 5, 7, 8)
+  - src/cost_calculator.py         (Issues: 1, 5, 6)
+  - main.py                        (Issues: 1, 3, 6, 7, 8)
+  - src/cycle_time_calculator.py   (Issues: 3, 7)
+  - src/fleet_sizing_calculator.py (Issues: 8)
+
+Lines of Code Affected: ~40 locations across 8 files
+
+Estimated Impact:
+  - Pump costs: 2x discrepancy (CRITICAL)
+  - Total supply (Case 2): 2x overcount (CRITICAL)  
+  - LCOAmmonia metric: Understated for Case 2 (HIGH)
+  - Demand constraint: Potentially incorrect (HIGH)
+
+================================================================================
+ROOT CAUSE ANALYSIS
+================================================================================
+
+Why These Issues Exist:
+
+1. NO UNIFIED COST CALCULATION INTERFACE
+   - cost_calculator.py exists but optimizer/main implement their own
+   - cost_calculator.py is partially used or not used consistently
+   - No single source of truth for cost calculations
+
+2. CASE 1 VS CASE 2 LOGIC DIVERGENCE
+   - Different calculation paths for Case 1 and Case 2
+   - Inconsistent interpretation of y[t] variable semantics
+   - Lack of unified formulation across cases
+
+3. THEORETICAL VS ACTUAL METRICS MIXING
+   - Scenario-level metrics calculated from theoretical maximums
+   - Yearly metrics calculated from actual optimization results
+   - Creates reporting inconsistencies
+
+4. COPY-PASTE IMPLEMENTATIONS
+   - Fleet sizing logic implemented in both main.py and optimizer.py
+   - Time calculations duplicated across modules
+   - Small changes propagate as bugs across multiple locations
+
+5. INCOMPLETE V2.3.1 FIX
+   - CLAUDE.md documents fix for pump fuel "2.0 factor"
+   - But only partially applied (optimizer/main fixed, cost_calculator not)
+   - Suggests incomplete testing or review
+
+================================================================================
+RECOMMENDED ACTION PLAN
+================================================================================
+
+PHASE 1 - CRITICAL FIXES (Do First)
+-----------------------------------
+1. Fix pump fuel cost (cost_calculator.py line 214)
+   - Remove 2.0 factor OR
+   - Document why 2.0 factor is needed with proper explanation
+
+2. Fix Case 2 supply calculation (optimizer.py line 383)
+   - Change: total_supply_m3 += y_val * shuttle_size
+   - To: total_supply_m3 += y_val * self.bunker_volume_per_call_m3
+
+PHASE 2 - HIGH PRIORITY FIXES (Do Soon)
+--------------------------------------
+3. Review and fix demand constraint for Case 2
+4. Clarify and unify annual supply calculation
+
+PHASE 3 - MEDIUM PRIORITY (Do Later)
+-----------------------------------
+5. Fix annuity factor 20 vs 21 year issue
+6. Enhance cost_calculator with missing parameters
+7. Rename variables for clarity (annual_cycles_max vs actual)
+8. Consolidate fleet sizing logic
+
+================================================================================
+VALIDATION RECOMMENDATIONS
+================================================================================
+
+After making fixes, validate with:
+
+1. Unit tests for each calculation module
+2. Integration tests comparing optimizer vs main.py results
+3. Case 1 vs Case 2 comparison tests
+4. Regression tests on known scenarios
+5. Cost breakdown verification (CAPEX, OPEX, etc.)
+6. LCOAmmonia metric validation
+
+See test/ directory for existing tests.
+
+================================================================================
+REFERENCES
+================================================================================
+
+Key Files Reviewed:
+  - src/optimizer.py (565 lines)
+  - main.py (821 lines)
+  - src/cost_calculator.py (469 lines)
+  - src/cycle_time_calculator.py (206 lines)
+  - src/shuttle_round_trip_calculator.py (191 lines)
+  - src/fleet_sizing_calculator.py (172 lines)
+  - src/utils.py (367 lines)
+
+Documentation:
+  - CLAUDE.md (v2.3.1)
+  - Inline code comments
+  - Configuration files (config/*.yaml)
+
+Related Issues:
+  - Issue #1 (Pump fuel 2.0 factor) mentioned in CLAUDE.md v2.3.1
+  - Similar pattern to FleetSizingCalculator issue from previous analysis
+
+================================================================================
+END OF ANALYSIS SUMMARY
+================================================================================
+
+For detailed information, see:
+- ANALYSIS_NON_UNIFIED_CALCULATIONS.txt (general overview)
+- DETAILED_CALCULATION_REFERENCE.md (specific code examples and deep dives)
+

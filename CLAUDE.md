@@ -79,6 +79,38 @@
 - ✅ Case 2-2: 10000m³과 25000m³ 펌프 비용 동일 ($0.108M/year)
 - ✅ Case 1 최적값: 2500m³ + 2000m³/h = $223.29M NPC (정확함)
 
+### v2.3.2 개선 (공통 로직 라이브러리화 및 Case 1/2 Constraint 통일) ⭐ NEW
+
+**문제 분석 (비통일 로직)**:
+- ❌ FleetSizingCalculator 없음: main.py와 optimizer.py의 함대 규모 계산 로직 다름
+- ❌ Case 2에서 y[t] 의미 불일치: demand constraint와 total_supply에서 다른 정의
+- ❌ cost_calculator.py 펌프 연료비: v2.3.1에서 "수정됨"이라 했지만 아직 2.0 factor 있음
+
+**수정 내용**:
+- ✅ **FleetSizingCalculator 라이브러리 생성**
+  - `calculate_required_shuttles_working_time_only()`: 공통 함대 규모 계산
+  - main.py + optimizer.py 모두 사용하도록 통일
+  - Fleet sizing 로직 완전 일치
+
+- ✅ **Case 1/2 제약식 통일** (y[t] 의미 명확화)
+  - y[t] = annual vessel bunkering calls (항상 동일)
+  - Demand constraint: `y[t] × bunker_volume_per_call_m3 >= annual_demand[t]` (통일)
+  - Total supply: `y[t] × bunker_volume_per_call_m3` (모두 동일)
+  - 이제 Case 1과 Case 2가 동일한 로직 사용 ✅
+
+- ✅ **cost_calculator.py 펌프 연료비 수정** (v2.3.1 미완료 부분)
+  - Line 214: `2.0 * (bunker_volume_m3 / pump_flow_m3ph)` → `bunker_volume_m3 / pump_flow_m3ph`
+  - 주석 업데이트: v2.3.1 fix 명시
+
+**단일 진실 공급원 (Single Source of Truth)**:
+```
+계산 로직 통합 현황:
+├── CycleTimeCalculator: 모든 시간 계산 ✅ (v2.2 완료)
+├── FleetSizingCalculator: 함대 규모 계산 ✅ (v2.3.2 완료)
+├── Demand/Supply Constraint: Case 1/2 통일 ✅ (v2.3.2 완료)
+└── Cost Calculation: cost_calculator.py 완전화 진행 중...
+```
+
 ---
 
 ## Project Structure
@@ -95,6 +127,7 @@ D:\code\Green_Cor\
 │   ├── config_loader.py             # YAML 설정 로더
 │   ├── shuttle_round_trip_calculator.py  # 기본 셔틀 왕복 계산 (Core Library)
 │   ├── cycle_time_calculator.py     # 통합 사이클 시간 계산 (Case 1/2)
+│   ├── fleet_sizing_calculator.py   # 통합 함대 규모 계산 (공유 라이브러리, v2.3.2)
 │   ├── shore_supply.py              # 육상 연료 공급 모듈
 │   ├── optimizer.py                 # MILP 최적화 엔진
 │   ├── cost_calculator.py           # 비용 계산 모듈

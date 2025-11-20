@@ -200,7 +200,7 @@ class CostCalculator:
         """
         Calculate fuel cost for pump operation per bunkering call.
 
-        Pumping time = 2 × volume / flow_rate (load + unload)
+        Pumping time = volume / flow_rate
         Fuel per call = pump_power × pumping_time × SFOC / 1e6
 
         Args:
@@ -210,8 +210,9 @@ class CostCalculator:
         Returns:
             Fuel cost in USD per call
         """
-        # Pumping time = 2 × (load + unload)
-        pumping_time_hr = 2.0 * (bunker_volume_m3 / pump_flow_m3ph)
+        # Pumping time for one bunkering call (one pumping event)
+        # NOTE: v2.3.1 fix - removed erroneous 2.0 coefficient that was causing 2x cost overestimation
+        pumping_time_hr = bunker_volume_m3 / pump_flow_m3ph
 
         delta_pressure = self.config["propulsion"]["pump_delta_pressure_bar"]
         efficiency = self.config["propulsion"]["pump_efficiency"]
