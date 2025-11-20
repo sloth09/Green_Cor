@@ -27,3 +27,10 @@ htmlcov/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Track results folder (explicitly not ignored)
+# All files in results/ and docs/reports_docx/ should be tracked
+!results/
+!results/**/*
+!docs/reports_docx/
+!docs/reports_docx/**/*
