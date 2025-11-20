@@ -12,6 +12,7 @@ import numpy as np
 from .config_loader import ConfigLoader
 from .cost_calculator import CostCalculator
 from .cycle_time_calculator import CycleTimeCalculator
+from .fleet_sizing_calculator import FleetSizingCalculator
 from .shore_supply import ShoreSupply
 from .utils import (
     interpolate_mcr,
@@ -34,6 +35,7 @@ class BunkeringOptimizer:
         """
         self.config = config
         self.cost_calc = CostCalculator(config)
+        self.fleet_calc = FleetSizingCalculator(config)
 
         # Extract key parameters
         self._setup_parameters()
@@ -282,15 +284,11 @@ class BunkeringOptimizer:
                 tank_capacity = N_tank[t] * self.tank_volume_m3
                 prob += N[t] * shuttle_size * self.tank_safety_factor <= tank_capacity
 
-            # Daily peak demand
-            # Case 2: y[t] is trips, each delivering full shuttle_size
-            # Case 1: y[t] is calls, each delivering bunker_volume_per_call
-            if self.has_storage_at_busan:
-                daily_demand = (y[t] / 365.0) * self.bunker_volume_per_call_m3 * self.daily_peak_factor
-            else:
-                daily_demand = (y[t] / 365.0) * shuttle_size * self.daily_peak_factor
-            daily_capacity = (N[t] * (self.max_annual_hours / cycle_duration) / 365.0) * shuttle_size
-            prob += daily_capacity >= daily_demand
+            # Fleet sizing note:
+            # Working time constraint (line 280) is the binding constraint for fleet sizing.
+            # This ensures consistency with main.py's annual_simulation, which uses:
+            #   required_shuttles = ceil((annual_calls × trips_per_call × cycle_duration) / max_annual_hours)
+            # Removed daily peak constraint to match the proven baseline (annual_simulation)
 
         # Solve
         prob.solve(pulp.PULP_CBC_CMD(msg=0))

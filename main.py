@@ -37,6 +37,7 @@ from src.export_excel import ExcelExporter
 from src.export_docx import WordExporter
 from src.cycle_time_calculator import CycleTimeCalculator
 from src.cost_calculator import CostCalculator
+from src.fleet_sizing_calculator import FleetSizingCalculator
 from src.utils import calculate_vessel_growth, calculate_annual_demand, calculate_m3_per_voyage
 from math import ceil
 
@@ -307,10 +308,18 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
             vessels_per_trip = num_vessels if num_vessels > 0 else 1
             total_trips = ceil(annual_calls / vessels_per_trip)
 
-        # Calculate required shuttles based on actual shuttle trips
-        # Total operation hours needed = actual shuttle trips × cycle_duration
-        total_hours_needed = total_trips * cycle_duration
-        required_shuttles = ceil(total_hours_needed / max_annual_hours)
+        # Calculate required shuttles using shared library (working time constraint only)
+        # This ensures consistency with annual_simulation baseline
+        fleet_calc = FleetSizingCalculator(config)
+        required_shuttles = fleet_calc.calculate_required_shuttles_working_time_only(
+            annual_calls, trips_per_call, cycle_duration
+        )
+
+        # Get detailed constraint info for debugging
+        constraint_details = fleet_calc.get_constraint_details(
+            annual_calls, trips_per_call, cycle_duration, shuttle_size_cbm
+        )
+        total_hours_needed = constraint_details['total_hours_needed']
 
         # Calculate utilization
         actual_hours = total_hours_needed
