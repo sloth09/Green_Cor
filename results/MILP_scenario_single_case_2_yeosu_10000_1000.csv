@@ -1,0 +1,2 @@
+﻿Shuttle_Size_cbm,Pump_Size_m3ph,Cycle_Duration_hr,Shore_Loading_hr,Travel_Outbound_hr,Travel_Return_hr,Setup_Inbound_hr,Setup_Outbound_hr,Pumping_Per_Vessel_hr,Pumping_Total_hr,Basic_Cycle_Duration_hr,Annual_Cycles_Max,Annual_Supply_m3,Ships_Per_Year,Time_Utilization_Ratio_percent
+10000,1000,36.126666666666665,6.666666666666667,5.73,5.73,1.0,1.0,5.0,10.0,29.46,221.44307067724674,2214430.7067724676,442.88614135449353,100.0
