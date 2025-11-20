@@ -294,6 +294,67 @@ class CostCalculator:
         density = self.config["ammonia"]["density_storage_ton_m3"]
         return calculate_tank_volume_m3(tank_ton, density)
 
+    # ========== SHORE SUPPLY PUMP COSTS ==========
+    # Fixed capacity: 1500 m³/h shore supply pump
+
+    def calculate_shore_pump_capex(self) -> float:
+        """
+        Calculate capital cost for shore supply pump (1500 m³/h).
+
+        CAPEX = pump_power (kW) × cost_per_kW
+
+        Args:
+            None (uses fixed 1500 m³/h and config)
+
+        Returns:
+            CAPEX in USD for shore pump
+        """
+        shore_pump_flow = 1500.0  # Fixed shore pump capacity
+        delta_pressure = self.config["propulsion"]["pump_delta_pressure_bar"]
+        efficiency = self.config["propulsion"]["pump_efficiency"]
+        cost_per_kw = self.config["propulsion"]["pump_power_cost_usd_per_kw"]
+
+        power_kw = calculate_pump_power(shore_pump_flow, delta_pressure, efficiency)
+        return power_kw * cost_per_kw
+
+    def calculate_shore_pump_fixed_opex(self) -> float:
+        """
+        Calculate annual fixed OPEX for shore supply pump.
+
+        Fixed OPEX = CAPEX × fixed_opex_ratio (maintenance)
+
+        Args:
+            None (uses config)
+
+        Returns:
+            Annual fixed OPEX in USD per year
+        """
+        capex = self.calculate_shore_pump_capex()
+        opex_ratio = 0.05  # 5% maintenance ratio
+        return capex * opex_ratio
+
+    def calculate_shore_pump_variable_opex_per_hour(self) -> float:
+        """
+        Calculate variable OPEX for shore supply pump per hour of operation.
+
+        Variable OPEX per hour = pump_power × SFOC / 1e6 × fuel_price
+
+        Args:
+            None (uses config)
+
+        Returns:
+            Variable OPEX in USD per operating hour
+        """
+        shore_pump_flow = 1500.0  # Fixed shore pump capacity
+        delta_pressure = self.config["propulsion"]["pump_delta_pressure_bar"]
+        efficiency = self.config["propulsion"]["pump_efficiency"]
+        sfoc = self.config["propulsion"]["sfoc_g_per_kwh"]
+        fuel_price = self.config["economy"]["fuel_price_usd_per_ton"]
+
+        power_kw = calculate_pump_power(shore_pump_flow, delta_pressure, efficiency)
+        fuel_ton_per_hour = (power_kw * sfoc) / 1e6  # Convert g to ton
+        return fuel_ton_per_hour * fuel_price
+
     # ========== SUMMARY METHODS ==========
 
     def get_shuttle_costs(self, shuttle_size_cbm: float) -> Dict[str, float]:

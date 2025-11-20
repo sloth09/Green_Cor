@@ -41,12 +41,13 @@ operations:
   transport_safety_factor: 1.0   # Redundancy prevention factor
 
 # Shore supply system (land-based facility for loading shuttles)
-# NOTE: Shore supply loading time is ALWAYS included in cycle time calculations.
-# The cost_include_shore_capex option below controls whether shore facility costs
-# are included in the CAPEX/OPEX calculations - NOT the time calculations.
+# IMPORTANT: Shore supply loading time is ALWAYS included in cycle time calculations
+# The 'enabled' flag ONLY controls whether shore facility COSTS are included
+# enabled: true  = include shore tank + pump costs
+# enabled: false = exclude shore tank + pump costs (time is still included)
 shore_supply:
-  enabled: true                  # Always enabled (time always includes shore loading)
-  pump_rate_m3ph: 1500.0         # Shore pump capacity for loading shuttles (m³/h)
+  enabled: false                 # Cost control: false = exclude shore costs (DEFAULT)
+  pump_rate_m3ph: 1500.0         # Shore pump capacity for loading shuttles (m³/h) - FIXED
   loading_time_fixed_hours: 0.0  # Additional fixed time for setup/shutdown
 
 # Tank system (storage at Busan Port for Case 1)

@@ -101,11 +101,10 @@ class CycleTimeCalculator:
             has_storage_at_busan=self.has_storage_at_busan
         )
 
-        # Step 2: Add shore supply loading time (conditional)
-        if self.shore_supply.is_enabled():
-            shore_loading = self.shore_supply.load_shuttle(shuttle_size_m3)
-        else:
-            shore_loading = 0.0
+        # Step 2: Add shore supply loading time (ALWAYS INCLUDED - not optional)
+        # Shore supply pump (1500 m³/h) is a mandatory operational step for all cases
+        # Only the COST of this facility is controlled by shore_supply.enabled
+        shore_loading = self.shore_supply.load_shuttle(shuttle_size_m3)
 
         # Step 3: Calculate final metrics
         basic_cycle = shuttle_cycle['basic_cycle_duration_h']

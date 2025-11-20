@@ -114,6 +114,17 @@ class BunkeringOptimizer:
             self.tank_variable_opex = self.cost_calc.calculate_tank_variable_opex()
             self.tank_volume_m3 = self.cost_calc.calculate_tank_volume_m3()
 
+        # Shore supply parameters (controls cost inclusion, not time)
+        self.shore_supply_enabled = self.config["shore_supply"].get("enabled", False)
+        if self.shore_supply_enabled:
+            self.shore_pump_capex = self.cost_calc.calculate_shore_pump_capex()
+            self.shore_pump_fixed_opex = self.cost_calc.calculate_shore_pump_fixed_opex()
+            self.shore_pump_variable_opex_per_hr = self.cost_calc.calculate_shore_pump_variable_opex_per_hour()
+        else:
+            self.shore_pump_capex = 0.0
+            self.shore_pump_fixed_opex = 0.0
+            self.shore_pump_variable_opex_per_hr = 0.0
+
         # Initialize cycle time calculator and shore supply manager
         self.cycle_calc = CycleTimeCalculator(self.config.get("case_id", "case_1"), self.config)
         self.shore_supply = ShoreSupply(self.config)
@@ -215,12 +226,22 @@ class BunkeringOptimizer:
         bunk_capex = self.cost_calc.calculate_bunkering_capex(shuttle_size, pump_size)
         bunk_fixed_opex = self.cost_calc.calculate_bunkering_fixed_opex(shuttle_size, pump_size)
 
-        if self.tank_enabled:
+        # Tank costs (only if tank is enabled AND shore_supply cost is enabled)
+        if self.tank_enabled and self.shore_supply_enabled:
             tank_capex = self.tank_capex
             tank_fixed_opex = self.tank_fixed_opex
             tank_variable_opex = self.tank_variable_opex
         else:
             tank_capex = tank_fixed_opex = tank_variable_opex = 0.0
+
+        # Shore supply pump costs (only if shore_supply cost is enabled)
+        # NOTE: Shore supply TIME is always included in cycle calculations
+        # Only the COST is controlled by shore_supply.enabled
+        if self.shore_supply_enabled:
+            shore_pump_capex = self.shore_pump_capex
+            shore_pump_fixed_opex = self.shore_pump_fixed_opex
+        else:
+            shore_pump_capex = shore_pump_fixed_opex = 0.0
 
         # Build MILP model
         prob = pulp.LpProblem(f"Bunkering_{shuttle_size_int}_{pump_size_int}", pulp.LpMinimize)
@@ -235,21 +256,29 @@ class BunkeringOptimizer:
 
         # Objective function
         obj_terms = []
-        for t in self.years:
+        for i, t in enumerate(self.years):
             disc_factor = 1.0 / ((1.0 + self.discount_rate) ** (t - self.start_year))
 
             cycles = y[t] * trips_per_call
 
             capex = (shuttle_capex + bunk_capex) * x[t]
-            if self.tank_enabled:
+            if self.tank_enabled and self.shore_supply_enabled:
                 capex += tank_capex * x_tank[t]
 
+            # Shore pump CAPEX: one-time cost in first year only
+            if i == 0 and self.shore_supply_enabled:
+                capex += shore_pump_capex
+
             fixed_opex = (shuttle_fixed_opex + bunk_fixed_opex) * N[t]
-            if self.tank_enabled:
+            if self.tank_enabled and self.shore_supply_enabled:
                 fixed_opex += tank_fixed_opex * N_tank[t]
 
+            # Shore pump Fixed OPEX: annual maintenance cost (always included if enabled)
+            if self.shore_supply_enabled:
+                fixed_opex += shore_pump_fixed_opex
+
             variable_opex = shuttle_fuel_cost_per_cycle * cycles + pump_fuel_cost_per_call * y[t]
-            if self.tank_enabled:
+            if self.tank_enabled and self.shore_supply_enabled:
                 variable_opex += tank_variable_opex * N_tank[t]
 
             obj_terms.append(disc_factor * (capex + fixed_opex + variable_opex))

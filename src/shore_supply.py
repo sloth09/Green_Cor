@@ -66,10 +66,10 @@ class ShoreSupply:
         Formula:
         --------
         loading_time = (shuttle_size / pump_rate) + fixed_time
-        """
-        if not self.enabled:
-            return 0.0
 
+        NOTE: This time is ALWAYS included in cycle calculations.
+        The 'enabled' flag only controls COST inclusion, not time.
+        """
         pumping_time = shuttle_size_m3 / self.pump_rate_m3ph
         return pumping_time + self.fixed_time_hours
 
@@ -88,10 +88,9 @@ class ShoreSupply:
         Returns:
         --------
         float : Time required to unload shuttle in hours
-        """
-        if not self.enabled:
-            return 0.0
 
+        NOTE: The 'enabled' flag only controls COST inclusion, not time.
+        """
         # For Case 1: Shuttles typically don't return to loading point for unloading
         # For Case 2: Shuttles return to source but may not offload (keep residual)
         # Default: Zero unloading time (no return offloading)
