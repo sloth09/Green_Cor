@@ -638,6 +638,212 @@ def run_annual_simulation(config, shuttle_size_cbm, pump_size_m3ph, simulation_y
         return None
 
 
+def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path):
+    """
+    Run a 20-year simulation for a specific shuttle/pump combination.
+    """
+    try:
+        print("\n" + "="*60)
+        print("Yearly Simulation Mode (20-year period)")
+        print("="*60)
+        case_id = config.get("case_id", "unknown")
+        print(f"Case: {config.get('case_name', 'Unknown')}")
+        print(f"Case ID: {case_id}")
+        print(f"Shuttle: {shuttle_size_cbm} m³")
+        print(f"Pump: {pump_size_m3ph} m³/h")
+        print("="*60)
+
+        # Initialize calculators
+        cycle_calculator = CycleTimeCalculator(case_id, config)
+        cost_calculator = CostCalculator(config)
+        fleet_calc = FleetSizingCalculator(config)
+
+        # Get config parameters
+        start_year = config["time_period"]["start_year"]
+        end_year = config["time_period"]["end_year"]
+        years = range(start_year, end_year + 1)
+        discount_rate = config["economy"]["discount_rate"]
+        max_annual_hours = config["operations"]["max_annual_hours_per_vessel"]
+
+        start_vessels = config["shipping"]["start_vessels"]
+        end_vessels = config["shipping"]["end_vessels"]
+        voyages_per_year = config["shipping"]["voyages_per_year"]
+        bunker_volume = config["bunkering"]["bunker_volume_per_call_m3"]
+        has_storage_at_busan = config["operations"].get("has_storage_at_busan", True)
+
+        # Calculate demand for all years
+        vessel_growth = calculate_vessel_growth(start_year, end_year, start_vessels, end_vessels)
+        annual_demand_dict = calculate_annual_demand(vessel_growth, bunker_volume, voyages_per_year)
+
+        # Calculate cycle time once
+        if has_storage_at_busan:
+            num_vessels_per_trip = 1
+        else:
+            num_vessels_per_trip = max(1, int(shuttle_size_cbm // bunker_volume))
+        
+        cycle_info = cycle_calculator.calculate_single_cycle(
+            shuttle_size_m3=shuttle_size_cbm,
+            pump_size_m3ph=pump_size_m3ph,
+            num_vessels=num_vessels_per_trip
+        )
+        cycle_duration = cycle_info['cycle_duration']
+        trips_per_call = cycle_info.get('trips_per_call', 1)
+
+        # Pre-calculate cost components
+        shuttle_capex = cost_calculator.calculate_shuttle_capex(shuttle_size_cbm)
+        bunk_capex = cost_calculator.calculate_bunkering_capex(shuttle_size_cbm, pump_size_m3ph) # pump is part of bunkering equipment
+        shuttle_fixed_opex = cost_calculator.calculate_shuttle_fixed_opex(shuttle_size_cbm)
+        bunk_fixed_opex = cost_calculator.calculate_bunkering_fixed_opex(shuttle_size_cbm, pump_size_m3ph)
+
+        tank_capex = cost_calculator.calculate_tank_capex() if config["tank_storage"]["enabled"] else 0
+        tank_fixed_opex = cost_calculator.calculate_tank_fixed_opex() if config["tank_storage"]["enabled"] else 0
+        tank_variable_opex = cost_calculator.calculate_tank_variable_opex() if config["tank_storage"]["enabled"] else 0
+        
+        mcr = config["shuttle"]["mcr_map_kw"].get(int(shuttle_size_cbm), 0)
+        sfoc = config["propulsion"]["sfoc_g_per_kwh"]
+        fuel_price = config["economy"]["fuel_price_usd_per_ton"]
+        travel_time_hours = config["operations"]["travel_time_hours"]
+        travel_factor = 1.0 if has_storage_at_busan else 2.0
+        shuttle_fuel_per_cycle = (mcr * sfoc * travel_factor * travel_time_hours) / 1e6
+        shuttle_fuel_cost_per_cycle = shuttle_fuel_per_cycle * fuel_price
+
+        pump_power = cost_calculator.calculate_pump_power(pump_size_m3ph)
+        pumping_time_hr_call = bunker_volume / pump_size_m3ph
+        pump_fuel_per_event = (pump_power * pumping_time_hr_call * sfoc) / 1e6
+        pump_fuel_cost_per_event = pump_fuel_per_event * fuel_price
+
+        yearly_results = []
+        total_shuttles = 0
+        
+        # Assume tank is a one-time purchase in the first year if enabled
+        tank_purchased = False
+
+        for year in years:
+            demand_m3 = annual_demand_dict[year]
+            annual_calls = demand_m3 / bunker_volume if bunker_volume > 0 else 0
+
+            # Required shuttles for this year's demand
+            required_shuttles = fleet_calc.calculate_required_shuttles_working_time_only(
+                annual_calls, trips_per_call, cycle_duration
+            )
+            
+            new_shuttles = max(0, required_shuttles - total_shuttles)
+            total_shuttles = required_shuttles
+
+            # Determine if tank is purchased this year
+            new_tank = 0
+            if config["tank_storage"]["enabled"] and not tank_purchased and new_shuttles > 0:
+                new_tank = 1
+                tank_purchased = True
+            
+            # --- Cost Calculations ---
+            disc_factor = 1.0 / ((1.0 + discount_rate) ** (year - start_year))
+
+            # CAPEX (Discounted)
+            capex_shuttle_usd = disc_factor * shuttle_capex * new_shuttles
+            capex_pump_usd = disc_factor * bunk_capex * new_shuttles # Bunkering capex is per-shuttle
+            capex_tank_usd = disc_factor * tank_capex * new_tank
+            capex_total_usd = capex_shuttle_usd + capex_pump_usd + capex_tank_usd
+            
+            # Fixed OPEX (Discounted)
+            fopex_shuttle_usd = disc_factor * shuttle_fixed_opex * total_shuttles
+            fopex_pump_usd = disc_factor * bunk_fixed_opex * total_shuttles
+            fopex_tank_usd = disc_factor * tank_fixed_opex if tank_purchased else 0
+            fopex_total_usd = fopex_shuttle_usd + fopex_pump_usd + fopex_tank_usd
+
+            # Variable OPEX (Discounted)
+            if has_storage_at_busan:
+                total_trips = annual_calls * trips_per_call
+            else:
+                vessels_per_trip = num_vessels_per_trip if num_vessels_per_trip > 0 else 1
+                total_trips = ceil(annual_calls / vessels_per_trip)
+
+            vopex_shuttle_usd = disc_factor * shuttle_fuel_cost_per_cycle * total_trips
+            vopex_pump_usd = disc_factor * pump_fuel_cost_per_event * annual_calls
+            vopex_tank_usd = disc_factor * tank_variable_opex if tank_purchased else 0
+            vopex_total_usd = vopex_shuttle_usd + vopex_pump_usd + vopex_tank_usd
+
+            total_year_cost_usd = capex_total_usd + fopex_total_usd + vopex_total_usd
+            
+            # --- Annualized CAPEX ---
+            total_shuttle_asset_usd = total_shuttles * shuttle_capex
+            total_pump_asset_usd = total_shuttles * bunk_capex
+            total_tank_asset_usd = tank_capex if tank_purchased else 0
+            
+            annualized_shuttle_capex_usd = cost_calculator.calculate_annualized_capex_yearly(total_shuttle_asset_usd)
+            annualized_pump_capex_usd = cost_calculator.calculate_annualized_capex_yearly(total_pump_asset_usd)
+            annualized_tank_capex_usd = cost_calculator.calculate_annualized_capex_yearly(total_tank_asset_usd)
+            annualized_total_capex_usd = annualized_shuttle_capex_usd + annualized_pump_capex_usd + annualized_tank_capex_usd
+
+            # --- Other Metrics ---
+            supply_m3 = annual_calls * bunker_volume
+            cycles_available = total_shuttles * (max_annual_hours / cycle_duration) if cycle_duration > 0 else 0
+            utilization_rate = (total_trips / cycles_available) if cycles_available > 0 else 0
+
+            yearly_results.append({
+                # Identification
+                "Shuttle_Size_cbm": int(shuttle_size_cbm),
+                "Pump_Size_m3ph": int(pump_size_m3ph),
+                "Year": year,
+                # Assets
+                "New_Shuttles": new_shuttles,
+                "Total_Shuttles": total_shuttles,
+                # Operations
+                "Annual_Calls": annual_calls,
+                "Annual_Cycles": total_trips,
+                "Supply_m3": supply_m3,
+                "Demand_m3": demand_m3,
+                "Cycles_Available": cycles_available,
+                "Utilization_Rate": utilization_rate,
+                # ===== COSTS (MILLIONS USD, DISCOUNTED) =====
+                "CAPEX_Shuttle_USDm": capex_shuttle_usd / 1e6,
+                "CAPEX_Pump_USDm": capex_pump_usd / 1e6,
+                "CAPEX_Tank_USDm": capex_tank_usd / 1e6,
+                "CAPEX_Total_USDm": capex_total_usd / 1e6,
+                "FixedOPEX_Shuttle_USDm": fopex_shuttle_usd / 1e6,
+                "FixedOPEX_Pump_USDm": fopex_pump_usd / 1e6,
+                "FixedOPEX_Tank_USDm": fopex_tank_usd / 1e6,
+                "FixedOPEX_Total_USDm": fopex_total_usd / 1e6,
+                "VariableOPEX_Shuttle_USDm": vopex_shuttle_usd / 1e6,
+                "VariableOPEX_Pump_USDm": vopex_pump_usd / 1e6,
+                "VariableOPEX_Tank_USDm": vopex_tank_usd / 1e6,
+                "VariableOPEX_Total_USDm": vopex_total_usd / 1e6,
+                "Total_Year_Cost_Discounted_USDm": total_year_cost_usd / 1e6,
+                "Discount_Factor": disc_factor,
+                 # ===== ANNUALIZED CAPEX (for year-by-year comparison) =====
+                "Annualized_CAPEX_Shuttle_USDm": annualized_shuttle_capex_usd / 1e6,
+                "Annualized_CAPEX_Pump_USDm": annualized_pump_capex_usd / 1e6,
+                "Annualized_CAPEX_Tank_USDm": annualized_tank_capex_usd / 1e6,
+                "Annualized_CAPEX_Total_USDm": annualized_total_capex_usd / 1e6,
+            })
+
+        result_df = pd.DataFrame(yearly_results)
+        
+        # Save to CSV
+        output_filename = f"yearly_simulation_{case_id}_{int(shuttle_size_cbm)}_{int(pump_size_m3ph)}.csv"
+        output_file = output_path / output_filename
+        result_df.to_csv(output_file, index=False, encoding="utf-8-sig")
+        print(f"\n[OK] Yearly simulation results saved to: {output_file}")
+        
+        # Print a summary to the console
+        print("\n" + "="*80)
+        print("Yearly Simulation Summary")
+        print("="*80)
+        print(result_df[[
+            "Year", "New_Shuttles", "Total_Shuttles", "Demand_m3", 
+            "CAPEX_Total_USDm", "FixedOPEX_Total_USDm", "VariableOPEX_Total_USDm"
+        ]].to_string(index=False))
+        print("="*80)
+
+        return result_df
+
+    except Exception as e:
+        print(f"Error during yearly simulation: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
+        return None
+
+
 def run_single_case(config, output_path):
     """
     Run optimization for a single case.
@@ -813,9 +1019,33 @@ def main():
                 traceback.print_exc()
                 return 1
 
+        elif run_mode == "yearly_simulation":
+            # Yearly simulation mode - simulate 20 years for ONE specific shuttle/pump combination
+            shuttle_size = execution_config.get("single_scenario_shuttle_cbm")
+            pump_size = execution_config.get("single_scenario_pump_m3ph")
+
+            if shuttle_size is None or pump_size is None:
+                print("[ERROR] yearly_simulation mode requires:", file=sys.stderr)
+                print("  - single_scenario_shuttle_cbm: Shuttle size in m³", file=sys.stderr)
+                print("  - single_scenario_pump_m3ph: Pump flow rate in m³/h", file=sys.stderr)
+                return 1
+            
+            print(f"Running yearly simulation: {single_case}")
+            print(f"  Shuttle: {shuttle_size}m³")
+            print(f"  Pump: {pump_size}m³/h")
+
+            try:
+                config = load_config(single_case)
+                run_yearly_simulation(config, shuttle_size, pump_size, output_path)
+            except Exception as e:
+                print(f"Failed to run yearly simulation: {e}", file=sys.stderr)
+                import traceback
+                traceback.print_exc()
+                return 1
+
         else:
             print(f"Unknown run_mode: {run_mode}", file=sys.stderr)
-            print("Valid modes: single, single_scenario, annual_simulation, all, multiple")
+            print("Valid modes: single, single_scenario, annual_simulation, yearly_simulation, all, multiple")
             return 1
 
         print("\n" + "="*60)
