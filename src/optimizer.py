@@ -290,12 +290,18 @@ class BunkeringOptimizer:
             # Inventory balance
             if t == self.years[0]:
                 prob += N[t] == x[t]
-                if self.tank_enabled:
+                if self.tank_enabled and self.shore_supply_enabled:
                     prob += N_tank[t] == x_tank[t]
+                else:
+                    # When tank is disabled, force N_tank to 0
+                    prob += N_tank[t] == 0
             else:
                 prob += N[t] == N[self.years[i - 1]] + x[t]
-                if self.tank_enabled:
+                if self.tank_enabled and self.shore_supply_enabled:
                     prob += N_tank[t] == N_tank[self.years[i - 1]] + x_tank[t]
+                else:
+                    # When tank is disabled, force N_tank to 0
+                    prob += N_tank[t] == 0
 
             # Demand satisfaction
             # NOTE: y[t] represents ANNUAL VESSEL BUNKERING CALLS for BOTH cases
@@ -308,8 +314,10 @@ class BunkeringOptimizer:
             # Working time capacity
             prob += y[t] * trips_per_call * cycle_duration <= N[t] * self.max_annual_hours
 
-            # Tank capacity (if enabled)
-            if self.tank_enabled:
+            # Tank capacity (if both tank and shore_supply costs are enabled)
+            # CRITICAL: Tank constraint must respect shore_supply.enabled flag
+            # When shore_supply.enabled=false, tank facility is not considered (constraint disabled)
+            if self.tank_enabled and self.shore_supply_enabled:
                 tank_capacity = N_tank[t] * self.tank_volume_m3
                 prob += N[t] * shuttle_size * self.tank_safety_factor <= tank_capacity
 
@@ -506,9 +514,10 @@ class BunkeringOptimizer:
             capex_shuttle_usd = disc_factor * shuttle_capex * x_val
             capex_pump_usd = disc_factor * bunk_capex * x_val
             capex_tank_usd = 0.0
-            if self.tank_enabled:
+            if self.tank_enabled and self.shore_supply_enabled:
                 x_tank_val = x_tank[t].varValue
-                capex_tank_usd = disc_factor * self.tank_capex * x_tank_val
+                if x_tank_val is not None:
+                    capex_tank_usd = disc_factor * self.tank_capex * x_tank_val
 
             capex_total_usd = capex_shuttle_usd + capex_pump_usd + capex_tank_usd
 
@@ -516,9 +525,10 @@ class BunkeringOptimizer:
             fopex_shuttle_usd = disc_factor * shuttle_fixed_opex * N_val
             fopex_pump_usd = disc_factor * bunk_fixed_opex * N_val
             fopex_tank_usd = 0.0
-            if self.tank_enabled:
+            if self.tank_enabled and self.shore_supply_enabled:
                 N_tank_val = N_tank[t].varValue
-                fopex_tank_usd = disc_factor * self.tank_fixed_opex * N_tank_val
+                if N_tank_val is not None:
+                    fopex_tank_usd = disc_factor * self.tank_fixed_opex * N_tank_val
 
             fopex_total_usd = fopex_shuttle_usd + fopex_pump_usd + fopex_tank_usd
 
