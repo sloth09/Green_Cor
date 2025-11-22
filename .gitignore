@@ -28,9 +28,9 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Track results folder (explicitly not ignored)
-# All files in results/ and docs/reports_docx/ should be tracked
-!results/
-!results/**/*
+# Results folder should be ignored
+results/
+
+# All files in docs/reports_docx/ should still be tracked
 !docs/reports_docx/
 !docs/reports_docx/**/*
