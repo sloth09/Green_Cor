@@ -10,6 +10,7 @@ time_period:
 # Economic parameters
 economy:
   discount_rate: 0.0            # No discounting - all years weighted equally
+  annualization_interest_rate: 0.07  # 7% interest rate for asset annualization (independent of discount_rate)
   fuel_price_usd_per_ton: 600.0 # USD/ton (green ammonia)
   electricity_price_usd_per_kwh: 0.0769
 
@@ -123,7 +124,7 @@ execution:
   #
   # "multiple"         : Run specific cases listed in 'multi_cases' with all combinations
   #                     Medium speed (N cases × 90 scenarios each)
-  run_mode: "yearly_simulation"
+  run_mode: "single"
 
   # For run_mode: "yearly_simulation", "single_scenario", "annual_simulation", "yearly_simulation" - which case to use
   # Example values: "case_1", "case_2_yeosu", "case_2_ulsan"

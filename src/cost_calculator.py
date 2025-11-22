@@ -428,37 +428,38 @@ class CostCalculator:
 
     def get_annuity_factor(self) -> float:
         """
-        Calculate annuity factor for the project period.
+        Calculate annuity factor for asset annualization.
 
-        Uses discount rate and 20-year period from configuration.
+        IMPORTANT: This uses annualization_interest_rate (NOT discount_rate).
+        - discount_rate: Controls time value of money for NPV calculation (currently 0%, no discounting)
+        - annualization_interest_rate: Used to convert asset values to uniform annual payments (7%)
 
         Formula:
             Annuity_Factor = [1 - (1 + r)^(-n)] / r
 
-        When discount_rate = 0:
-            Annuity_Factor = n (simple sum)
+        Where:
+            r = annualization_interest_rate (e.g., 0.07 for 7%)
+            n = project_years (e.g., 21 for 2030-2050)
 
         Returns:
-            Annuity factor
+            Annuity factor for asset annualization
 
         Example:
             >>> cost_calc = CostCalculator(config)
             >>> factor = cost_calc.get_annuity_factor()
-            >>> factor  # approximately 10.594 for r=7%, n=20 (or 11.062 for n=21)
-            >>> factor  # 21.0 for r=0%, n=21
+            >>> factor  # approximately 10.594 for r=7%, n=21
         """
-        discount_rate = self.config["economy"]["discount_rate"]
+        # Use annualization_interest_rate for converting assets to annual costs
+        annualization_rate = self.config["economy"]["annualization_interest_rate"]
+
         # Calculate project years dynamically from time_period config
         # Range: 2030 to 2050 inclusive = 21 years (2050 - 2030 + 1)
         start_year = self.config["time_period"]["start_year"]
         end_year = self.config["time_period"]["end_year"]
         project_years = end_year - start_year + 1
 
-        # When discount_rate is 0, return number of years (simple sum)
-        if discount_rate == 0.0:
-            return float(project_years)
-
-        return calculate_annuity_factor(discount_rate, project_years)
+        # Calculate annuity factor using the annualization interest rate
+        return calculate_annuity_factor(annualization_rate, project_years)
 
     def annualize_scenario_npc(self, npc_total: float) -> float:
         """
