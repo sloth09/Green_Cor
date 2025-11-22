@@ -190,9 +190,9 @@ over a {self.config['time_period']['end_year'] - self.config['time_period']['sta
 
         costs = [
             ("Total NPC (M USD)", f"{best['NPC_Total_USDm']:.2f}"),
-            ("Shuttle CAPEX (M USD)", f"{best['NPC_Shuttle_CAPEX_USDm']:.2f}"),
-            ("Bunkering CAPEX (M USD)", f"{best['NPC_Bunkering_CAPEX_USDm']:.2f}"),
-            ("Terminal CAPEX (M USD)", f"{best['NPC_Terminal_CAPEX_USDm']:.2f}"),
+            ("Shuttle CAPEX (M USD)", f"{best['NPC_Annualized_Shuttle_CAPEX_USDm']:.2f}"),
+            ("Bunkering CAPEX (M USD)", f"{best['NPC_Annualized_Bunkering_CAPEX_USDm']:.2f}"),
+            ("Terminal CAPEX (M USD)", f"{best['NPC_Annualized_Terminal_CAPEX_USDm']:.2f}"),
             ("Shuttle fOPEX (M USD)", f"{best['NPC_Shuttle_fOPEX_USDm']:.2f}"),
             ("Bunkering fOPEX (M USD)", f"{best['NPC_Bunkering_fOPEX_USDm']:.2f}"),
             ("Shuttle vOPEX (M USD)", f"{best['NPC_Shuttle_vOPEX_USDm']:.2f}"),
@@ -325,9 +325,9 @@ over a {self.config['time_period']['end_year'] - self.config['time_period']['sta
 
         # Data
         for row_idx, (_, row) in enumerate(top10.iterrows(), 1):
-            total_capex = (row["NPC_Shuttle_CAPEX_USDm"] +
-                          row["NPC_Bunkering_CAPEX_USDm"] +
-                          row["NPC_Terminal_CAPEX_USDm"])
+            total_capex = (row["NPC_Annualized_Shuttle_CAPEX_USDm"] +
+                          row["NPC_Annualized_Bunkering_CAPEX_USDm"] +
+                          row["NPC_Annualized_Terminal_CAPEX_USDm"])
             total_opex = (row["NPC_Shuttle_fOPEX_USDm"] + row["NPC_Bunkering_fOPEX_USDm"] +
                          row["NPC_Terminal_fOPEX_USDm"] + row["NPC_Shuttle_vOPEX_USDm"] +
                          row["NPC_Bunkering_vOPEX_USDm"] + row["NPC_Terminal_vOPEX_USDm"])
@@ -348,8 +348,8 @@ over a {self.config['time_period']['end_year'] - self.config['time_period']['sta
 
         # Calculate percentages
         total = best["NPC_Total_USDm"]
-        capex_pct = ((best["NPC_Shuttle_CAPEX_USDm"] + best["NPC_Bunkering_CAPEX_USDm"] +
-                     best["NPC_Terminal_CAPEX_USDm"]) / total * 100)
+        capex_pct = ((best["NPC_Annualized_Shuttle_CAPEX_USDm"] + best["NPC_Annualized_Bunkering_CAPEX_USDm"] +
+                     best["NPC_Annualized_Terminal_CAPEX_USDm"]) / total * 100)
         opex_pct = 100 - capex_pct
 
         doc.add_paragraph(

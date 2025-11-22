@@ -888,7 +888,7 @@ def run_single_case(config, output_path):
         print("="*60)
         top10 = scenario_df.nsmallest(10, "NPC_Total_USDm")
         print(top10[[ "Shuttle_Size_cbm", "Pump_Size_m3ph", "NPC_Total_USDm",
-                    "NPC_Shuttle_CAPEX_USDm", "NPC_Bunkering_CAPEX_USDm"]].to_string(index=False))
+                    "NPC_Annualized_Shuttle_CAPEX_USDm", "NPC_Annualized_Bunkering_CAPEX_USDm"]].to_string(index=False))
 
         return scenario_df, yearly_df
 
