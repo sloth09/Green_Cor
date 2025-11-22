@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 독립적인 그림 생성 스크립트
 
@@ -18,6 +19,13 @@ import numpy as np
 from pathlib import Path
 from matplotlib import rcParams
 import sys
+import os
+
+# Windows/Linux 호환성: UTF-8 인코딩 설정
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    os.environ['PYTHONIOENCODING'] = 'utf-8'
 import json
 import warnings
 
@@ -155,9 +163,9 @@ def generate_top10_breakdown(data_dict):
         df = data['df'].nsmallest(10, 'NPC_Total_USDm')
         scenarios = [f"S{i+1}" for i in range(len(df))]
 
-        capex_shuttle = df['NPC_Shuttle_CAPEX_USDm'].values
-        capex_bunk = df['NPC_Bunkering_CAPEX_USDm'].values
-        capex_tank = df['NPC_Terminal_CAPEX_USDm'].values
+        capex_shuttle = df['NPC_Annualized_Shuttle_CAPEX_USDm'].values
+        capex_bunk = df['NPC_Annualized_Bunkering_CAPEX_USDm'].values
+        capex_tank = df['NPC_Annualized_Terminal_CAPEX_USDm'].values
         opex_shuttle = df['NPC_Shuttle_fOPEX_USDm'].values + df['NPC_Shuttle_vOPEX_USDm'].values
         opex_bunk = df['NPC_Bunkering_fOPEX_USDm'].values + df['NPC_Bunkering_vOPEX_USDm'].values
         opex_tank = df['NPC_Terminal_fOPEX_USDm'].values + df['NPC_Terminal_vOPEX_USDm'].values
@@ -234,9 +242,9 @@ def generate_case_comparison(data_dict):
 
     for case_id in cases_list:
         best = data_dict[case_id]['best_row']
-        cost_components['Shuttle\nCAPEX'].append(best['NPC_Shuttle_CAPEX_USDm'])
-        cost_components['Bunkering\nCAPEX'].append(best['NPC_Bunkering_CAPEX_USDm'])
-        cost_components['Tank\nCAPEX'].append(best['NPC_Terminal_CAPEX_USDm'])
+        cost_components['Shuttle\nCAPEX'].append(best['NPC_Annualized_Shuttle_CAPEX_USDm'])
+        cost_components['Bunkering\nCAPEX'].append(best['NPC_Annualized_Bunkering_CAPEX_USDm'])
+        cost_components['Tank\nCAPEX'].append(best['NPC_Annualized_Terminal_CAPEX_USDm'])
         total_opex = (best['NPC_Shuttle_fOPEX_USDm'] + best['NPC_Shuttle_vOPEX_USDm'] +
                       best['NPC_Bunkering_fOPEX_USDm'] + best['NPC_Bunkering_vOPEX_USDm'] +
                       best['NPC_Terminal_fOPEX_USDm'] + best['NPC_Terminal_vOPEX_USDm'])
@@ -347,9 +355,9 @@ def generate_cost_pie_charts(data_dict):
     for idx, case_id in enumerate(cases_list):
         best = data_dict[case_id]['best_row']
 
-        capex_shuttle = best['NPC_Shuttle_CAPEX_USDm']
-        capex_bunk = best['NPC_Bunkering_CAPEX_USDm']
-        capex_tank = best['NPC_Terminal_CAPEX_USDm']
+        capex_shuttle = best['NPC_Annualized_Shuttle_CAPEX_USDm']
+        capex_bunk = best['NPC_Annualized_Bunkering_CAPEX_USDm']
+        capex_tank = best['NPC_Annualized_Terminal_CAPEX_USDm']
         opex_shuttle = best['NPC_Shuttle_fOPEX_USDm'] + best['NPC_Shuttle_vOPEX_USDm']
         opex_bunk = best['NPC_Bunkering_fOPEX_USDm'] + best['NPC_Bunkering_vOPEX_USDm']
         opex_tank = best['NPC_Terminal_fOPEX_USDm'] + best['NPC_Terminal_vOPEX_USDm']
@@ -509,9 +517,9 @@ def generate_operating_metrics(data_dict):
     capex_ratios = []
     for case_id in cases_list:
         best = data_dict[case_id]['best_row']
-        total_capex = (best['NPC_Shuttle_CAPEX_USDm'] +
-                      best['NPC_Bunkering_CAPEX_USDm'] +
-                      best['NPC_Terminal_CAPEX_USDm'])
+        total_capex = (best['NPC_Annualized_Shuttle_CAPEX_USDm'] +
+                      best['NPC_Annualized_Bunkering_CAPEX_USDm'] +
+                      best['NPC_Annualized_Terminal_CAPEX_USDm'])
         total_cost = best['NPC_Total_USDm']
         capex_ratios.append((total_capex / total_cost) * 100)
 

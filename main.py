@@ -716,8 +716,16 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
 
         yearly_results = []
         total_shuttles = 0
-        
+
         tank_purchased = False
+
+        # Track cumulative supply for LCOAmmonia calculation
+        cumulative_supply_m3 = 0.0
+        cumulative_supply_ton = 0.0
+        cumulative_annualized_capex = 0.0
+        cumulative_opex = 0.0
+
+        density_storage = config["ammonia"]["density_storage_ton_m3"]
 
         for year in years:
             demand_m3 = annual_demand_dict[year]
@@ -773,6 +781,17 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
             cycles_available = total_shuttles * (max_annual_hours / cycle_duration) if cycle_duration > 0 else 0
             utilization_rate = (total_trips / cycles_available) if cycles_available > 0 else 0
 
+            # Calculate cumulative values for LCOAmmonia
+            cumulative_supply_m3 += supply_m3
+            cumulative_supply_ton += supply_m3 * density_storage
+
+            annualized_total_cost_usd = annualized_total_capex_usd + fopex_total_usd + vopex_total_usd
+            cumulative_annualized_capex += annualized_total_capex_usd
+            cumulative_opex += fopex_total_usd + vopex_total_usd
+
+            # Calculate LCOAmmonia up to this year (20-year cumulative)
+            lco_ammonia_to_date = (cumulative_annualized_capex + cumulative_opex) / cumulative_supply_ton if cumulative_supply_ton > 0 else 0.0
+
             yearly_results.append({
                 # Identification
                 "Shuttle_Size_cbm": int(shuttle_size_cbm), "Pump_Size_m3ph": int(pump_size_m3ph), "Year": year,
@@ -796,6 +815,11 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
                 "Annualized_CAPEX_Total_USDm": annualized_total_capex_usd / 1e6,
                 # ===== TOTAL YEAR COST (ANNUALIZED CAPEX + OPEX) =====
                 "Total_Year_Cost_USDm": (annualized_total_capex_usd + fopex_total_usd + vopex_total_usd) / 1e6,
+                # ===== LEVELIZED COST OF AMMONIA (20-YEAR CUMULATIVE) =====
+                "Cumulative_Supply_m3": round(cumulative_supply_m3, 0),
+                "Cumulative_Supply_ton": round(cumulative_supply_ton, 2),
+                "Cumulative_Cost_USDm": round((cumulative_annualized_capex + cumulative_opex) / 1e6, 2),
+                "LCOAmmonia_USD_per_ton": round(lco_ammonia_to_date, 2),
                 "Discount_Factor": disc_factor,
             })
 

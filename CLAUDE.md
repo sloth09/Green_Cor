@@ -347,4 +347,118 @@ Green Corridor Research Team, 2025
 - 버전 변경 이력: `docs/changelog.md`
 - 아키텍처 설명: `docs/architecture.md`
 
-**마지막 업데이트**: 2025-11-22 (v2.3.2 - 공통 로직 라이브러리화 완료)
+**마지막 업데이트**: 2025-11-22 (v2.4 - Annualized CAPEX 수정, Annualization Rate 도입)
+
+---
+
+## AI Assistant Instructions (Claude Code 전용)
+
+### 중요: 문서 생성 가이드
+
+**다음의 경우에만 마크다운 문서(.md)를 생성하세요:**
+- 사용자가 명시적으로 요청한 문서
+- 프로젝트에 필수적인 기술 문서 (`docs/` 폴더 내)
+  - `architecture.md`, `configuration.md`, `changelog.md` 등
+
+**절대 금지:**
+- 요청하지 않은 요약 문서 생성
+- 작업 완료 후 자동 보고서 작성
+- 설명 목적의 추가 문서 창작
+- 토큰 낭비를 초래하는 불필요한 파일
+
+**원칙:**
+- 사용자 요청에 정확히 응답
+- 코드 수정만 수행
+- 과도한 문서화 피하기
+- 토큰 효율성 우선
+
+### 작업 완료 시
+- 간단한 텍스트 요약만 제공 (마크다운 파일 생성 금지)
+- Git 커밋 메시지로 변경사항 기록
+- 추가 설명 없이 작업 사실만 보고
+
+---
+
+## 파일 인코딩 및 코딩 스타일 가이드
+
+### 중요: UTF-8 인코딩 설정
+
+**모든 Python 파일에서 반드시 다음을 따르세요:**
+
+1. **파일 첫 줄에 UTF-8 선언** (Windows 호환성)
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+```
+
+2. **print문에서 유니코드/이모지 사용 금지**
+- 다음 대신 (FAIL):
+  ```python
+  print(f"✓ Optimal Scenario Found:")
+  print(f"❌ FAIL - Values Differ")
+  print(f"✅ PASS - Values Match!")
+  ```
+
+- 다음처럼 사용 (SUCCESS):
+  ```python
+  print(f"[OK] Optimal Scenario Found:")
+  print(f"[FAIL] Values Differ")
+  print(f"[PASS] Values Match!")
+  ```
+
+3. **한국어는 사용 가능** (UTF-8이므로)
+```python
+print("LCOAmmonia 일치성 검증")  # OK
+print(f"결과: ${lco_value:.2f}/ton")  # OK
+```
+
+4. **Windows 콘솔 호환성**
+- 파일 저장: UTF-8 (BOM 없음)
+- print 문: ASCII 문자만 (숫자, 영문, 한글, 기호)
+- 이모지/특수 유니코드: 절대 금지
+
+### 예시: 올바른 형식
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+모듈 설명 (한글 가능)
+"""
+
+import sys
+
+def test_case():
+    """테스트 함수"""
+    print("\n[OK] 테스트 시작")  # 한글 + ASCII = 안전
+    print(f"  Shuttle: {size} m3")  # ASCII만 = 안전
+    print(f"  Difference: {diff:.2f}/ton")
+    print("[PASS] 테스트 통과")  # ASCII 대괄호 + 한글 = 안전
+    return True
+
+if __name__ == "__main__":
+    success = test_case()
+    sys.exit(0 if success else 1)
+```
+
+### 콘솔 출력 패턴 (모든 파일에서 일관성 유지)
+
+| 목적 | 패턴 | 예시 |
+|------|------|------|
+| 성공 | `[OK]` | `[OK] Results saved` |
+| 실패 | `[ERROR]` | `[ERROR] File not found` |
+| 경고 | `[WARN]` | `[WARN] Memory low` |
+| 진행 | `[N/M]` | `[2/3] Running step 2` |
+| 통과 | `[PASS]` | `[PASS] Values match` |
+| 실패 | `[FAIL]` | `[FAIL] Mismatch detected` |
+| 정보 | `[INFO]` | `[INFO] Configuration loaded` |
+| 구분선 | `=======` | 섹션 분리용 |
+
+### 파이썬 파일 생성 체크리스트
+
+- [ ] 첫 줄: `#!/usr/bin/env python3`
+- [ ] 둘째 줄: `# -*- coding: utf-8 -*-`
+- [ ] print문에 이모지/특수 유니코드 없음
+- [ ] 한글 문자열은 `""` 또는 `''` 안에만 (f-string 외부)
+- [ ] `[OK]`, `[FAIL]` 등의 ASCII 패턴 사용
+- [ ] 파일 저장: UTF-8 (BOM 없음) 설정
