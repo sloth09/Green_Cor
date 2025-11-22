@@ -788,12 +788,15 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
                 "FixedOPEX_Tank_USDm": fopex_tank_usd / 1e6, "FixedOPEX_Total_USDm": fopex_total_usd / 1e6,
                 "VariableOPEX_Shuttle_USDm": vopex_shuttle_usd / 1e6, "VariableOPEX_Pump_USDm": vopex_pump_usd / 1e6,
                 "VariableOPEX_Tank_USDm": vopex_tank_usd / 1e6, "VariableOPEX_Total_USDm": vopex_total_usd / 1e6,
-                "Total_Year_Cost_USDm": total_year_cost_usd / 1e6, "Discount_Factor": disc_factor,
+                "Total_OPEX_USDm": (fopex_total_usd + vopex_total_usd) / 1e6,
                 # ===== ANNUALIZED CAPEX (for year-by-year comparison) =====
                 "Annualized_CAPEX_Shuttle_USDm": annualized_shuttle_capex_usd / 1e6,
                 "Annualized_CAPEX_Pump_USDm": annualized_pump_capex_usd / 1e6,
                 "Annualized_CAPEX_Tank_USDm": annualized_tank_capex_usd / 1e6,
                 "Annualized_CAPEX_Total_USDm": annualized_total_capex_usd / 1e6,
+                # ===== TOTAL YEAR COST (ANNUALIZED CAPEX + OPEX) =====
+                "Total_Year_Cost_USDm": (annualized_total_capex_usd + fopex_total_usd + vopex_total_usd) / 1e6,
+                "Discount_Factor": disc_factor,
             })
 
         result_df = pd.DataFrame(yearly_results)

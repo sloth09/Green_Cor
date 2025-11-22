@@ -357,7 +357,9 @@ class BunkeringOptimizer:
         shuttle_size_int = int(shuttle_size)
         pump_size_int = int(pump_size)
 
-        # Calculate NPV and components
+        # Calculate NPC using Annualized CAPEX methodology
+        # This ensures fair comparison across scenarios with different asset purchase timing
+        # and automatically accounts for salvage value of assets purchased late in project
         npc_total = 0.0
         npc_shuttle_cap = npc_shuttle_fop = npc_shuttle_vop = 0.0
         npc_bunk_cap = npc_bunk_fop = npc_bunk_vop = 0.0
@@ -372,37 +374,47 @@ class BunkeringOptimizer:
 
             cycles = y_val * trips_per_call
 
-            # CAPEX
-            npc_shuttle_cap += disc_factor * shuttle_capex * x_val
-            npc_bunk_cap += disc_factor * bunk_capex * x_val
+            # ANNUALIZED CAPEX (instead of actual CAPEX spending)
+            # Calculate total asset value owned in this year
+            total_shuttle_asset = N_val * shuttle_capex
+            total_bunk_asset = N_val * bunk_capex
+            total_tank_asset = 0.0
             if self.tank_enabled and self.shore_supply_enabled:
-                x_tank_val = x_tank[t].varValue
-                npc_tank_cap += disc_factor * self.tank_capex * x_tank_val
+                N_tank_val = N_tank[t].varValue
+                total_tank_asset = N_tank_val * self.tank_capex
 
-            # Fixed OPEX
+            # Convert to annualized CAPEX (same methodology as yearly_simulation)
+            annualized_shuttle_capex = self.cost_calc.calculate_annualized_capex_yearly(total_shuttle_asset)
+            annualized_bunk_capex = self.cost_calc.calculate_annualized_capex_yearly(total_bunk_asset)
+            annualized_tank_capex = self.cost_calc.calculate_annualized_capex_yearly(total_tank_asset)
+
+            # Accumulate annualized CAPEX
+            npc_shuttle_cap += disc_factor * annualized_shuttle_capex
+            npc_bunk_cap += disc_factor * annualized_bunk_capex
+            npc_tank_cap += disc_factor * annualized_tank_capex
+
+            # Fixed OPEX (unchanged)
             npc_shuttle_fop += disc_factor * shuttle_fixed_opex * N_val
             npc_bunk_fop += disc_factor * bunk_fixed_opex * N_val
             if self.tank_enabled and self.shore_supply_enabled:
-                N_tank_val = N_tank[t].varValue
                 npc_tank_fop += disc_factor * self.tank_fixed_opex * N_tank_val
 
-            # Variable OPEX
+            # Variable OPEX (unchanged)
             shuttle_vop = shuttle_fuel_per_cycle * cycles
             bunk_vop = pump_fuel_per_call * y_val
             npc_shuttle_vop += disc_factor * shuttle_vop
             npc_bunk_vop += disc_factor * bunk_vop
             if self.tank_enabled and self.shore_supply_enabled:
-                N_tank_val = N_tank[t].varValue
                 npc_tank_vop += disc_factor * self.tank_variable_opex * N_tank_val
 
+            # Total NPC for this year = Annualized CAPEX + OPEX
             npc_total += disc_factor * (
-                shuttle_capex * x_val + bunk_capex * x_val +
+                annualized_shuttle_capex + annualized_bunk_capex + annualized_tank_capex +
                 shuttle_fixed_opex * N_val + bunk_fixed_opex * N_val +
                 shuttle_vop + bunk_vop
             )
             if self.tank_enabled and self.shore_supply_enabled:
                 npc_total += disc_factor * (
-                    self.tank_capex * x_tank_val +
                     self.tank_fixed_opex * N_tank_val +
                     self.tank_variable_opex * N_tank_val
                 )
@@ -473,10 +485,14 @@ class BunkeringOptimizer:
             "Time_Utilization_Ratio_percent": round(time_utilization_ratio, 2),
 
             # ===== NPC (20-YEAR NET PRESENT COST, MILLIONS USD) =====
+            # NOTE: CAPEX components use Annualized CAPEX methodology (not actual spending)
+            # This ensures fair comparison across scenarios with different asset purchase timing
+            # NPC_Total = Σ(Annualized_CAPEX[year] + OPEX[year]) for years 2030-2050
+            # Annualized CAPEX automatically accounts for salvage value of late purchases
             "NPC_Total_USDm": round(npc_total / 1e6, 2),
-            "NPC_Shuttle_CAPEX_USDm": round(npc_shuttle_cap / 1e6, 2),
-            "NPC_Bunkering_CAPEX_USDm": round(npc_bunk_cap / 1e6, 2),
-            "NPC_Terminal_CAPEX_USDm": round(npc_tank_cap / 1e6, 2),
+            "NPC_Annualized_Shuttle_CAPEX_USDm": round(npc_shuttle_cap / 1e6, 2),
+            "NPC_Annualized_Bunkering_CAPEX_USDm": round(npc_bunk_cap / 1e6, 2),
+            "NPC_Annualized_Terminal_CAPEX_USDm": round(npc_tank_cap / 1e6, 2),
             "NPC_Shuttle_fOPEX_USDm": round(npc_shuttle_fop / 1e6, 2),
             "NPC_Bunkering_fOPEX_USDm": round(npc_bunk_fop / 1e6, 2),
             "NPC_Terminal_fOPEX_USDm": round(npc_tank_fop / 1e6, 2),
@@ -510,7 +526,7 @@ class BunkeringOptimizer:
             cycles_avail = N_val * (self.max_annual_hours / cycle_duration) if N_val > 0 else 0
 
             # ===== COST BREAKDOWN (DISCOUNTED) =====
-            # CAPEX costs
+            # Actual CAPEX costs (actual spending in this year - for reference)
             capex_shuttle_usd = disc_factor * shuttle_capex * x_val
             capex_pump_usd = disc_factor * bunk_capex * x_val
             capex_tank_usd = 0.0
@@ -544,7 +560,27 @@ class BunkeringOptimizer:
 
             vopex_total_usd = vopex_shuttle_usd + vopex_pump_usd + vopex_tank_usd
 
-            total_year_cost_usd = capex_total_usd + fopex_total_usd + vopex_total_usd
+            # Calculate Total OPEX (Fixed + Variable)
+            total_opex_usd = fopex_total_usd + vopex_total_usd
+
+            # ===== CALCULATE ANNUALIZED CAPEX (for year-by-year comparison) =====
+            # Calculate total asset value for this year (owned shuttles + equipment)
+            total_shuttle_asset_usd = N_val * shuttle_capex
+            total_pump_asset_usd = N_val * bunk_capex
+            total_tank_asset_usd = 0.0
+            if self.tank_enabled and self.shore_supply_enabled:
+                N_tank_val = N_tank[t].varValue
+                if N_tank_val is not None:
+                    total_tank_asset_usd = N_tank_val * self.tank_capex
+
+            # Calculate annualized CAPEX (consistent across years for owned assets)
+            annualized_shuttle_capex_usd = self.cost_calc.calculate_annualized_capex_yearly(total_shuttle_asset_usd)
+            annualized_pump_capex_usd = self.cost_calc.calculate_annualized_capex_yearly(total_pump_asset_usd)
+            annualized_tank_capex_usd = self.cost_calc.calculate_annualized_capex_yearly(total_tank_asset_usd)
+            annualized_total_capex_usd = annualized_shuttle_capex_usd + annualized_pump_capex_usd + annualized_tank_capex_usd
+
+            # Total Year Cost = Annualized CAPEX + Total OPEX (consistent with yearly_simulation)
+            total_year_cost_usd = annualized_total_capex_usd + total_opex_usd
 
             self.yearly_results.append({
                 # Identification
@@ -561,12 +597,17 @@ class BunkeringOptimizer:
                 "Demand_m3": round(demand, 4),
                 "Cycles_Available": round(cycles_avail, 4),
                 "Utilization_Rate": round((cycles / cycles_avail) if cycles_avail > 0 else 0, 6),
-                # ===== COSTS (MILLIONS USD, DISCOUNTED) =====
-                # CAPEX
-                "CAPEX_Shuttle_USDm": round(capex_shuttle_usd / 1e6, 4),
-                "CAPEX_Pump_USDm": round(capex_pump_usd / 1e6, 4),
-                "CAPEX_Tank_USDm": round(capex_tank_usd / 1e6, 4),
-                "CAPEX_Total_USDm": round(capex_total_usd / 1e6, 4),
+                # ===== ACTUAL CAPEX (REFERENCE ONLY - actual spending in this year) =====
+                "Actual_CAPEX_Shuttle_USDm": round(capex_shuttle_usd / 1e6, 4),
+                "Actual_CAPEX_Pump_USDm": round(capex_pump_usd / 1e6, 4),
+                "Actual_CAPEX_Tank_USDm": round(capex_tank_usd / 1e6, 4),
+                "Actual_CAPEX_Total_USDm": round(capex_total_usd / 1e6, 4),
+                # ===== ANNUALIZED CAPEX (USED FOR TOTAL COST CALCULATION) =====
+                "Annualized_CAPEX_Shuttle_USDm": round(annualized_shuttle_capex_usd / 1e6, 4),
+                "Annualized_CAPEX_Pump_USDm": round(annualized_pump_capex_usd / 1e6, 4),
+                "Annualized_CAPEX_Tank_USDm": round(annualized_tank_capex_usd / 1e6, 4),
+                "Annualized_CAPEX_Total_USDm": round(annualized_total_capex_usd / 1e6, 4),
+                # ===== OPEX =====
                 # Fixed OPEX
                 "FixedOPEX_Shuttle_USDm": round(fopex_shuttle_usd / 1e6, 4),
                 "FixedOPEX_Pump_USDm": round(fopex_pump_usd / 1e6, 4),
@@ -577,31 +618,9 @@ class BunkeringOptimizer:
                 "VariableOPEX_Pump_USDm": round(vopex_pump_usd / 1e6, 4),
                 "VariableOPEX_Tank_USDm": round(vopex_tank_usd / 1e6, 4),
                 "VariableOPEX_Total_USDm": round(vopex_total_usd / 1e6, 4),
-                # Total
+                # Total OPEX (Fixed + Variable)
+                "Total_OPEX_USDm": round(total_opex_usd / 1e6, 4),
+                # ===== TOTAL YEAR COST (ANNUALIZED CAPEX + OPEX) =====
                 "Total_Year_Cost_USDm": round(total_year_cost_usd / 1e6, 4),
                 "Discount_Factor": round(disc_factor, 4),
             })
-
-            # ===== CALCULATE ANNUALIZED CAPEX (for year-by-year comparison) =====
-            # Calculate total asset value for this year (owned shuttles + equipment)
-            total_shuttle_asset_usd = N_val * shuttle_capex
-            total_pump_asset_usd = N_val * bunk_capex
-            total_tank_asset_usd = 0.0
-            if self.tank_enabled:
-                N_tank_val = N_tank[t].varValue
-                total_tank_asset_usd = N_tank_val * self.tank_capex
-
-            # Calculate annualized CAPEX (consistent across years for owned assets)
-            annualized_shuttle_capex_usd = self.cost_calc.calculate_annualized_capex_yearly(total_shuttle_asset_usd)
-            annualized_pump_capex_usd = self.cost_calc.calculate_annualized_capex_yearly(total_pump_asset_usd)
-            annualized_tank_capex_usd = self.cost_calc.calculate_annualized_capex_yearly(total_tank_asset_usd)
-            annualized_total_capex_usd = annualized_shuttle_capex_usd + annualized_pump_capex_usd + annualized_tank_capex_usd
-
-            # Update last yearly result with annualized CAPEX columns
-            if self.yearly_results:
-                self.yearly_results[-1].update({
-                    "Annualized_CAPEX_Shuttle_USDm": round(annualized_shuttle_capex_usd / 1e6, 4),
-                    "Annualized_CAPEX_Pump_USDm": round(annualized_pump_capex_usd / 1e6, 4),
-                    "Annualized_CAPEX_Tank_USDm": round(annualized_tank_capex_usd / 1e6, 4),
-                    "Annualized_CAPEX_Total_USDm": round(annualized_total_capex_usd / 1e6, 4),
-                })
