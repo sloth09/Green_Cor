@@ -435,6 +435,9 @@ class CostCalculator:
         Formula:
             Annuity_Factor = [1 - (1 + r)^(-n)] / r
 
+        When discount_rate = 0:
+            Annuity_Factor = n (simple sum)
+
         Returns:
             Annuity factor
 
@@ -442,6 +445,7 @@ class CostCalculator:
             >>> cost_calc = CostCalculator(config)
             >>> factor = cost_calc.get_annuity_factor()
             >>> factor  # approximately 10.594 for r=7%, n=20 (or 11.062 for n=21)
+            >>> factor  # 21.0 for r=0%, n=21
         """
         discount_rate = self.config["economy"]["discount_rate"]
         # Calculate project years dynamically from time_period config
@@ -449,6 +453,11 @@ class CostCalculator:
         start_year = self.config["time_period"]["start_year"]
         end_year = self.config["time_period"]["end_year"]
         project_years = end_year - start_year + 1
+
+        # When discount_rate is 0, return number of years (simple sum)
+        if discount_rate == 0.0:
+            return float(project_years)
+
         return calculate_annuity_factor(discount_rate, project_years)
 
     def annualize_scenario_npc(self, npc_total: float) -> float:

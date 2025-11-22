@@ -257,7 +257,7 @@ class BunkeringOptimizer:
         # Objective function
         obj_terms = []
         for i, t in enumerate(self.years):
-            disc_factor = 1.0 / ((1.0 + self.discount_rate) ** (t - self.start_year))
+            disc_factor = 1.0  # No discounting applied - all years weighted equally
 
             cycles = y[t] * trips_per_call
 
@@ -364,7 +364,7 @@ class BunkeringOptimizer:
         npc_tank_cap = npc_tank_fop = npc_tank_vop = 0.0
 
         for t in self.years:
-            disc_factor = 1.0 / ((1.0 + self.discount_rate) ** (t - self.start_year))
+            disc_factor = 1.0  # No discounting applied - all years weighted equally
 
             x_val = x[t].varValue
             N_val = N[t].varValue
@@ -498,7 +498,7 @@ class BunkeringOptimizer:
 
         # Yearly results
         for t in self.years:
-            disc_factor = 1.0 / ((1.0 + self.discount_rate) ** (t - self.start_year))
+            disc_factor = 1.0  # No discounting applied
 
             x_val = x[t].varValue
             N_val = N[t].varValue
@@ -578,7 +578,7 @@ class BunkeringOptimizer:
                 "VariableOPEX_Tank_USDm": round(vopex_tank_usd / 1e6, 4),
                 "VariableOPEX_Total_USDm": round(vopex_total_usd / 1e6, 4),
                 # Total
-                "Total_Year_Cost_Discounted_USDm": round(total_year_cost_usd / 1e6, 4),
+                "Total_Year_Cost_USDm": round(total_year_cost_usd / 1e6, 4),
                 "Discount_Factor": round(disc_factor, 4),
             })
 

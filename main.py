@@ -663,7 +663,7 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
         start_year = config["time_period"]["start_year"]
         end_year = config["time_period"]["end_year"]
         years = range(start_year, end_year + 1)
-        discount_rate = config["economy"]["discount_rate"]
+        discount_rate = 0.0  # No discounting - all years weighted equally
         max_annual_hours = config["operations"]["max_annual_hours_per_vessel"]
 
         start_vessels = config["shipping"]["start_vessels"]
@@ -734,8 +734,8 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
             if config["tank_storage"]["enabled"] and shore_supply_enabled and not tank_purchased and new_shuttles > 0:
                 new_tank = 1
                 tank_purchased = True
-            
-            disc_factor = 1.0 / ((1.0 + discount_rate) ** (year - start_year))
+
+            disc_factor = 1.0  # No discounting applied
 
             capex_shuttle_usd = disc_factor * shuttle_capex * new_shuttles
             capex_pump_usd = disc_factor * bunk_capex * new_shuttles
@@ -788,7 +788,7 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
                 "FixedOPEX_Tank_USDm": fopex_tank_usd / 1e6, "FixedOPEX_Total_USDm": fopex_total_usd / 1e6,
                 "VariableOPEX_Shuttle_USDm": vopex_shuttle_usd / 1e6, "VariableOPEX_Pump_USDm": vopex_pump_usd / 1e6,
                 "VariableOPEX_Tank_USDm": vopex_tank_usd / 1e6, "VariableOPEX_Total_USDm": vopex_total_usd / 1e6,
-                "Total_Year_Cost_Discounted_USDm": total_year_cost_usd / 1e6, "Discount_Factor": disc_factor,
+                "Total_Year_Cost_USDm": total_year_cost_usd / 1e6, "Discount_Factor": disc_factor,
                 # ===== ANNUALIZED CAPEX (for year-by-year comparison) =====
                 "Annualized_CAPEX_Shuttle_USDm": annualized_shuttle_capex_usd / 1e6,
                 "Annualized_CAPEX_Pump_USDm": annualized_pump_capex_usd / 1e6,

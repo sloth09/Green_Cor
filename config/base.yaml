@@ -9,7 +9,7 @@ time_period:
 
 # Economic parameters
 economy:
-  discount_rate: 0.07           # 7% 할인율
+  discount_rate: 0.0            # No discounting - all years weighted equally
   fuel_price_usd_per_ton: 600.0 # USD/ton (green ammonia)
   electricity_price_usd_per_kwh: 0.0769
 
