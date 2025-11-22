@@ -27,6 +27,7 @@ For annual_simulation mode:
 
 import sys
 from pathlib import Path
+import time
 import pandas as pd
 
 # Add src to path
@@ -670,6 +671,7 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
         voyages_per_year = config["shipping"]["voyages_per_year"]
         bunker_volume = config["bunkering"]["bunker_volume_per_call_m3"]
         has_storage_at_busan = config["operations"].get("has_storage_at_busan", True)
+        shore_supply_enabled = config.get("shore_supply", {}).get("enabled", False)
 
         # Calculate demand for all years
         vessel_growth = calculate_vessel_growth(start_year, end_year, start_vessels, end_vessels)
@@ -695,10 +697,10 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
         shuttle_fixed_opex = cost_calculator.calculate_shuttle_fixed_opex(shuttle_size_cbm)
         bunk_fixed_opex = cost_calculator.calculate_bunkering_fixed_opex(shuttle_size_cbm, pump_size_m3ph)
 
-        tank_capex = cost_calculator.calculate_tank_capex() if config["tank_storage"]["enabled"] else 0
-        tank_fixed_opex = cost_calculator.calculate_tank_fixed_opex() if config["tank_storage"]["enabled"] else 0
-        tank_variable_opex = cost_calculator.calculate_tank_variable_opex() if config["tank_storage"]["enabled"] else 0
-        
+        tank_capex = cost_calculator.calculate_tank_capex() if config["tank_storage"]["enabled"] and shore_supply_enabled else 0
+        tank_fixed_opex = cost_calculator.calculate_tank_fixed_opex() if config["tank_storage"]["enabled"] and shore_supply_enabled else 0
+        tank_variable_opex = cost_calculator.calculate_tank_variable_opex() if config["tank_storage"]["enabled"] and shore_supply_enabled else 0
+
         mcr = config["shuttle"]["mcr_map_kw"].get(int(shuttle_size_cbm), 0)
         sfoc = config["propulsion"]["sfoc_g_per_kwh"]
         fuel_price = config["economy"]["fuel_price_usd_per_ton"]
@@ -715,14 +717,12 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
         yearly_results = []
         total_shuttles = 0
         
-        # Assume tank is a one-time purchase in the first year if enabled
         tank_purchased = False
 
         for year in years:
             demand_m3 = annual_demand_dict[year]
             annual_calls = demand_m3 / bunker_volume if bunker_volume > 0 else 0
 
-            # Required shuttles for this year's demand
             required_shuttles = fleet_calc.calculate_required_shuttles_working_time_only(
                 annual_calls, trips_per_call, cycle_duration
             )
@@ -730,28 +730,23 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
             new_shuttles = max(0, required_shuttles - total_shuttles)
             total_shuttles = required_shuttles
 
-            # Determine if tank is purchased this year
             new_tank = 0
-            if config["tank_storage"]["enabled"] and not tank_purchased and new_shuttles > 0:
+            if config["tank_storage"]["enabled"] and shore_supply_enabled and not tank_purchased and new_shuttles > 0:
                 new_tank = 1
                 tank_purchased = True
             
-            # --- Cost Calculations ---
             disc_factor = 1.0 / ((1.0 + discount_rate) ** (year - start_year))
 
-            # CAPEX (Discounted)
             capex_shuttle_usd = disc_factor * shuttle_capex * new_shuttles
-            capex_pump_usd = disc_factor * bunk_capex * new_shuttles # Bunkering capex is per-shuttle
+            capex_pump_usd = disc_factor * bunk_capex * new_shuttles
             capex_tank_usd = disc_factor * tank_capex * new_tank
             capex_total_usd = capex_shuttle_usd + capex_pump_usd + capex_tank_usd
             
-            # Fixed OPEX (Discounted)
             fopex_shuttle_usd = disc_factor * shuttle_fixed_opex * total_shuttles
             fopex_pump_usd = disc_factor * bunk_fixed_opex * total_shuttles
             fopex_tank_usd = disc_factor * tank_fixed_opex if tank_purchased else 0
             fopex_total_usd = fopex_shuttle_usd + fopex_pump_usd + fopex_tank_usd
 
-            # Variable OPEX (Discounted)
             if has_storage_at_busan:
                 total_trips = annual_calls * trips_per_call
             else:
@@ -765,7 +760,6 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
 
             total_year_cost_usd = capex_total_usd + fopex_total_usd + vopex_total_usd
             
-            # --- Annualized CAPEX ---
             total_shuttle_asset_usd = total_shuttles * shuttle_capex
             total_pump_asset_usd = total_shuttles * bunk_capex
             total_tank_asset_usd = tank_capex if tank_purchased else 0
@@ -775,42 +769,27 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
             annualized_tank_capex_usd = cost_calculator.calculate_annualized_capex_yearly(total_tank_asset_usd)
             annualized_total_capex_usd = annualized_shuttle_capex_usd + annualized_pump_capex_usd + annualized_tank_capex_usd
 
-            # --- Other Metrics ---
             supply_m3 = annual_calls * bunker_volume
             cycles_available = total_shuttles * (max_annual_hours / cycle_duration) if cycle_duration > 0 else 0
             utilization_rate = (total_trips / cycles_available) if cycles_available > 0 else 0
 
             yearly_results.append({
                 # Identification
-                "Shuttle_Size_cbm": int(shuttle_size_cbm),
-                "Pump_Size_m3ph": int(pump_size_m3ph),
-                "Year": year,
+                "Shuttle_Size_cbm": int(shuttle_size_cbm), "Pump_Size_m3ph": int(pump_size_m3ph), "Year": year,
                 # Assets
-                "New_Shuttles": new_shuttles,
-                "Total_Shuttles": total_shuttles,
+                "New_Shuttles": new_shuttles, "Total_Shuttles": total_shuttles,
                 # Operations
-                "Annual_Calls": annual_calls,
-                "Annual_Cycles": total_trips,
-                "Supply_m3": supply_m3,
-                "Demand_m3": demand_m3,
-                "Cycles_Available": cycles_available,
-                "Utilization_Rate": utilization_rate,
+                "Annual_Calls": annual_calls, "Annual_Cycles": total_trips, "Supply_m3": supply_m3, "Demand_m3": demand_m3,
+                "Cycles_Available": cycles_available, "Utilization_Rate": utilization_rate,
                 # ===== COSTS (MILLIONS USD, DISCOUNTED) =====
-                "CAPEX_Shuttle_USDm": capex_shuttle_usd / 1e6,
-                "CAPEX_Pump_USDm": capex_pump_usd / 1e6,
-                "CAPEX_Tank_USDm": capex_tank_usd / 1e6,
-                "CAPEX_Total_USDm": capex_total_usd / 1e6,
-                "FixedOPEX_Shuttle_USDm": fopex_shuttle_usd / 1e6,
-                "FixedOPEX_Pump_USDm": fopex_pump_usd / 1e6,
-                "FixedOPEX_Tank_USDm": fopex_tank_usd / 1e6,
-                "FixedOPEX_Total_USDm": fopex_total_usd / 1e6,
-                "VariableOPEX_Shuttle_USDm": vopex_shuttle_usd / 1e6,
-                "VariableOPEX_Pump_USDm": vopex_pump_usd / 1e6,
-                "VariableOPEX_Tank_USDm": vopex_tank_usd / 1e6,
-                "VariableOPEX_Total_USDm": vopex_total_usd / 1e6,
-                "Total_Year_Cost_Discounted_USDm": total_year_cost_usd / 1e6,
-                "Discount_Factor": disc_factor,
-                 # ===== ANNUALIZED CAPEX (for year-by-year comparison) =====
+                "CAPEX_Shuttle_USDm": capex_shuttle_usd / 1e6, "CAPEX_Pump_USDm": capex_pump_usd / 1e6,
+                "CAPEX_Tank_USDm": capex_tank_usd / 1e6, "CAPEX_Total_USDm": capex_total_usd / 1e6,
+                "FixedOPEX_Shuttle_USDm": fopex_shuttle_usd / 1e6, "FixedOPEX_Pump_USDm": fopex_pump_usd / 1e6,
+                "FixedOPEX_Tank_USDm": fopex_tank_usd / 1e6, "FixedOPEX_Total_USDm": fopex_total_usd / 1e6,
+                "VariableOPEX_Shuttle_USDm": vopex_shuttle_usd / 1e6, "VariableOPEX_Pump_USDm": vopex_pump_usd / 1e6,
+                "VariableOPEX_Tank_USDm": vopex_tank_usd / 1e6, "VariableOPEX_Total_USDm": vopex_total_usd / 1e6,
+                "Total_Year_Cost_Discounted_USDm": total_year_cost_usd / 1e6, "Discount_Factor": disc_factor,
+                # ===== ANNUALIZED CAPEX (for year-by-year comparison) =====
                 "Annualized_CAPEX_Shuttle_USDm": annualized_shuttle_capex_usd / 1e6,
                 "Annualized_CAPEX_Pump_USDm": annualized_pump_capex_usd / 1e6,
                 "Annualized_CAPEX_Tank_USDm": annualized_tank_capex_usd / 1e6,
@@ -819,8 +798,8 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
 
         result_df = pd.DataFrame(yearly_results)
         
-        # Save to CSV
-        output_filename = f"yearly_simulation_{case_id}_{int(shuttle_size_cbm)}_{int(pump_size_m3ph)}.csv"
+        timestamp = int(time.time())
+        output_filename = f"yearly_simulation_{case_id}_{int(shuttle_size_cbm)}_{int(pump_size_m3ph)}_{timestamp}.csv"
         output_file = output_path / output_filename
         result_df.to_csv(output_file, index=False, encoding="utf-8-sig")
         print(f"\n[OK] Yearly simulation results saved to: {output_file}")
@@ -829,9 +808,8 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
         print("\n" + "="*80)
         print("Yearly Simulation Summary")
         print("="*80)
-        print(result_df[[
-            "Year", "New_Shuttles", "Total_Shuttles", "Demand_m3", 
-            "CAPEX_Total_USDm", "FixedOPEX_Total_USDm", "VariableOPEX_Total_USDm"
+        print(result_df[[ "Year", "New_Shuttles", "Total_Shuttles", "Demand_m3", 
+                    "CAPEX_Total_USDm", "FixedOPEX_Total_USDm", "VariableOPEX_Total_USDm"
         ]].to_string(index=False))
         print("="*80)
 
@@ -906,7 +884,7 @@ def run_single_case(config, output_path):
         print("Top 10 Scenarios (by NPC)")
         print("="*60)
         top10 = scenario_df.nsmallest(10, "NPC_Total_USDm")
-        print(top10[["Shuttle_Size_cbm", "Pump_Size_m3ph", "NPC_Total_USDm",
+        print(top10[[ "Shuttle_Size_cbm", "Pump_Size_m3ph", "NPC_Total_USDm",
                     "NPC_Shuttle_CAPEX_USDm", "NPC_Bunkering_CAPEX_USDm"]].to_string(index=False))
 
         return scenario_df, yearly_df
