@@ -463,7 +463,7 @@ class BunkeringOptimizer:
             "Pump_Size_m3ph": pump_size_int,
             "Call_Duration_hr": round(call_duration, 4),
             "Cycle_Duration_hr": round(cycle_duration, 4),
-            "Trips_per_Call": trips_per_call,
+            "Trips_per_Call": round(float(trips_per_call), 4),
 
             # ===== TIME BREAKDOWN (HOURS) =====
             "Shore_Loading_hr": round(cycle_info.get("shore_loading", 0), 4),
@@ -479,7 +479,7 @@ class BunkeringOptimizer:
             # NOTE: Annual_Cycles_Max, Annual_Supply_m3, Ships_Per_Year show maximum theoretical capacity
             # Actual optimization results may use lower values based on demand constraints
             "Annual_Cycles_Max": round(annual_cycles_max, 2),
-            "Vessels_per_Trip": vessels_per_trip,
+            "Vessels_per_Trip": round(float(vessels_per_trip), 4),
             "Annual_Supply_m3": round(annual_supply_m3, 0),  # Maximum theoretical supply per shuttle
             "Ships_Per_Year": round(annual_supply_m3 / self.bunker_volume_per_call_m3, 2),  # Maximum theoretical
             "Time_Utilization_Ratio_percent": round(time_utilization_ratio, 2),
@@ -582,6 +582,13 @@ class BunkeringOptimizer:
             # Total Year Cost = Annualized CAPEX + Total OPEX (consistent with yearly_simulation)
             total_year_cost_usd = annualized_total_capex_usd + total_opex_usd
 
+            # Calculate additional time and efficiency metrics
+            total_hours_needed = cycles * cycle_duration
+            total_hours_available = N_val * self.max_annual_hours
+            hours_per_shuttle_used = total_hours_needed / N_val if N_val > 0 else 0
+            cycles_per_shuttle = cycles / N_val if N_val > 0 else 0
+            time_per_vessel_call = cycle_duration * trips_per_call
+
             self.yearly_results.append({
                 # Identification
                 "Shuttle_Size_cbm": shuttle_size_int,
@@ -590,13 +597,29 @@ class BunkeringOptimizer:
                 # Assets
                 "New_Shuttles": int(round(x_val)),
                 "Total_Shuttles": int(round(N_val)),
-                # Operations
-                "Annual_Calls": round(y_val, 4),
-                "Annual_Cycles": round(cycles, 4),
-                "Supply_m3": round(supply, 4),
-                "Demand_m3": round(demand, 4),
-                "Cycles_Available": round(cycles_avail, 4),
-                "Utilization_Rate": round((cycles / cycles_avail) if cycles_avail > 0 else 0, 6),
+                # ===== CYCLE TIME BREAKDOWN =====
+                "Cycle_Duration_Hours": round(cycle_duration, 2),
+                "Shore_Loading_Hours": round(cycle_info.get('shore_loading', 0), 2),
+                "Pumping_Per_Trip_Hours": round(cycle_info.get('pumping_per_vessel', 0), 2),
+                "Travel_Outbound_Hours": round(cycle_info.get('travel_outbound', 0), 4),
+                "Travel_Return_Hours": round(cycle_info.get('travel_return', 0), 4),
+                "Setup_Total_Hours": round(cycle_info.get('setup_inbound', 0) + cycle_info.get('setup_outbound', 0), 4),
+                # ===== TRIP CALCULATION DETAILS =====
+                "Trips_Per_Call": round(float(trips_per_call), 4),
+                "Vessels_Per_Trip": round(float(vessels_per_trip), 4),
+                "Time_Per_Vessel_Call_Hours": round(time_per_vessel_call, 2),
+                # ===== OPERATIONS =====
+                "Annual_Calls": round(y_val, 1),
+                "Annual_Cycles": round(cycles, 0),
+                "Supply_m3": round(supply, 0),
+                "Demand_m3": round(demand, 0),
+                "Cycles_Available": round(cycles_avail, 1),
+                "Utilization_Rate": round((cycles / cycles_avail) if cycles_avail > 0 else 0, 4),
+                # ===== TIME ANALYSIS =====
+                "Total_Hours_Needed": round(total_hours_needed, 0),
+                "Total_Hours_Available": round(total_hours_available, 0),
+                "Hours_Per_Shuttle_Used": round(hours_per_shuttle_used, 0),
+                "Cycles_Per_Shuttle": round(cycles_per_shuttle, 1),
                 # ===== ACTUAL CAPEX (REFERENCE ONLY - actual spending in this year) =====
                 "Actual_CAPEX_Shuttle_USDm": round(capex_shuttle_usd / 1e6, 4),
                 "Actual_CAPEX_Pump_USDm": round(capex_pump_usd / 1e6, 4),

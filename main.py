@@ -781,6 +781,13 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
             cycles_available = total_shuttles * (max_annual_hours / cycle_duration) if cycle_duration > 0 else 0
             utilization_rate = (total_trips / cycles_available) if cycles_available > 0 else 0
 
+            # Calculate additional time and efficiency metrics
+            total_hours_needed = total_trips * cycle_duration
+            total_hours_available = total_shuttles * max_annual_hours
+            hours_per_shuttle_used = total_hours_needed / total_shuttles if total_shuttles > 0 else 0
+            cycles_per_shuttle = total_trips / total_shuttles if total_shuttles > 0 else 0
+            time_per_vessel_call = cycle_duration * trips_per_call  # Total time to service one vessel
+
             # Calculate cumulative values for LCOAmmonia
             cumulative_supply_m3 += supply_m3
             cumulative_supply_ton += supply_m3 * density_storage
@@ -797,9 +804,29 @@ def run_yearly_simulation(config, shuttle_size_cbm, pump_size_m3ph, output_path)
                 "Shuttle_Size_cbm": int(shuttle_size_cbm), "Pump_Size_m3ph": int(pump_size_m3ph), "Year": year,
                 # Assets
                 "New_Shuttles": new_shuttles, "Total_Shuttles": total_shuttles,
-                # Operations
-                "Annual_Calls": annual_calls, "Annual_Cycles": total_trips, "Supply_m3": supply_m3, "Demand_m3": demand_m3,
-                "Cycles_Available": cycles_available, "Utilization_Rate": utilization_rate,
+                # ===== CYCLE TIME BREAKDOWN =====
+                "Cycle_Duration_Hours": round(cycle_duration, 2),
+                "Shore_Loading_Hours": round(cycle_info['shore_loading'], 2),
+                "Pumping_Per_Trip_Hours": round(cycle_info['pumping_per_vessel'], 2),
+                "Travel_Outbound_Hours": round(cycle_info['travel_outbound'], 4),
+                "Travel_Return_Hours": round(cycle_info['travel_return'], 4),
+                "Setup_Total_Hours": round(cycle_info['setup_inbound'] + cycle_info['setup_outbound'], 4),
+                # ===== TRIP CALCULATION DETAILS =====
+                "Trips_Per_Call": round(float(trips_per_call), 4),
+                "Vessels_Per_Trip": round(float(num_vessels_per_trip), 4),
+                "Time_Per_Vessel_Call_Hours": round(time_per_vessel_call, 2),
+                # ===== OPERATIONS =====
+                "Annual_Calls": round(annual_calls, 1), 
+                "Annual_Cycles": total_trips, 
+                "Supply_m3": supply_m3, 
+                "Demand_m3": demand_m3,
+                "Cycles_Available": round(cycles_available, 1), 
+                "Utilization_Rate": round(utilization_rate, 4),
+                # ===== TIME ANALYSIS =====
+                "Total_Hours_Needed": round(total_hours_needed, 0),
+                "Total_Hours_Available": round(total_hours_available, 0),
+                "Hours_Per_Shuttle_Used": round(hours_per_shuttle_used, 0),
+                "Cycles_Per_Shuttle": round(cycles_per_shuttle, 1),
                 # ===== COSTS (MILLIONS USD, DISCOUNTED) =====
                 "CAPEX_Shuttle_USDm": capex_shuttle_usd / 1e6, "CAPEX_Pump_USDm": capex_pump_usd / 1e6,
                 "CAPEX_Tank_USDm": capex_tank_usd / 1e6, "CAPEX_Total_USDm": capex_total_usd / 1e6,
