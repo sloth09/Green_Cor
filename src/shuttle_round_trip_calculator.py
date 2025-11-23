@@ -126,8 +126,11 @@ class ShuttleRoundTripCalculator:
 
         # Calculate trips per demand call (how many shuttle trips to fulfill one call)
         # For Case 1: how many small shuttles needed to deliver 5000 m³
-        # For Case 2: always 1 (shuttle delivers full load in one trip)
-        trips_per_call = max(1, -(-bunker_volume_per_call_m3 // shuttle_size_m3))
+        # For Case 2: if shuttle > bunker_volume, one trip serves multiple calls (trips_per_call < 1)
+        if shuttle_size_m3 >= bunker_volume_per_call_m3:
+            trips_per_call = 1.0 / num_vessels
+        else:
+            trips_per_call = max(1, -(-bunker_volume_per_call_m3 // shuttle_size_m3))
 
         return {
             # Individual time components (hours)

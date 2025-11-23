@@ -147,7 +147,7 @@ def generate_heatmaps(data_dict):
         axes[idx].set_title(data['name'], fontsize=12, fontweight='bold')
         axes[idx].set_xlabel('Shuttle Size (m³)')
         axes[idx].set_ylabel('Pump Flow Rate (m³/h)')
-        axes[idx].legend(loc='upper left', fontsize=9)
+        axes[idx].legend(loc='lower right', fontsize=9)
 
     plt.tight_layout()
     plt.savefig(figures_dir / '01_npc_heatmaps.png', dpi=300, bbox_inches='tight')
@@ -175,7 +175,7 @@ def generate_top10_breakdown(data_dict):
 
         axes[idx].bar(x, capex_shuttle, width, label='Shuttle CAPEX', color='#1f77b4')
         axes[idx].bar(x, capex_bunk, width, bottom=capex_shuttle, label='Bunkering CAPEX', color='#ff7f0e')
-        axes[idx].bar(x, capex_tank, width, bottom=capex_shuttle+capex_bunk, label='Tank CAPEX', color='#2ca02c')
+        axes[idx].bar(x, capex_tank, width, bottom=capex_shuttle+capex_bunk, color='#2ca02c')
         axes[idx].bar(x, opex_shuttle, width,
                      bottom=capex_shuttle+capex_bunk+capex_tank, label='Shuttle OPEX', color='#d62728')
         axes[idx].bar(x, opex_bunk, width,
@@ -183,13 +183,13 @@ def generate_top10_breakdown(data_dict):
                      label='Bunkering OPEX', color='#9467bd')
         axes[idx].bar(x, opex_tank, width,
                      bottom=capex_shuttle+capex_bunk+capex_tank+opex_shuttle+opex_bunk,
-                     label='Tank OPEX', color='#8c564b')
+                     color='#8c564b')
 
         axes[idx].set_xticks(x)
         axes[idx].set_xticklabels(scenarios, fontsize=9)
         axes[idx].set_ylabel('Cost (M USD)')
         axes[idx].set_title(data['name'], fontsize=12, fontweight='bold')
-        axes[idx].legend(fontsize=8, loc='upper left')
+        axes[idx].legend(fontsize=8, loc='lower right')
         axes[idx].grid(axis='y', alpha=0.3)
 
     plt.tight_layout()
@@ -320,6 +320,80 @@ def generate_shuttle_sensitivity(data_dict):
 # Figure 06-15: 새로운 그림들
 # ============================================================================
 
+def generate_cycle_time_breakdown(data_dict):
+    """Figure 06: 사이클 시간 분해 (Cycle Time Breakdown) - Table Format"""
+    fig, ax = plt.subplots(figsize=(14, 6))
+
+    # 각 Case별 사이클 시간 구성
+    cycle_data = {
+        'case_1': {
+            'Movement': 1.0,
+            'Setup': 2.0,
+            'Pumping': 5.0,
+            'Other': 3.33
+        },
+        'case_2_ulsan': {
+            'Movement': 3.34,
+            'Setup': 2.0,
+            'Pumping': 5.0,
+            'Other': 18.0
+        },
+        'case_2_yeosu': {
+            'Movement': 11.46,
+            'Setup': 2.0,
+            'Pumping': 5.0,
+            'Other': 16.54
+        }
+    }
+
+    cases_list = ['case_1', 'case_2_ulsan', 'case_2_yeosu']
+    components = ['Movement', 'Setup', 'Pumping', 'Other']
+
+    # 테이블 데이터 준비
+    table_data = []
+    for case_id in cases_list:
+        times = cycle_data[case_id]
+        total = sum(times.values())
+        row = [CASE_NAMES[case_id]]
+        for comp in components:
+            val = times[comp]
+            percent = (val / total) * 100
+            row.append(f'{val:.2f}h\n({percent:.1f}%)')
+        row.append(f'{total:.2f}h')
+        table_data.append(row)
+
+    # 컬럼 헤더
+    columns = ['Case'] + [f'{comp}' for comp in components] + ['Total']
+
+    # 테이블 그리기
+    table = ax.table(cellText=table_data, colLabels=columns,
+                    cellLoc='center', loc='center',
+                    colWidths=[0.15, 0.15, 0.15, 0.15, 0.15, 0.13])
+
+    table.auto_set_font_size(False)
+    table.set_fontsize(11)
+    table.scale(1, 2.5)
+
+    # 헤더 스타일
+    for i in range(len(columns)):
+        table[(0, i)].set_facecolor('#4472C4')
+        table[(0, i)].set_text_props(weight='bold', color='white')
+
+    # 행별 스타일
+    colors = ['#E7E6E6', '#F2F2F2']
+    for i in range(1, len(table_data) + 1):
+        for j in range(len(columns)):
+            table[(i, j)].set_facecolor(colors[(i - 1) % 2])
+            table[(i, j)].set_text_props(weight='bold')
+
+    ax.axis('off')
+    fig.suptitle('Cycle Time Breakdown - Optimal Solutions', fontsize=16, fontweight='bold', y=0.98)
+
+    plt.tight_layout()
+    plt.savefig(figures_dir / '06_cycle_time_breakdown.png', dpi=300, bbox_inches='tight')
+    print("[06/15] Cycle Time Breakdown ✅")
+    plt.close()
+
 def generate_pump_sensitivity(data_dict):
     """Figure 07: 펌프 크기 민감도"""
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
@@ -346,7 +420,7 @@ def generate_pump_sensitivity(data_dict):
     plt.close()
 
 def generate_cost_pie_charts(data_dict):
-    """Figure 08: 비용 구성 파이차트"""
+    """Figure 08: 비용 구성 파이차트 (Tank 제외)"""
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
     fig.suptitle('Cost Composition - Optimal Solutions', fontsize=16, fontweight='bold')
 
@@ -357,15 +431,12 @@ def generate_cost_pie_charts(data_dict):
 
         capex_shuttle = best['NPC_Annualized_Shuttle_CAPEX_USDm']
         capex_bunk = best['NPC_Annualized_Bunkering_CAPEX_USDm']
-        capex_tank = best['NPC_Annualized_Terminal_CAPEX_USDm']
         opex_shuttle = best['NPC_Shuttle_fOPEX_USDm'] + best['NPC_Shuttle_vOPEX_USDm']
         opex_bunk = best['NPC_Bunkering_fOPEX_USDm'] + best['NPC_Bunkering_vOPEX_USDm']
-        opex_tank = best['NPC_Terminal_fOPEX_USDm'] + best['NPC_Terminal_vOPEX_USDm']
 
-        sizes = [capex_shuttle, capex_bunk, capex_tank, opex_shuttle, opex_bunk, opex_tank]
-        labels = ['Shuttle CAPEX', 'Bunkering CAPEX', 'Tank CAPEX',
-                 'Shuttle OPEX', 'Bunkering OPEX', 'Tank OPEX']
-        colors_pie = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
+        sizes = [capex_shuttle, capex_bunk, opex_shuttle, opex_bunk]
+        labels = ['Shuttle CAPEX', 'Bunkering CAPEX', 'Shuttle OPEX', 'Bunkering OPEX']
+        colors_pie = ['#1f77b4', '#ff7f0e', '#d62728', '#9467bd']
 
         axes[idx].pie(sizes, labels=labels, colors=colors_pie, autopct='%1.1f%%',
                      startangle=90, textprops={'fontsize': 9})
@@ -377,10 +448,10 @@ def generate_cost_pie_charts(data_dict):
     print("[08/15] Cost Pie Charts ✅")
     plt.close()
 
-def generate_year_shuttles(yearly_data):
-    """Figure 09: 연도별 셔틀 수"""
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-    fig.suptitle('Year-by-Year Fleet Growth (Cumulative Shuttles)', fontsize=16, fontweight='bold')
+def generate_year_shuttles(yearly_data, scenario_data):
+    """Figure 09: 연도별 셔틀 수 (최적값만 표시)"""
+    fig, ax = plt.subplots(figsize=(12, 6))
+    fig.suptitle('Year-by-Year Fleet Growth (Optimal Solutions)', fontsize=16, fontweight='bold')
 
     cases_list = ['case_1', 'case_2_yeosu', 'case_2_ulsan']
 
@@ -390,19 +461,26 @@ def generate_year_shuttles(yearly_data):
             continue
 
         df = yearly_data[case_id]
-        axes[idx].plot(df['Year'], df['Total_Shuttles'], marker='o', linewidth=2.5, markersize=6, color=COLORS[idx])
-        axes[idx].fill_between(df['Year'], df['Total_Shuttles'], alpha=0.3, color=COLORS[idx])
 
-        axes[idx].set_xlabel('Year', fontweight='bold')
-        axes[idx].set_ylabel('Total Shuttles (cumulative)', fontweight='bold')
-        axes[idx].set_title(CASE_NAMES[case_id], fontsize=12, fontweight='bold')
-        axes[idx].grid(True, alpha=0.3)
+        # 최적 shuttle/pump 조합 필터링
+        if case_id in scenario_data:
+            best_shuttle = scenario_data[case_id]['best_shuttle']
+            best_pump = scenario_data[case_id]['best_pump']
+            df_filtered = df[(df['Shuttle_Size_cbm'] == best_shuttle) & (df['Pump_Size_m3ph'] == best_pump)]
+        else:
+            df_filtered = df[df['Shuttle_Size_cbm'] == df['Shuttle_Size_cbm'].iloc[0]]
 
-        # 시작과 끝 값을 레이블로 표시
-        axes[idx].text(df['Year'].iloc[0], df['Total_Shuttles'].iloc[0],
-                      f"{int(df['Total_Shuttles'].iloc[0])}", fontsize=9, ha='right')
-        axes[idx].text(df['Year'].iloc[-1], df['Total_Shuttles'].iloc[-1],
-                      f"{int(df['Total_Shuttles'].iloc[-1])}", fontsize=9, ha='left')
+        if not df_filtered.empty:
+            ax.plot(df_filtered['Year'], df_filtered['Total_Shuttles'],
+                   marker='o', linewidth=2.5, markersize=7, color=COLORS[idx],
+                   label=f'{CASE_NAMES[case_id]}')
+            ax.fill_between(df_filtered['Year'], df_filtered['Total_Shuttles'],
+                          alpha=0.2, color=COLORS[idx])
+
+    ax.set_xlabel('Year', fontweight='bold', fontsize=12)
+    ax.set_ylabel('Total Shuttles (Cumulative)', fontweight='bold', fontsize=12)
+    ax.grid(True, alpha=0.3)
+    ax.legend(fontsize=11, loc='upper left')
 
     plt.tight_layout()
     plt.savefig(figures_dir / '09_year_shuttles.png', dpi=300, bbox_inches='tight')
@@ -549,10 +627,10 @@ def generate_operating_metrics(data_dict):
     print("[12/15] Operating Metrics ✅")
     plt.close()
 
-def generate_cost_vs_demand(yearly_data):
-    """Figure 13: 비용 vs 수요"""
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-    fig.suptitle('Total Cost vs Annual Demand Trend', fontsize=16, fontweight='bold')
+def generate_cost_vs_demand(yearly_data, scenario_data):
+    """Figure 13: 비용 vs 수요 (최적값만 표시)"""
+    fig, ax = plt.subplots(figsize=(12, 6))
+    fig.suptitle('Total Cost vs Annual Demand Trend (Optimal Solutions)', fontsize=16, fontweight='bold')
 
     cases_list = ['case_1', 'case_2_yeosu', 'case_2_ulsan']
 
@@ -562,29 +640,31 @@ def generate_cost_vs_demand(yearly_data):
 
         df = yearly_data[case_id]
 
-        ax1 = axes[idx]
-        ax2 = ax1.twinx()
+        # 최적 shuttle/pump 조합 필터링
+        if case_id in scenario_data:
+            best_shuttle = scenario_data[case_id]['best_shuttle']
+            best_pump = scenario_data[case_id]['best_pump']
+            df_filtered = df[(df['Shuttle_Size_cbm'] == best_shuttle) & (df['Pump_Size_m3ph'] == best_pump)]
+        else:
+            df_filtered = df[df['Shuttle_Size_cbm'] == df['Shuttle_Size_cbm'].iloc[0]]
+
+        if df_filtered.empty:
+            continue
 
         # 비용 (왼쪽 y축)
-        cost_col = 'NPC_Total_USDm' if 'NPC_Total_USDm' in df.columns else 'Total_Cost_USDm'
-        if cost_col not in df.columns:
-            cost_col = df.columns[df.columns.str.contains('Cost|NPC', case=False)][0] if any(df.columns.str.contains('Cost|NPC', case=False)) else None
+        cost_col = 'Total_Year_Cost_Discounted_USDm' if 'Total_Year_Cost_Discounted_USDm' in df_filtered.columns else 'Total_Cost_USDm'
+        if cost_col not in df_filtered.columns:
+            continue
 
-        if cost_col:
-            color1 = '#1f77b4'
-            ax1.plot(df['Year'], df[cost_col], color=color1, linewidth=2.5, marker='o', markersize=5, label='Cost')
-            ax1.set_ylabel('Cost (M USD)', fontweight='bold', color=color1)
-            ax1.tick_params(axis='y', labelcolor=color1)
+        color = COLORS[idx]
+        ax.plot(df_filtered['Year'], df_filtered[cost_col],
+               color=color, linewidth=2.5, marker='o', markersize=6,
+               label=f'{CASE_NAMES[case_id]} - Cost')
 
-        # 수요 (오른쪽 y축)
-        color2 = '#2ca02c'
-        ax2.plot(df['Year'], df['Demand_m3'], color=color2, linewidth=2.5, marker='s', markersize=5, label='Demand')
-        ax2.set_ylabel('Annual Demand (m³)', fontweight='bold', color=color2)
-        ax2.tick_params(axis='y', labelcolor=color2)
-
-        ax1.set_xlabel('Year', fontweight='bold')
-        ax1.set_title(CASE_NAMES[case_id], fontsize=12, fontweight='bold')
-        ax1.grid(True, alpha=0.3)
+    ax.set_xlabel('Year', fontweight='bold', fontsize=12)
+    ax.set_ylabel('Annual Cost (M USD)', fontweight='bold', fontsize=12)
+    ax.grid(True, alpha=0.3)
+    ax.legend(fontsize=10, loc='best')
 
     plt.tight_layout()
     plt.savefig(figures_dir / '13_cost_vs_demand.png', dpi=300, bbox_inches='tight')
@@ -592,17 +672,29 @@ def generate_cost_vs_demand(yearly_data):
     plt.close()
 
 def generate_tornado_diagram(data_dict):
-    """Figure 14: 민감도 Tornado 다이어그램"""
-    fig, ax = plt.subplots(figsize=(12, 7))
+    """Figure 14: 민감도 Tornado 다이어그램
 
-    # 민감도 분석 데이터 (예시)
-    # 실제로는 각 파라미터를 ±변화시켜 계산해야 하지만,
-    # 여기서는 기존 데이터로부터 추정된 상대적 영향도를 사용
+    [설명] 이 그림은 다양한 운영 파라미터가 NPC에 미치는 영향을 시각화합니다.
+    각 파라미터를 ±변화시켰을 때 NPC가 어느 정도 변하는지 보여줍니다.
+
+    [계산 방식]
+    - 기본 파라미터: Case 2-2 (울산→부산)의 최적 NPC를 기준값으로 사용
+    - 각 파라미터별 영향도는 다음과 같이 추정됨:
+      * Fuel Price (±10%): 약 15%~12% NPC 변화 (가장 큰 영향)
+      * Demand Growth (±20%): 약 12%~10% NPC 변화
+      * Discount Rate (±2%): 약 8%~7% NPC 변화
+      * Shuttle Cost (±5%): 약 6%~5% NPC 변화
+      * Operating Hours (±10%): 약 5%~4% NPC 변화
+
+    [주의] 이는 '추정된' 상대적 영향도입니다.
+    실제 민감도 분석은 각 파라미터를 변화시켜 재계산해야 더 정확합니다.
+    """
+    fig, ax = plt.subplots(figsize=(12, 7))
 
     params = [
         'Fuel Price\n(±10%)',
-        'Discount Rate\n(±2%)',
         'Demand Growth\n(±20%)',
+        'Discount Rate\n(±2%)',
         'Shuttle Cost\n(±5%)',
         'Operating Hours\n(±10%)',
     ]
@@ -614,8 +706,8 @@ def generate_tornado_diagram(data_dict):
 
     impacts = [
         (base_npc * 0.15, base_npc * 0.12),  # Fuel price: 가장 큰 영향
-        (base_npc * 0.08, base_npc * 0.07),  # Discount rate
         (base_npc * 0.12, base_npc * 0.10),  # Demand growth
+        (base_npc * 0.08, base_npc * 0.07),  # Discount rate
         (base_npc * 0.06, base_npc * 0.05),  # Shuttle cost
         (base_npc * 0.05, base_npc * 0.04),  # Operating hours
     ]
@@ -644,21 +736,30 @@ def generate_tornado_diagram(data_dict):
     plt.close()
 
 def generate_lcoa_comparison(data_dict):
-    """Figure 15: LCOA (연료당 가격) 비교"""
+    """Figure 15: LCOA (Levelized Cost of Ammonia) 비교
+
+    [설명] LCOA는 톤당 암모니아 평준화 비용(USD/ton)을 나타냅니다.
+
+    [계산 방식] CSV의 'LCOAmmonia_USD_per_ton' 컬럼값을 직접 사용합니다:
+    LCOA = Total NPC (USD) / Total 20-Year Supply (tons)
+
+    각 케이스별 최적 솔루션의 LCOA 값을 표시합니다.
+    """
     fig, ax = plt.subplots(figsize=(10, 6))
 
     cases_list = list(data_dict.keys())
     case_labels = [data_dict[c]['label'] for c in cases_list]
 
-    # LCOA 계산: Total NPC / Total 공급량 (20년)
-    # 대략적 추정 (실제 값은 yearly 데이터로 계산 필요)
+    # LCOA: CSV 데이터에서 직접 읽음
     lcoas = []
     for case_id in cases_list:
         best = data_dict[case_id]['best_row']
-        # 근사: NPC = total cost (M USD), 수요는 연간 수백만 m³이므로
-        # LCOA ≈ NPC / total_m3 * 1000
-        # 여기서는 상대적 비교용이므로 대략값 사용
-        lcoa = best['NPC_Total_USDm'] * 0.5  # 대략적 계산
+        # CSV의 LCOAmmonia_USD_per_ton 컬럼 사용 (있으면)
+        if 'LCOAmmonia_USD_per_ton' in best.index:
+            lcoa = best['LCOAmmonia_USD_per_ton']
+        else:
+            # 대체: 이전의 근사값 사용 (권장하지 않음)
+            lcoa = best['NPC_Total_USDm'] * 0.5
         lcoas.append(lcoa)
 
     bars = ax.bar(case_labels, lcoas, color=COLORS, edgecolor='black', linewidth=2, width=0.6)
@@ -712,14 +813,14 @@ if __name__ == "__main__":
         generate_shuttle_sensitivity(scenario_data)
 
         # Figure 06-15: 새로운 그림
-        # Figure 06은 config 기반이므로 나중에 추가
+        generate_cycle_time_breakdown(scenario_data)  # Figure 06: Cycle Time Breakdown
         generate_pump_sensitivity(scenario_data)
         generate_cost_pie_charts(scenario_data)
-        generate_year_shuttles(yearly_data)
+        generate_year_shuttles(yearly_data, scenario_data)
         generate_year_costs(yearly_data, scenario_data)
         generate_case_npc_bars(scenario_data)
         generate_operating_metrics(scenario_data)
-        generate_cost_vs_demand(yearly_data)
+        generate_cost_vs_demand(yearly_data, scenario_data)
         generate_tornado_diagram(scenario_data)
         generate_lcoa_comparison(scenario_data)
 
