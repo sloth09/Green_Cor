@@ -134,7 +134,7 @@ execution:
   # For run_mode: "single_scenario", "annual_simulation", "yearly_simulation" - specify shuttle size (m³)
   # Example values: 500, 1000, 2000, 5000, 10000, etc.
   # This field is ONLY used when run_mode is "single_scenario", "annual_simulation", or "yearly_simulation"
-  single_scenario_shuttle_cbm: 5000
+  single_scenario_shuttle_cbm: 2500
 
   # For run_mode: "single_scenario", "annual_simulation", "yearly_simulation" - specify pump flow rate (m³/h)
   # Example values: 400, 600, 800, 1000, 1200, 1500, 2000
