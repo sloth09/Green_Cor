@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 20pt; background: #f8f9fa; font-family: Arial, sans-serif; display: flex; flex-direction: column; }
+h1 { color: #ffffff; background: #2C3E50; padding: 12pt; margin: 0 0 12pt 0; font-size: 28pt; border-radius: 4pt; }
+.layout { display: flex; gap: 15pt; flex: 1; }
+.info { background: #ffffff; padding: 12pt; border-left: 4pt solid #27AE60; border-radius: 4pt; width: 35%; }
+h2 { color: #2C3E50; font-size: 12pt; margin: 0 0 6pt 0; font-weight: bold; }
+p { margin: 3pt 0; font-size: 10pt; color: #555555; }
+ul { margin: 3pt 0; padding-left: 16pt; font-size: 10pt; }
+li { margin: 2pt 0; color: #555555; }
+.placeholder { background: #f0f0f0; border: 2px dashed #cccccc; border-radius: 4pt; flex: 1; display: flex; align-items: center; justify-content: center; }
+.placeholder p { font-size: 12pt; color: #999999; margin: 0; }
+</style>
+</head>
+<body>
+<h1>NPC 히트맵 분석</h1>
+<div class="layout">
+  <div class="info">
+    <h2>셔틀 크기 vs 펌프 용량</h2>
+    <p>행축: 셔틀 크기 (m³)</p>
+    <p>열축: 펌프 용량 (m³/h)</p>
+    <p style="margin-top: 8pt; font-weight: bold;">최적 영역:</p>
+    <ul>
+      <li>2,500 m³ 셔틀</li>
+      <li>1,600-2,000 m³/h</li>
+      <li>NPC: $217-220M</li>
+    </ul>
+    <p style="margin-top: 8pt; font-weight: bold;">회피 영역:</p>
+    <ul>
+      <li>&lt;1,200 m³/h 펌프</li>
+      <li>&gt;4,000 m³ 셔틀</li>
+    </ul>
+  </div>
+  <div class="placeholder">
+    <p>[이미지: case1_01_npc_heatmap.png]</p>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 20pt; background: #f8f9fa; font-family: Arial, sans-serif; }
+h1 { color: #ffffff; background: #2C3E50; padding: 12pt; margin: 0 0 12pt 0; font-size: 28pt; border-radius: 4pt; }
+h2 { color: #2C3E50; font-size: 12pt; margin: 6pt 0 4pt 0; font-weight: bold; }
+p { margin: 3pt 0; font-size: 11pt; color: #555555; }
+ul { margin: 4pt 0; padding-left: 18pt; font-size: 10pt; }
+li { margin: 2pt 0; color: #555555; }
+.section { background: #ffffff; padding: 8pt; margin: 6pt 0; border-left: 4pt solid #27AE60; border-radius: 4pt; }
+</style>
+</head>
+<body>
+<h1>MILP 최적화 모델</h1>
+<div class="section">
+  <h2>목적함수 (Objective Function)</h2>
+  <p>20년간 순현재가(NPC) 최소화 = CAPEX + OPEX (20년 누계)</p>
+</div>
+<div class="section">
+  <h2>의사결정 변수 (Decision Variables)</h2>
+  <ul>
+    <li>셔틀 크기: 500-5,000 m³</li>
+    <li>펌프 용량: 400-2,000 m³/h</li>
+    <li>연도별 셔틀 수: 최소 수량에서 수요 충족</li>
+    <li>저장 탱크: 35,000톤 (고정)</li>
+  </ul>
+</div>
+<div class="section">
+  <h2>주요 제약식 (Constraints)</h2>
+  <ul>
+    <li>연간 암모니아 수요 충족</li>
+    <li>선박당 최대 4시간 정박 시간</li>
+    <li>셔틀 최대 8,000시간/년 운영</li>
+    <li>저장 탱크 용량 (35,000톤)</li>
+  </ul>
+</div>
+<div class="section">
+  <h2>할인율 설정</h2>
+  <p>No Discounting (0%) - 모든 연도가 동일한 가중치</p>
+</div>
+</body>
+</html>

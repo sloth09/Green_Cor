@@ -1,0 +1,969 @@
+<?xml version="1.0" encoding="ascii"?><w:document mc:Ignorable="w14 w15 wp14" xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/10/chartex" xmlns:cx5="http://schemas.microsoft.com/office/drawing/2016/5/11/chartex" xmlns:cx6="http://schemas.microsoft.com/office/drawing/2016/5/12/chartex" xmlns:cx7="http://schemas.microsoft.com/office/drawing/2016/5/13/chartex" xmlns:cx8="http://schemas.microsoft.com/office/drawing/2016/5/14/chartex" xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink" xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d" xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex" xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid" xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml" xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
+  <w:body>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading1"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">3&#51109;. MILP &#52572;&#51201;&#54868; &#47784;&#45944;</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">&#48512;&#49328;&#54637; &#50516;&#47784;&#45768;&#50500; &#48281;&#52964;&#47553; &#51064;&#54532;&#46972;&#51032; &#52572;&#51201;&#54868; &#47928;&#51228;&#45716; &#54844;&#54633;&#51221;&#49688;&#49440;&#54805;&#44228;&#54925;(Mixed Integer Linear Programming, MILP) &#47784;&#45944;&#47196; &#49688;&#47549;&#46108;&#45796;. &#48376; &#51109;&#50640;&#49436;&#45716; &#47784;&#45944;&#51032; &#44060;&#50836;, &#44208;&#51221;&#48320;&#49688;, &#47785;&#51201;&#54632;&#49688;, &#51228;&#50557;&#49885;, &#44536;&#47532;&#44256; &#44221;&#51228;&#51201; &#54028;&#46972;&#48120;&#53552;&#47484; &#49345;&#49464;&#55176; &#49444;&#47749;&#54620;&#45796;.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">3.1 &#47784;&#45944; &#44060;&#50836; &#48143; &#44032;&#51221;</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="120"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:b/>
+          <w:bCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">&#47784;&#45944; &#47785;&#54364;</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">&#48376; &#47784;&#45944;&#51032; &#47785;&#54364;&#45716; 2030&#45380;&#48512;&#53552; 2050&#45380;&#44620;&#51648; 20&#45380; &#44228;&#54925; &#44592;&#44036; &#46041;&#50504; &#48512;&#49328;&#54637;&#50640;&#49436;&#51032; &#50516;&#47784;&#45768;&#50500; &#48281;&#52964;&#47553; &#51064;&#54532;&#46972; &#44396;&#52629; &#48143; &#50868;&#50689;&#50640; &#49548;&#50836;&#46104;&#45716; &#49692;&#54788;&#51116;&#44032;(Net Present Cost, NPC)&#47484; &#52572;&#49548;&#54868;&#54616;&#45716; &#44163;&#51060;&#45796;. &#51032;&#49324;&#44208;&#51221; &#48320;&#49688;&#45716; &#45796;&#51020; &#49464; &#44032;&#51648;&#51060;&#45796;:
+
+1) &#49492;&#53952; &#49440;&#48149;&#51032; &#52572;&#51201; &#53356;&#44592; &#48143; &#54596;&#50836; &#44060;&#49688;
+2) &#48281;&#52964;&#47553; &#54156;&#54532;&#51032; &#52572;&#51201; &#50857;&#47049;
+3) &#51200;&#51109;&#53489;&#53356;&#51032; &#54596;&#50836; &#53356;&#44592; (Case 1&#47564; &#54644;&#45817;)
+
+&#51060;&#47484; &#53685;&#54644; &#49688;&#50836; &#51613;&#44032;&#50640; &#46384;&#47480; &#54869;&#51109; &#44032;&#45733;&#54616;&#44256; &#44221;&#51228;&#51201;&#51064; &#51064;&#54532;&#46972;&#47484; &#49444;&#44228;&#54624; &#49688; &#51080;&#45796;.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="120"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:b/>
+          <w:bCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">&#51452;&#50836; &#44032;&#51221;&#49324;&#54637;</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">&#45796;&#51020;&#51032; &#51452;&#50836; &#44032;&#51221;&#49324;&#54637;&#51060; &#47784;&#45944;&#50640; &#51201;&#50857;&#46108;&#45796;:
+
+&#8226; &#49884;&#44036; &#44228;&#54925; &#44592;&#44036;: 2030-2050&#45380; (21&#45380;, &#47588;&#45380; &#45800;&#50948;)
+&#8226; &#49440;&#48149; &#49688;&#50836;: &#49440;&#54805; &#49457;&#51109; (2030&#45380; 50&#52377; &#8594; 2050&#45380; 500&#52377;)
+&#8226; &#49440;&#48149;&#45817; &#50672;&#44036; &#54637;&#52264;: 12&#54924; (&#44256;&#51221;)
+&#8226; &#54637;&#52264;&#45817; &#44553;&#50976;&#47049;: 5,000 m&#179; (&#44256;&#51221;)
+&#8226; &#54624;&#51064;&#50984;: 7% (&#44221;&#51228;&#51201; &#54217;&#44032;)
+&#8226; &#49492;&#53952;&#44284; &#53489;&#53356;&#45716; &#45236;&#44396; &#50672;&#54620; &#46041;&#50504; &#50868;&#50689; &#44032;&#45733;
+&#8226; &#50977;&#49345; &#50672;&#47308; &#44277;&#44553; &#54156;&#54532; &#50976;&#47049;: 1,500 m&#179;/h (&#44256;&#51221;, &#47784;&#46304; Case &#46041;&#51068;)
+&#8226; &#52572;&#45824; &#50672;&#44036; &#50868;&#50689;&#49884;&#44036;: 8,000&#49884;&#44036;/&#45380;/&#49492;&#53952;</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">3.2 &#44208;&#51221;&#48320;&#49688; &#51221;&#51032;</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">MILP &#47784;&#45944;&#51032; &#44208;&#51221;&#48320;&#49688;&#45716; &#45796;&#51020;&#44284; &#44057;&#51060; &#51221;&#51032;&#46108;&#45796;:</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:i/>
+          <w:iCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">h &#8712; H: &#49492;&#53952; &#53356;&#44592; (m&#179;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">Case 1: 500, 1,000, 1,500, 2,000, 2,500, 3,000, 3,500, 4,000, 4,500, 5,000 m&#179;
+Case 2: 5,000, 10,000, 15,000, 20,000, 25,000, 30,000, 35,000, 40,000, 45,000, 50,000 m&#179;</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:i/>
+          <w:iCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">p &#8712; P: &#54156;&#54532; &#50857;&#47049; (m&#179;/h)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">400, 600, 800, 1,000, 1,200, 1,400, 1,600, 1,800, 2,000 m&#179;/h</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:i/>
+          <w:iCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">x[t, h, p]: t&#45380;&#46020;&#50640; &#44396;&#51077;&#54616;&#45716; &#53356;&#44592; h, &#54156;&#54532; p&#51032; &#49492;&#53952; &#49688; (&#44060;, &#51221;&#49688;&#48320;&#49688;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">&#50672;&#46020; t = 2030, 2031, ..., 2050</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:i/>
+          <w:iCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">N[t, h, p]: t&#45380;&#46020; &#45572;&#51201; &#49492;&#53952; &#49688; (&#44060;, &#51221;&#49688;&#48320;&#49688;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">N[t, h, p] = &#931;_{&#964;=2030}^{t} x[&#964;, h, p]</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:i/>
+          <w:iCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">y[t, h, p]: t&#45380;&#46020; &#50672;&#44036; &#48281;&#52964;&#47553; &#54943;&#49688; (&#54924;, &#50672;&#49549;&#48320;&#49688;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">&#44033; h, p &#51312;&#54633;&#50640; &#45824;&#54644; &#50672;&#44036; &#48281;&#52964;&#47553; &#51089;&#50629; &#54943;&#49688;</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:i/>
+          <w:iCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">z[t]: t&#45380;&#46020; &#49888;&#44508; &#52628;&#44032; &#51200;&#51109;&#53489;&#53356; &#49688; (&#44060;, &#51221;&#49688;&#48320;&#49688;, Case 1&#47564;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">Z[t]: t&#45380;&#46020; &#45572;&#51201; &#53489;&#53356; &#49688; (&#44060;, &#51221;&#49688;&#48320;&#49688;, Case 1&#47564;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">3.3 &#47785;&#51201;&#54632;&#49688; (NPC &#52572;&#49548;&#54868;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">&#47785;&#51201;&#54632;&#49688;&#45716; 20&#45380; &#44228;&#54925; &#44592;&#44036;&#51032; &#49692;&#54788;&#51116;&#44032;&#47484; &#52572;&#49548;&#54868;&#54616;&#45716; &#44163;&#51060;&#45796;:</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+        <w:jc w:val="center"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:b/>
+          <w:bCs/>
+          <w:i/>
+          <w:iCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">Minimize: NPC = &#931;_{t=2030}^{2050} [DF(t) &#215; (CAPEX(t) + FIXED_OPEX(t) + VARIABLE_OPEX(t))]</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">&#50668;&#44592;&#49436;:</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:del w:id="0" w:author="Claude" w:date="2025-11-23T06:55:59Z" w16du:dateUtc="2025-11-23T06:55:59Z"><w:r w:rsidDel="9A07CB47"><w:delText>r = 0.07</w:delText></w:r></w:del><w:ins w:id="1" w:author="Claude" w:date="2025-11-23T06:55:59Z" w16du:dateUtc="2025-11-23T06:55:59Z"><w:r w:rsidR="9A07CB47"><w:t>r = 0.0</w:t></w:r></w:ins>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:b/>
+          <w:bCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">&#51088;&#48376;&#51648;&#52636; (CAPEX)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">CAPEX(t) = &#931;_{h,p} [x[t,h,p] &#215; (CAPEX_shuttle(h) + CAPEX_pump(p))] + z[t] &#215; CAPEX_tank
+
+CAPEX_shuttle(h)&#45716; &#49828;&#52992;&#51068;&#47553; &#44277;&#49885;&#51004;&#47196; &#44228;&#49328;:
+CAPEX_shuttle(h) = 61,500,000 &#215; (h / 40,000)^0.75 (USD)
+
+CAPEX_pump(p)&#45716; &#54156;&#54532; &#54028;&#50892; &#44592;&#48152; &#44228;&#49328;:
+Pump_Power(p) = (4 &#215; 10^5 Pa &#215; p/3600) / 0.7 (kW)
+CAPEX_pump(p) = Pump_Power(p) &#215; 2,000 (USD/kW)
+
+CAPEX_tank = 42,525,000 USD (35,000&#53668; &#51200;&#51109;&#53489;&#53356;, Case 1&#47564;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:b/>
+          <w:bCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">&#44256;&#51221; &#50868;&#50689;&#48708; (FIXED_OPEX)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">FIXED_OPEX(t) = &#931;_{h,p} [N[t,h,p] &#215; (OPEX_shuttle(h) + OPEX_pump(p))] + Z[t] &#215; OPEX_tank
+
+&#50668;&#44592;&#49436; &#44256;&#51221; &#50868;&#50689;&#48708;&#45716; CAPEX&#51032; &#50672;&#44036; &#48177;&#48516;&#50984;:
+OPEX_shuttle(h) = CAPEX_shuttle(h) &#215; 0.05 (5% &#50976;&#51648;&#48372;&#49688;)
+OPEX_pump(p) = CAPEX_pump(p) &#215; 0.05 (5% &#50976;&#51648;&#48372;&#49688;)
+OPEX_tank = CAPEX_tank &#215; 0.03 (3% &#50976;&#51648;&#48372;&#49688;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:b/>
+          <w:bCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">&#48320;&#46041; &#50868;&#50689;&#48708; (VARIABLE_OPEX)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">VARIABLE_OPEX(t) = &#931;_{h,p} [y[t,h,p] &#215; (OPEX_shuttle_fuel + OPEX_pump_power)] + Z[t] &#215; OPEX_tank_cooling
+
+&#49492;&#53952; &#50672;&#47308;&#48708;:
+OPEX_shuttle_fuel = MCR(h) &#215; SFOC &#215; Travel_time &#215; SFOC_weight &#215; Fuel_price
+  MCR(h): &#49492;&#53952; &#52572;&#45824; &#50672;&#49549; &#51221;&#44201; (kW)
+  SFOC: &#48708;&#50672;&#47308;&#49548;&#48708;&#50984; = 379 g/kWh
+  Travel_time: &#50773;&#48373; &#54637;&#54644; &#49884;&#44036; (h)
+  Fuel_price: 600 USD/ton
+
+&#54156;&#54532; &#51204;&#47141; &#48708;&#50857;:
+OPEX_pump_power = Pump_Power(p) &#215; Pumping_time &#215; Electricity_price
+  Pumping_time: &#54644;&#45817; &#51312;&#54633;&#51032; &#48281;&#52964;&#47553; &#49884;&#44036; (h/&#54924;)
+  Electricity_price: 0.0769 USD/kWh
+
+&#53489;&#53356; &#45257;&#44033;&#48708; (Case 1&#47564;):
+OPEX_tank_cooling = Tank_Volume &#215; Cooling_Energy &#215; Electricity_price
+  Cooling_Energy: 0.0378 kWh/kg</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">3.4 &#51228;&#50557;&#49885;</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="120"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:b/>
+          <w:bCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">3.4.1 &#45572;&#51201; &#51228;&#50557; (Accumulation Constraint)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">N[t, h, p] = N[t-1, h, p] + x[t, h, p]
+
+&#49492;&#53952;&#51008; &#54620;&#48264; &#44396;&#51077;&#54616;&#47732; &#45236;&#44396; &#50672;&#54620; &#46041;&#50504; &#50868;&#50689;&#46104;&#47728;, &#47588;&#45380; &#49888;&#44508; &#44396;&#51077;&#48516;&#51060; &#45572;&#51201;&#46108;&#45796;.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="120"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:b/>
+          <w:bCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">3.4.2 &#49688;&#50836; &#52649;&#51313; &#51228;&#50557; (Demand Satisfaction)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">&#931;_{h,p} [y[t,h,p] &#215; Bunker_Volume] &#8805; Demand[t]
+
+&#50668;&#44592;&#49436;:
+Bunker_Volume = 5,000 m&#179; (&#54637;&#52264;&#45817; &#44553;&#50976;&#47049;)
+Demand[t] = Vessels[t] &#215; Voyages_per_year &#215; Bunker_Volume
+  Vessels[t]: t&#45380;&#46020; &#50516;&#47784;&#45768;&#50500; &#49440;&#48149; &#49688;
+  Voyages_per_year: 12&#54924;/&#45380;</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="120"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:b/>
+          <w:bCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">3.4.3 &#50868;&#50689;&#49884;&#44036; &#51228;&#50557; (Operating Hour Constraint)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">&#931;_{h,p} [y[t,h,p] &#215; trips_per_call(h) &#215; Cycle_Time(h,p)] &#8804; N[t,h,p] &#215; H_max
+
+&#50668;&#44592;&#49436;:
+trips_per_call(h): h &#53356;&#44592; &#49492;&#53952;&#51060; 5,000 m&#179;&#47484; &#51204;&#45804;&#54616;&#45716;&#45936; &#54596;&#50836;&#54620; &#53944;&#47549; &#49688;
+  Case 1: ceil(5,000 / h)
+  Case 2: 1 (&#54620; &#48264;&#51032; &#54637;&#54644;&#50640; &#50668;&#47084; &#52377; &#49436;&#48729;)
+
+Cycle_Time(h,p): h &#53356;&#44592; &#49492;&#53952;&#44284; p &#50857;&#47049; &#54156;&#54532;&#51032; &#50773;&#48373; &#49324;&#51060;&#53364; &#49884;&#44036;
+  Case 1: &#50977;&#49345;&#51201;&#51116; + &#54200;&#46020;&#51060;&#46041; + &#54840;&#49828;&#51089;&#50629; + &#48281;&#52964;&#47553; + &#48373;&#44480;
+  Case 2: &#50977;&#49345;&#51201;&#51116; + &#54637;&#54644; + &#48512;&#49328;&#51652;&#51077; + &#44033;&#49440;&#48149;&#49436;&#48729; + &#48373;&#44480;
+
+H_max = 8,000&#49884;&#44036;/&#45380;/&#49492;&#53952; (&#52572;&#45824; &#50672;&#44036; &#50868;&#50689;&#49884;&#44036;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="120"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:b/>
+          <w:bCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">3.4.4 &#51200;&#51109;&#53489;&#53356; &#50857;&#47049; &#51228;&#50557; (Tank Capacity Constraint, Case 1&#47564;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">N[t,h,p] &#215; h &#215; &#946; &#8804; Z[t] &#215; Tank_Volume
+
+&#50668;&#44592;&#49436;:
+&#946; = &#50504;&#51204;&#44228;&#49688; = 2.0 (&#51116;&#44256; &#50868;&#50689;&#51032; &#50668;&#50976;)
+Tank_Volume = 35,000&#53668; (2.857 &#215; 10^4 m&#179; at 1.225 kg/m&#179; &#48128;&#46020;)
+
+&#53489;&#53356; &#50857;&#47049;&#51060; &#49492;&#53952; &#51201;&#51116;&#47049;&#51032; &#50668;&#47084; &#48176;&#44032; &#46104;&#50612;&#50556; &#50504;&#51221;&#51201; &#50868;&#50689;&#51060; &#44032;&#45733;&#54616;&#45796;.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="120"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:b/>
+          <w:bCs/>
+        </w:rPr>
+        <w:t xml:space="preserve">3.4.5 &#48708;&#51020;&#49688; &#51228;&#50557; (Non-negativity Constraints)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">x[t,h,p] &#8805; 0 (&#51221;&#49688;)
+N[t,h,p] &#8805; 0 (&#51221;&#49688;)
+y[t,h,p] &#8805; 0 (&#50672;&#49549;)
+z[t] &#8805; 0 (&#51221;&#49688;, Case 1&#47564;)
+Z[t] &#8805; 0 (&#51221;&#49688;, Case 1&#47564;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">3.5 &#54624;&#51064;&#50984; &#48143; &#49884;&#44036;&#44032;&#52824;</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">&#44221;&#51228; &#54217;&#44032;&#50640; &#49324;&#50857;&#46104;&#45716; &#54624;&#51064;&#50984;&#51008; 7%&#51060;&#45796;. &#51060;&#45716; &#54644;&#50868; &#49328;&#50629;&#51032; &#51088;&#48376; &#48708;&#50857;&#44284; &#53804;&#51088; &#49688;&#51061;&#47456;&#51012; &#48152;&#50689;&#54620; &#54364;&#51456; &#54624;&#51064;&#50984;&#51060;&#45796;.
+
+&#54624;&#51064;&#51064;&#51088; DF(t) = 1 / (1.07)^(t - 2030)
+
+&#50696;&#49884;:
+- 2030&#45380;: DF(2030) = 1.00
+- 2035&#45380;: DF(2035) = 1 / 1.07^5 = 0.713
+- 2050&#45380;: DF(2050) = 1 / 1.07^20 = 0.258
+
+&#51060;&#47484; &#53685;&#54644; &#52488;&#44592; &#53804;&#51088;&#51032; &#44032;&#51473;&#52824;&#44032; &#45458;&#44256;, &#51060;&#54980; &#50672;&#46020;&#51032; &#48708;&#50857;&#51008; &#45908; &#45230;&#51008; &#44032;&#51473;&#52824;&#47484; &#48155;&#45716;&#45796;. &#46384;&#46972;&#49436; &#52488;&#44592;&#50640; &#51201;&#51208;&#54620; &#44508;&#47784;&#51032; &#51064;&#54532;&#46972;&#47484; &#44396;&#52629;&#54616;&#45716; &#44163;&#51060; &#44221;&#51228;&#51201;&#51004;&#47196; &#50976;&#47532;&#54616;&#45796;.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">3.6 &#51452;&#50836; &#47784;&#45944; &#54028;&#46972;&#48120;&#53552; &#50836;&#50557;</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">&#50500;&#47000; &#54364;&#45716; &#47784;&#45944;&#50640; &#49324;&#50857;&#46104;&#45716; &#51452;&#50836; &#54028;&#46972;&#48120;&#53552;&#47484; &#50836;&#50557;&#54620;&#45796;:</w:t>
+      </w:r>
+    </w:p>
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:type="auto" w:w="100"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:color="auto" w:sz="4"/>
+          <w:left w:val="single" w:color="auto" w:sz="4"/>
+          <w:bottom w:val="single" w:color="auto" w:sz="4"/>
+          <w:right w:val="single" w:color="auto" w:sz="4"/>
+          <w:insideH w:val="single" w:color="auto" w:sz="4"/>
+          <w:insideV w:val="single" w:color="auto" w:sz="4"/>
+        </w:tblBorders>
+        <w:tblCellMar>
+          <w:top w:type="dxa" w:w="100"/>
+          <w:left w:type="dxa" w:w="180"/>
+          <w:bottom w:type="dxa" w:w="100"/>
+          <w:right w:type="dxa" w:w="180"/>
+        </w:tblCellMar>
+      </w:tblPr>
+      <w:tblGrid>
+        <w:gridCol w:w="2500"/>
+        <w:gridCol w:w="2000"/>
+        <w:gridCol w:w="2000"/>
+      </w:tblGrid>
+      <w:tr>
+        <w:trPr>
+          <w:tblHeader/>
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2500"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+            <w:shd w:fill="D5E8F0" w:val="clear"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:b/>
+                <w:bCs/>
+                <w:sz w:val="20"/>
+                <w:szCs w:val="20"/>
+              </w:rPr>
+              <w:t xml:space="preserve">&#54028;&#46972;&#48120;&#53552;</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+            <w:shd w:fill="D5E8F0" w:val="clear"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:b/>
+                <w:bCs/>
+                <w:sz w:val="20"/>
+                <w:szCs w:val="20"/>
+              </w:rPr>
+              <w:t xml:space="preserve">&#44050;</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+            <w:shd w:fill="D5E8F0" w:val="clear"/>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:b/>
+                <w:bCs/>
+                <w:sz w:val="20"/>
+                <w:szCs w:val="20"/>
+              </w:rPr>
+              <w:t xml:space="preserve">&#45800;&#50948;</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2500"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2500"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2500"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2500"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2500"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2500"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2500"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2500"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="2000"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:left w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:bottom w:val="single" w:color="CCCCCC" w:sz="1"/>
+              <w:right w:val="single" w:color="CCCCCC" w:sz="1"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p/>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="240" w:after="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve">&#48376; &#51109;&#50640;&#49436; &#49444;&#47749;&#54620; MILP &#47784;&#45944;&#51008; Case&#48324;&#47196; &#50557;&#44036;&#51032; &#48320;&#54805;&#51060; &#51080;&#51004;&#47728;, &#45796;&#51020; &#51109;&#50640;&#49436;&#45716; 3&#44032;&#51648; Case &#49884;&#45208;&#47532;&#50724;&#51032; &#44396;&#52404;&#51201;&#51064; &#44396;&#54788;&#51012; &#49345;&#49464;&#55176; &#45796;&#47340;&#45796;. &#53945;&#55176; Case 1&#44284; Case 2&#51032; &#44592;&#48376;&#51201;&#51064; &#50868;&#50689; &#44060;&#45392;&#51032; &#52264;&#51060;(&#45796;&#51473; &#50773;&#48373; vs &#45800;&#51068; &#54637;&#54644;)&#44032; &#47784;&#45944;&#51032; &#51228;&#50557;&#49885;&#44284; &#44221;&#51228;&#49457; &#48516;&#49437;&#50640; &#50612;&#46500; &#50689;&#54693;&#51012; &#48120;&#52824;&#45716;&#51648; &#49332;&#54196;&#48380; &#44163;&#51060;&#45796;.</w:t>
+      </w:r>
+    </w:p>
+    <w:sectPr>
+      <w:pgSz w:w="11906" w:h="16838" w:orient="portrait"/>
+      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/>
+      <w:pgNumType/>
+      <w:docGrid w:linePitch="360"/>
+    </w:sectPr>
+  </w:body>
+</w:document>

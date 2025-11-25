@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 30pt; background: #f8f9fa; font-family: Arial, sans-serif; display: flex; flex-direction: column; }
+.header { background: #2C3E50; color: #ffffff; padding: 15pt; border-radius: 8pt; margin-bottom: 15pt; }
+h1 { margin: 0; font-size: 28pt; font-weight: bold; }
+.layout { display: grid; grid-template-columns: 1.2fr 1.8fr; gap: 20pt; flex: 1; }
+.sensitivity { background: #ffffff; padding: 15pt; border-radius: 8pt; }
+.sensitivity h3 { margin: 0 0 12pt 0; font-size: 13pt; font-weight: bold; color: #2C3E50; }
+.factor { background: #f8f9fa; padding: 10pt; margin: 8pt 0; border-radius: 4pt; border-left: 4pt solid #27AE60; }
+.factor-name { font-size: 11pt; font-weight: bold; color: #2C3E50; }
+.factor-impact { font-size: 12pt; color: #E67E22; font-weight: bold; margin-top: 3pt; }
+.factor-desc { font-size: 10pt; color: #999999; margin-top: 2pt; }
+.placeholder { background: #f0f0f0; border: 2px dashed #cccccc; border-radius: 8pt; display: flex; align-items: center; justify-content: center; color: #999999; font-size: 13pt; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>민감도 분석</h1>
+</div>
+<div class="layout">
+  <div class="sensitivity">
+    <h3>주요 변수 영향도</h3>
+    <div class="factor">
+      <div class="factor-name">📊 연료 가격 (Fuel Price)</div>
+      <div class="factor-impact">영향도: 매우 높음 ⚠️</div>
+      <div class="factor-desc">±10%: NPC ±$21.7M (±10%)</div>
+    </div>
+    <div class="factor">
+      <div class="factor-name">⚙️ 셔틀 크기 (Shuttle Size)</div>
+      <div class="factor-impact">영향도: 중간</div>
+      <div class="factor-desc">1,000-3,000 m³: NPC 범위</div>
+    </div>
+    <div class="factor">
+      <div class="factor-name">💨 펌프 용량 (Pump Capacity)</div>
+      <div class="factor-impact">영향도: 중간</div>
+      <div class="factor-desc">1,200-2,000 m³/h 최적</div>
+    </div>
+    <div class="factor">
+      <div class="factor-name">🚢 수요 증가 (Demand)</div>
+      <div class="factor-impact">영향도: 높음</div>
+      <div class="factor-desc">셔틀 신규 투자 필요</div>
+    </div>
+    <div class="factor">
+      <div class="factor-name">❄️ 냉각 비용 (Cooling)</div>
+      <div class="factor-impact">영향도: 낮음</div>
+      <div class="factor-desc">2-3% of total cost</div>
+    </div>
+  </div>
+  <div class="placeholder">[이미지: case1_11_tornado_diagram.png]</div>
+</div>
+</body>
+</html>

@@ -1,3 +1,7 @@
+# Dependencies
+node_modules/
+package-lock.json
+
 # Python cache
 __pycache__/
 *.py[cod]
@@ -27,6 +31,7 @@ htmlcov/
 # OS files
 .DS_Store
 Thumbs.db
+nul
 
 # Results folder should be ignored
 results/
