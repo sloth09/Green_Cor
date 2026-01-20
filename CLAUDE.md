@@ -27,33 +27,138 @@
 ## Project Structure
 
 ```
-C:\code\Green_Cor\
+D:\code\Green_Cor\
 ├── config/                          # YAML 설정 파일들
 │   ├── base.yaml                    # 공통 파라미터
 │   ├── case_1.yaml                  # Case 1: 부산항 저장소
 │   ├── case_2_yeosu.yaml            # Case 2-1: 여수→부산
 │   └── case_2_ulsan.yaml            # Case 2-2: 울산→부산
-├── src/                             # Python 모듈
+├── src/                             # Python 프로덕션 코드
 │   ├── __init__.py
-│   ├── config_loader.py
-│   ├── cycle_time_calculator.py
-│   ├── fleet_sizing_calculator.py
-│   ├── shore_supply.py
-│   ├── optimizer.py
-│   ├── cost_calculator.py
-│   ├── export_excel.py
-│   ├── export_docx.py
-│   └── utils.py
-├── docs/                            # 상세 문서 (v2.3.2 신규)
+│   ├── config_loader.py             # YAML 설정 로더
+│   ├── shuttle_round_trip_calculator.py  # 핵심 시간 계산 (Layer 1)
+│   ├── cycle_time_calculator.py     # 확장 시간 계산 (Layer 1)
+│   ├── fleet_sizing_calculator.py   # 함대 규모 계산 (Layer 1)
+│   ├── shore_supply.py              # 육상 공급 관리 (Layer 1)
+│   ├── utils.py                     # 유틸리티 함수 (Layer 1)
+│   ├── optimizer.py                 # MILP 최적화 엔진 (Layer 2)
+│   ├── cost_calculator.py           # 비용 계산 (Layer 2)
+│   ├── export_excel.py              # Excel 출력 (Layer 3)
+│   └── export_docx.py               # Word 출력 (Layer 3)
+├── tests/                           # 단위/통합 테스트
+│   ├── test_cycle_time_calculator.py
+│   ├── test_optimizer_integration.py
+│   ├── test_shore_supply.py
+│   ├── test_shuttle_round_trip_calculator.py
+│   └── test_annualized_capex_consistency.py
+├── scripts/                         # 개발/디버그 스크립트
+│   ├── debug_*.py                   # 디버깅 스크립트
+│   ├── verify_*.py                  # 검증 스크립트
+│   └── ...
+├── docs/                            # 문서
 │   ├── architecture.md              # 코드 아키텍처
 │   ├── configuration.md             # 파라미터 설정 가이드
-│   └── changelog.md                 # 버전 변경 이력
-├── main.py                          # 단일 케이스 실행
+│   ├── changelog.md                 # 버전 변경 이력
+│   ├── chapters/                    # 챕터별 문서
+│   ├── presentations/               # 프레젠테이션
+│   │   ├── slides/                  # HTML 슬라이드
+│   │   └── *.pptx                   # PowerPoint 파일
+│   ├── reports_docx/                # 생성된 Word 리포트
+│   ├── PDFs/                        # PDF 참고자료
+│   └── archive/                     # 레거시 코드 및 구 문서
+├── results/                         # 결과 출력 (자동 생성, git 제외)
+├── main.py                          # 메인 진입점
 ├── run_all_cases.py                 # 다중 케이스 실행
-├── results/                         # 결과 출력 폴더 (자동 생성)
+├── CLAUDE.md                        # 이 파일
+├── README.md                        # GitHub README
 ├── requirements.txt                 # Python 의존성
-└── CLAUDE.md                        # 이 파일
+├── .gitignore
+└── .mcp.json
 ```
+
+---
+
+## Layer 아키텍처 (검증 가능한 계층 구조)
+
+이 프로젝트는 **3계층(Layer) 구조**로 설계되어 있습니다. 각 계층을 독립적으로 검증할 수 있도록 의도적으로 분리했습니다.
+
+### 왜 Layer 구조인가?
+
+**문제**: 최종 코드만 있으면 어디서 오류가 발생했는지 파악이 불가능
+**해결**: 기초 계산 → 확장 계산 → 최종 결과로 단계별 검증 가능
+
+### 계층 다이어그램
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Layer 3: 최종 실행 (Presentation)                   │
+│  main.py, run_all_cases.py, export_*.py             │
+│  → 사용자 인터페이스, 결과 출력                        │
+└────────────────────┬────────────────────────────────┘
+                     │ depends on
+┌────────────────────▼────────────────────────────────┐
+│  Layer 2: 최적화 & 비용 (Optimization)               │
+│  optimizer.py, cost_calculator.py                   │
+│  → MILP 최적화, 비용 계산                            │
+└────────────────────┬────────────────────────────────┘
+                     │ depends on
+┌────────────────────▼────────────────────────────────┐
+│  Layer 1: 기초 계산 (Foundation)                     │
+│  shuttle_round_trip_calculator.py, shore_supply.py  │
+│  cycle_time_calculator.py, fleet_sizing_calculator.py│
+│  → 핵심 시간 계산, 독립적으로 검증 가능                │
+└─────────────────────────────────────────────────────┘
+```
+
+### 각 Layer 상세
+
+| Layer | 파일 | 역할 | 의존성 |
+|-------|------|------|--------|
+| **1 (기초)** | `shuttle_round_trip_calculator.py` | 핵심 시간 계산 (Case 1/2 분기) | 없음 (독립) |
+| | `shore_supply.py` | 육상 공급 시설 관리 | 없음 (독립) |
+| | `cycle_time_calculator.py` | 시간 계산 통합 | Layer 1 내부 |
+| | `fleet_sizing_calculator.py` | 함대 규모 계산 | 없음 (독립) |
+| | `utils.py` | MCR 보간, 수요 계산 | numpy만 |
+| | `config_loader.py` | YAML 설정 로드 | utils |
+| **2 (최적화)** | `optimizer.py` | MILP 최적화 엔진 | Layer 1 전체 |
+| | `cost_calculator.py` | CAPEX/OPEX 계산 | utils |
+| **3 (최종)** | `main.py` | 진입점, 실행 모드 제어 | Layer 1+2 |
+| | `run_all_cases.py` | 다중 케이스 병렬 실행 | Layer 1+2 |
+| | `export_excel.py` | Excel 출력 | pandas |
+| | `export_docx.py` | Word 출력 | pandas |
+
+### 검증 흐름
+
+```
+Layer 1만 테스트     →  시간 계산이 맞는지 확인
+        ↓
+Layer 1+2 테스트    →  비용 계산이 맞는지 확인
+        ↓
+Layer 1+2+3 통합    →  최종 결과 검증
+```
+
+**main.py의 실행 모드가 이 검증 흐름을 지원합니다:**
+
+| 실행 모드 | 사용 Layer | 용도 |
+|-----------|------------|------|
+| `single_scenario` | Layer 1만 | 빠른 시간 계산 검증 |
+| `annual_simulation` | Layer 1 + 일부 2 | 연간 계산 검증 |
+| `single` / `all` | Layer 1+2+3 | 완전 최적화 |
+
+### 핵심 분기점: Case 1 vs Case 2
+
+**Layer 1의 `shuttle_round_trip_calculator.py`에서 핵심 로직이 분기됩니다:**
+
+```python
+if has_storage_at_busan:  # Case 1
+    pumping_time = shuttle_size / pump_rate
+    # 셔틀이 얼마나 빨리 비워지는가?
+else:  # Case 2
+    pumping_time = bunker_volume / pump_rate
+    # 각 선박이 얼마나 빨리 채워지는가?
+```
+
+이 핵심 차이가 전체 최적화 결과를 결정하며, Layer 1에서 명확하게 분리되어 있어 각 케이스별 검증이 용이합니다.
 
 ---
 
@@ -277,7 +382,8 @@ execution:
 | 항목 | 기본값 | 설명 |
 |------|--------|------|
 | **셔틀 크기** | 500-5000 m³ | Case별로 다름 |
-| **펌프 유량** | 400-2000 m³/h | 9가지 옵션 |
+| **펌프 유량** | 1000 m³/h | pumps.available_flow_rates (고정) |
+| **펌프 유량 (민감도)** | 400-2000 m³/h | pumps.sensitivity_flow_rates (S7 분석용) |
 | **할인율** | 0% (No discounting) | economy.discount_rate - 모든 연도 동일 가중치 |
 | **연료 가격** | 600 USD/ton | economy.fuel_price_usd_per_ton |
 | **초기 선박 수** | 50척 (2030년) | shipping.start_vessels |

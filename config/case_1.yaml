@@ -23,6 +23,8 @@ shuttle:
     - 4000
     - 4500
     - 5000
+    - 7500
+    - 10000
 
   # MCR (Maximum Continuous Rating) values for each shuttle size (kW)
   # Includes interpolated values for 4500 and 5000 m3
@@ -37,6 +39,8 @@ shuttle:
     4000: 1606
     4500: 1650      # Interpolated
     5000: 1694      # Interpolated
+    7500: 1927      # Interpolated between 5000 and 10000
+    10000: 2159     # Extrapolated
 
 # Operational parameters
 operations:

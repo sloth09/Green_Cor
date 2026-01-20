@@ -24,6 +24,7 @@ shuttle:
   # Available sizes (m3) - large vessels for regional transport
   # Multiples of 5000 m3 for standardization
   available_sizes_cbm:
+    - 2500
     - 5000
     - 10000
     - 15000
@@ -38,6 +39,7 @@ shuttle:
   # MCR (Maximum Continuous Rating) values for each shuttle size (kW)
   # Same as Case 2-1 since hull sizes are the same
   mcr_map_kw:
+    2500: 1473       # From Case 1
     5000: 1694       # Interpolated/extrapolated
     10000: 2159      # Extrapolated (logarithmic scaling)
     15000: 2485      # Extrapolated

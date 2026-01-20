@@ -74,7 +74,11 @@ bunkering:
 
 # Pump specifications (m3/h)
 pumps:
+  # Fixed pump rate for main optimization (10 scenarios per case)
   available_flow_rates:
+    - 1000
+  # Full range for sensitivity analysis (S7 figure)
+  sensitivity_flow_rates:
     - 400
     - 600
     - 800
@@ -104,7 +108,7 @@ execution:
   # Run mode: determines execution scope and parameters
   # Options: "single", "single_scenario", "annual_simulation", "yearly_simulation", "all", "multiple"
   #
-  # "single"           : Run ONE case with all shuttle/pump combinations (90 scenarios)
+  # "single"           : Run ONE case with all shuttle/pump combinations (10 scenarios)
   #                     Slow but comprehensive optimization across all sizes
   #
   # "single_scenario"  : Run ONE case with ONE specific shuttle/pump combination
@@ -120,11 +124,11 @@ execution:
   #                     Requires: single_case, single_scenario_shuttle_cbm, single_scenario_pump_m3ph
   #
   # "all"              : Run ALL available cases with all combinations
-  #                     Very slow (3 cases × 90 scenarios each)
+  #                     (3 cases x 10 scenarios each)
   #
   # "multiple"         : Run specific cases listed in 'multi_cases' with all combinations
-  #                     Medium speed (N cases × 90 scenarios each)
-  run_mode: "yearly_simulation"
+  #                     (N cases x 10 scenarios each)
+  run_mode: "all"
 
   # For run_mode: "yearly_simulation", "single_scenario", "annual_simulation", "yearly_simulation" - which case to use
   # Example values: "case_1", "case_2_yeosu", "case_2_ulsan"
