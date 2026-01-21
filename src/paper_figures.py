@@ -123,15 +123,28 @@ class PaperFigureGenerator:
         self.tornado_data = self._load_tornado_data()
 
     def _load_deterministic_scenarios(self) -> Dict[str, pd.DataFrame]:
-        """Load deterministic scenario results."""
+        """Load deterministic scenario results.
+
+        Search order:
+        1. results/MILP_scenario_summary_{case_id}.csv (main.py output)
+        2. results/deterministic/scenarios_{case_id}.csv (legacy)
+        3. results/stochastic*/deterministic_scenarios_{case_id}.csv (stochastic fallback)
+        """
         data = {}
         for case_id in ['case_1', 'case_2_yeosu', 'case_2_ulsan']:
-            # Try deterministic directory first
-            path = self.det_dir / f"scenarios_{case_id}.csv"
-            if not path.exists():
-                # Fallback to stochastic directory
+            path = None
+            # Priority 1: main.py output (MILP_scenario_summary_*)
+            milp_path = self.results_dir / f"MILP_scenario_summary_{case_id}.csv"
+            if milp_path.exists():
+                path = milp_path
+            # Priority 2: deterministic directory (legacy)
+            elif (self.det_dir / f"scenarios_{case_id}.csv").exists():
+                path = self.det_dir / f"scenarios_{case_id}.csv"
+            # Priority 3: stochastic directory fallback
+            elif (self.stoch_dirs[case_id] / f"deterministic_scenarios_{case_id}.csv").exists():
                 path = self.stoch_dirs[case_id] / f"deterministic_scenarios_{case_id}.csv"
-            if path.exists():
+
+            if path and path.exists():
                 data[case_id] = pd.read_csv(path)
                 print(f"  [OK] Loaded {case_id} deterministic scenarios")
             else:
@@ -139,13 +152,28 @@ class PaperFigureGenerator:
         return data
 
     def _load_deterministic_yearly(self) -> Dict[str, pd.DataFrame]:
-        """Load deterministic yearly results."""
+        """Load deterministic yearly results.
+
+        Search order:
+        1. results/MILP_per_year_results_{case_id}.csv (main.py output)
+        2. results/deterministic/yearly_{case_id}.csv (legacy)
+        3. results/stochastic*/deterministic_yearly_{case_id}.csv (stochastic fallback)
+        """
         data = {}
         for case_id in ['case_1', 'case_2_yeosu', 'case_2_ulsan']:
-            path = self.det_dir / f"yearly_{case_id}.csv"
-            if not path.exists():
+            path = None
+            # Priority 1: main.py output (MILP_per_year_results_*)
+            milp_path = self.results_dir / f"MILP_per_year_results_{case_id}.csv"
+            if milp_path.exists():
+                path = milp_path
+            # Priority 2: deterministic directory (legacy)
+            elif (self.det_dir / f"yearly_{case_id}.csv").exists():
+                path = self.det_dir / f"yearly_{case_id}.csv"
+            # Priority 3: stochastic directory fallback
+            elif (self.stoch_dirs[case_id] / f"deterministic_yearly_{case_id}.csv").exists():
                 path = self.stoch_dirs[case_id] / f"deterministic_yearly_{case_id}.csv"
-            if path.exists():
+
+            if path and path.exists():
                 data[case_id] = pd.read_csv(path)
         return data
 

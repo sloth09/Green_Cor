@@ -28,10 +28,44 @@ ammonia:
 
 # Fuel consumption (for shuttle operation)
 propulsion:
-  sfoc_g_per_kwh: 379.0         # Specific Fuel Oil Consumption
+  sfoc_g_per_kwh: 379.0         # Default SFOC (fallback) - use sfoc_map for size-specific values
   pump_delta_pressure_bar: 4.0   # Pump pressure drop
   pump_efficiency: 0.7           # Pump efficiency
   pump_power_cost_usd_per_kw: 2000.0
+
+# SFOC map by shuttle size (DWT-based, ammonia fuel)
+# v4.1: DWT-based engine type matching (see docs/parameter/MCR_SFOC_Technical_Report_v4.md)
+# DWT < 3,000: 4-stroke high-speed -> 505 g/kWh (diesel 220)
+# DWT 3,000-8,000: 4-stroke medium-speed -> 436 g/kWh (diesel 190)
+# DWT 8,000-15,000: 4-stroke medium / small 2-stroke -> 413 g/kWh (diesel 180)
+# DWT 15,000-30,000: 2-stroke -> 390 g/kWh (diesel 170)
+# DWT > 30,000: 2-stroke large -> 379 g/kWh (diesel 165)
+sfoc_map_g_per_kwh:
+  # DWT < 3,000 ton: 4-stroke high-speed (diesel 220 g/kWh)
+  500: 505      # DWT 425
+  1000: 505     # DWT 850
+  1500: 505     # DWT 1,275
+  2000: 505     # DWT 1,700
+  2500: 505     # DWT 2,125
+  3000: 505     # DWT 2,550
+  3500: 505     # DWT 2,975
+  # DWT 3,000-8,000 ton: 4-stroke medium-speed (diesel 190 g/kWh)
+  4000: 436     # DWT 3,400
+  4500: 436     # DWT 3,825
+  5000: 436     # DWT 4,250
+  7500: 436     # DWT 6,375
+  # DWT 8,000-15,000 ton: 4-stroke medium / small 2-stroke (diesel 180 g/kWh)
+  10000: 413    # DWT 8,500
+  15000: 413    # DWT 12,750
+  # DWT 15,000-30,000 ton: 2-stroke (diesel 170 g/kWh)
+  20000: 390    # DWT 17,000
+  25000: 390    # DWT 21,250
+  30000: 390    # DWT 25,500
+  35000: 390    # DWT 29,750
+  # DWT > 30,000 ton: 2-stroke large (diesel 165 g/kWh)
+  40000: 379    # DWT 34,000
+  45000: 379    # DWT 38,250
+  50000: 379    # DWT 42,500
 
 # Operating parameters
 operations:

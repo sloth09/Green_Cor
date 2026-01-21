@@ -5,8 +5,8 @@
 # Shuttles transport fuel from Ulsan source to Busan ships
 # Shuttles act as temporary storage (no fixed tanks at destination)
 # Shuttle sizes: 5000 - 50000 m3 (multiples of 5000)
-# Distance: 25 nautical miles
-# Travel time: ~1.67 hours at 15 knots
+# Distance: 59 nautical miles (v4 updated from 25nm)
+# Travel time: ~3.93 hours at 15 knots
 
 case_name: "Case 2-2: Ulsan → Busan"
 case_id: "case_2_ulsan"
@@ -15,9 +15,9 @@ case_id: "case_2_ulsan"
 route:
   source: "Ulsan"
   destination: "Busan"
-  distance_nautical_miles: 25.0
+  distance_nautical_miles: 59.0   # v4: updated from 25.0
   ship_speed_knots: 15.0
-  # Travel time calculated as: distance / speed = 25 / 15 ≈ 1.67 hours
+  # Travel time calculated as: distance / speed = 59 / 15 ≈ 3.93 hours
 
 # Shuttle vessel specifications
 shuttle:
@@ -37,24 +37,25 @@ shuttle:
     - 50000
 
   # MCR (Maximum Continuous Rating) values for each shuttle size (kW)
-  # Same as Case 2-1 since hull sizes are the same
+  # v5: Power Law MCR = 17.17 * DWT^0.566 (MAN data regression, R2=0.998)
+  # See docs/parameter/MCR_SFOC_Technical_Report_v5.md
   mcr_map_kw:
-    2500: 1473       # From Case 1
-    5000: 1694       # Interpolated/extrapolated
-    10000: 2159      # Extrapolated (logarithmic scaling)
-    15000: 2485      # Extrapolated
-    20000: 2751      # Extrapolated
-    25000: 2981      # Extrapolated
-    30000: 3185      # Extrapolated
-    35000: 3372      # Extrapolated
-    40000: 3546      # Extrapolated (or use ref 40000)
-    45000: 3710      # Extrapolated
-    50000: 3867      # Extrapolated
+    2500: 1310       # Power Law (DWT=2125, +13% from v4)
+    5000: 1930       # Power Law (DWT=4250, +7% from v4) - MAN 1950kW
+    10000: 2990      # Power Law (DWT=8500, +24% from v4)
+    15000: 3850      # Power Law (DWT=12750, +25% from v4)
+    20000: 4610      # Power Law (DWT=17000, +26% from v4)
+    25000: 5300      # Power Law (DWT=21250, +30% from v4)
+    30000: 5940      # Power Law (DWT=25500, +32% from v4)
+    35000: 6540      # Power Law (DWT=29750, +30% from v4)
+    40000: 7100      # Power Law (DWT=34000, +26% from v4)
+    45000: 7640      # Power Law (DWT=38250, +26% from v4)
+    50000: 8150      # Power Law (DWT=42500, +25% from v4)
 
 # Operational parameters
 operations:
-  # Travel time one-way: 25 nm / 15 knots ≈ 1.67 hours
-  travel_time_hours: 1.67
+  # Travel time one-way: 59 nm / 15 knots = 3.93 hours (v4: updated from 1.67)
+  travel_time_hours: 3.93
 
   # Whether storage tanks exist at Busan port
   has_storage_at_busan: false

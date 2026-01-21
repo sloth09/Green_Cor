@@ -67,6 +67,13 @@ D:\code\Green_Cor\
 │   ├── PDFs/                        # PDF 참고자료
 │   └── archive/                     # 레거시 코드 및 구 문서
 ├── results/                         # 결과 출력 (자동 생성, git 제외)
+│   ├── MILP_scenario_summary_*.csv  # 시나리오 요약 (main.py 출력)
+│   ├── MILP_per_year_results_*.csv  # 연도별 결과 (main.py 출력)
+│   ├── MILP_results_*.xlsx          # Excel 통합 파일
+│   ├── MILP_Report_*.docx           # Word 리포트
+│   ├── paper_figures/               # 논문용 그림 (generate_paper_figures.py)
+│   ├── sensitivity/                 # 민감도 분석 결과
+│   └── stochastic*/                 # 확률적 최적화 결과
 ├── main.py                          # 메인 진입점
 ├── run_all_cases.py                 # 다중 케이스 실행
 ├── CLAUDE.md                        # 이 파일
@@ -75,6 +82,45 @@ D:\code\Green_Cor\
 ├── .gitignore
 └── .mcp.json
 ```
+
+---
+
+## 결과 생성 워크플로우 (Results Workflow)
+
+최적화 결과 생성부터 검증 보고서까지의 전체 파이프라인입니다.
+
+### 실행 순서
+
+```
+1. main.py (최적화 실행)
+   ↓ 출력: results/MILP_scenario_summary_*.csv
+   ↓ 출력: results/MILP_per_year_results_*.csv
+
+2. generate_paper_figures.py (그림 생성)
+   ↓ 입력: results/MILP_*.csv (자동 감지)
+   ↓ 출력: results/paper_figures/*.png, *.pdf
+
+3. verification-report skill (검증 문서)
+   ↓ 입력: results/MILP_*.csv
+   ↓ 입력: results/paper_figures/*.png
+   ↓ 출력: docs/verification/*.md
+```
+
+### 파일 경로 규칙
+
+| 단계 | 출력 파일 | 경로 |
+|------|----------|------|
+| 최적화 | 시나리오 요약 | `results/MILP_scenario_summary_{case_id}.csv` |
+| 최적화 | 연도별 결과 | `results/MILP_per_year_results_{case_id}.csv` |
+| 최적화 | Excel 통합 | `results/MILP_results_{case_id}.xlsx` |
+| 그림 | 논문 그림 | `results/paper_figures/D*.png`, `S*.png` |
+| 검증 | 검증 문서 | `docs/verification/0*.md` |
+
+### 중요: 파일 경로 일관성
+
+- `paper_figures.py`는 `MILP_scenario_summary_*.csv`를 **우선** 읽음
+- 레거시 경로(`results/deterministic/`)도 fallback으로 지원
+- 새 결과 생성 후 반드시 `generate_paper_figures.py` 재실행 필요
 
 ---
 

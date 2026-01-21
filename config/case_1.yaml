@@ -27,20 +27,21 @@ shuttle:
     - 10000
 
   # MCR (Maximum Continuous Rating) values for each shuttle size (kW)
-  # Includes interpolated values for 4500 and 5000 m3
+  # v5: Power Law MCR = 17.17 * DWT^0.566 (MAN data regression, R2=0.998)
+  # See docs/parameter/MCR_SFOC_Technical_Report_v5.md
   mcr_map_kw:
-    500: 1296
-    1000: 1341
-    1500: 1385
-    2000: 1429
-    2500: 1473
-    3000: 1517
-    3500: 1562
-    4000: 1606
-    4500: 1650      # Interpolated
-    5000: 1694      # Interpolated
-    7500: 1927      # Interpolated between 5000 and 10000
-    10000: 2159     # Extrapolated
+    500: 520        # Power Law (DWT=425, +37% from v4)
+    1000: 770       # Power Law (DWT=850, +24% from v4)
+    1500: 980       # Power Law (DWT=1275, +20% from v4)
+    2000: 1160      # Power Law (DWT=1700, +16% from v4)
+    2500: 1310      # Power Law (DWT=2125, +13% from v4)
+    3000: 1450      # Power Law (DWT=2550, +11% from v4)
+    3500: 1580      # Power Law (DWT=2975, +9% from v4)
+    4000: 1700      # Power Law (DWT=3400, +8% from v4)
+    4500: 1820      # Power Law (DWT=3825, +7% from v4)
+    5000: 1930      # Power Law (DWT=4250, +7% from v4) - MAN 1950kW
+    7500: 2490      # Power Law (DWT=6375, +14% from v4)
+    10000: 2990     # Power Law (DWT=8500, +24% from v4)
 
 # Operational parameters
 operations:

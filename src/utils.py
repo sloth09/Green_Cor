@@ -63,6 +63,110 @@ def interpolate_mcr(mcr_map: Dict[int, float], shuttle_sizes: List[int]) -> Dict
     return complete_mcr
 
 
+def interpolate_sfoc(sfoc_map: Dict[int, float], shuttle_sizes: List[int], default_sfoc: float = 379.0) -> Dict[int, float]:
+    """
+    Interpolate SFOC values for shuttle sizes not in the SFOC map.
+
+    Uses linear interpolation within known range and nearest value extrapolation beyond.
+
+    v4: MCR-based SFOC calculation (see docs/parameter/MCR_SFOC_Technical_Report_v4.md)
+    MCR < 1,000 kW: 4-stroke high-speed -> 505 g/kWh
+    MCR 1,000-2,000 kW: 4-stroke medium-speed -> 448 g/kWh
+    MCR 2,000-5,000 kW: 4-stroke medium -> 425 g/kWh
+    MCR 5,000-10,000 kW: 4-stroke/2-stroke transition -> 402 g/kWh
+    MCR > 10,000 kW: 2-stroke -> 379 g/kWh
+
+    Args:
+        sfoc_map: SFOC map with known values (size -> SFOC in g/kWh)
+        shuttle_sizes: List of all required shuttle sizes
+        default_sfoc: Fallback SFOC value if map is empty
+
+    Returns:
+        Complete SFOC map with interpolated values
+    """
+    if not sfoc_map:
+        # If no SFOC map, return default for all sizes
+        return {size: default_sfoc for size in shuttle_sizes}
+
+    complete_sfoc = sfoc_map.copy()
+    sorted_sizes = sorted(sfoc_map.keys())
+
+    for size in shuttle_sizes:
+        if size in complete_sfoc:
+            continue
+
+        # Find two nearest known sizes
+        below = [s for s in sorted_sizes if s < size]
+        above = [s for s in sorted_sizes if s > size]
+
+        if below and above:
+            # Linear interpolation
+            s1, s2 = below[-1], above[0]
+            sfoc1, sfoc2 = sfoc_map[s1], sfoc_map[s2]
+
+            # Linear interpolation formula
+            sfoc = sfoc1 + (sfoc2 - sfoc1) * (size - s1) / (s2 - s1)
+            complete_sfoc[size] = sfoc
+
+        elif below:
+            # Extrapolation beyond max known size - use last known value
+            complete_sfoc[size] = sfoc_map[sorted_sizes[-1]]
+
+        else:
+            # Before minimum - use first known value
+            complete_sfoc[size] = sfoc_map[sorted_sizes[0]]
+
+    return complete_sfoc
+
+
+def get_sfoc_by_dwt(dwt_ton: float) -> float:
+    """
+    Get ammonia SFOC based on DWT (deadweight tonnage).
+
+    v4.1: DWT-based SFOC calculation (see docs/parameter/MCR_SFOC_Technical_Report_v4.md)
+
+    DWT ranges and corresponding SFOC values:
+    - DWT < 3,000 ton: 4-stroke high-speed -> 505 g/kWh (diesel 220)
+    - DWT 3,000-8,000 ton: 4-stroke medium-speed -> 436 g/kWh (diesel 190)
+    - DWT 8,000-15,000 ton: 4-stroke medium / small 2-stroke -> 413 g/kWh (diesel 180)
+    - DWT 15,000-30,000 ton: 2-stroke -> 390 g/kWh (diesel 170)
+    - DWT > 30,000 ton: 2-stroke large -> 379 g/kWh (diesel 165)
+
+    Args:
+        dwt_ton: DWT value in tons
+
+    Returns:
+        SFOC in g/kWh for ammonia fuel
+    """
+    if dwt_ton < 3000:
+        return 505.0    # 4-stroke high-speed
+    elif dwt_ton < 8000:
+        return 436.0    # 4-stroke medium-speed
+    elif dwt_ton < 15000:
+        return 413.0    # 4-stroke medium / small 2-stroke
+    elif dwt_ton < 30000:
+        return 390.0    # 2-stroke
+    else:
+        return 379.0    # 2-stroke large
+
+
+def cargo_to_dwt(cargo_m3: float, density: float = 0.680, cargo_fraction: float = 0.80) -> float:
+    """
+    Convert cargo volume to DWT (deadweight tonnage).
+
+    Args:
+        cargo_m3: Cargo volume in m3
+        density: Ammonia density in ton/m3 (default 0.680)
+        cargo_fraction: Cargo as fraction of DWT (default 0.80)
+
+    Returns:
+        DWT in tons
+    """
+    cargo_ton = cargo_m3 * density
+    dwt = cargo_ton / cargo_fraction
+    return dwt
+
+
 def calculate_m3_per_voyage(kg_per_voyage: float, density_storage: float) -> float:
     """
     Calculate volume per voyage from mass.

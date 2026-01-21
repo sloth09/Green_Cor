@@ -16,6 +16,7 @@ from .fleet_sizing_calculator import FleetSizingCalculator
 from .shore_supply import ShoreSupply
 from .utils import (
     interpolate_mcr,
+    interpolate_sfoc,
     calculate_m3_per_voyage,
     calculate_bunker_volume_per_call,
     calculate_vessel_growth,
@@ -89,8 +90,8 @@ class BunkeringOptimizer:
         self.daily_peak_factor = self.config["operations"]["daily_peak_factor"]
         self.transport_safety_factor = self.config["operations"]["transport_safety_factor"]
 
-        # Propulsion parameters
-        self.sfoc = self.config["propulsion"]["sfoc_g_per_kwh"]
+        # Propulsion parameters - default SFOC (fallback)
+        self.sfoc_default = self.config["propulsion"]["sfoc_g_per_kwh"]
 
         # Shuttle sizes and MCR
         self.shuttle_sizes = self.config["shuttle"]["available_sizes_cbm"]
@@ -98,6 +99,10 @@ class BunkeringOptimizer:
         # Interpolate MCR for all shuttle sizes
         base_mcr_map = self.config["shuttle"].get("mcr_map_kw", {})
         self.mcr_map = interpolate_mcr(base_mcr_map, self.shuttle_sizes)
+
+        # Interpolate SFOC for all shuttle sizes (v4: MCR-based SFOC)
+        base_sfoc_map = self.config.get("sfoc_map_g_per_kwh", {})
+        self.sfoc_map = interpolate_sfoc(base_sfoc_map, self.shuttle_sizes, self.sfoc_default)
 
         # Pump sizes
         self.pump_sizes = self.config["pumps"]["available_flow_rates"]
@@ -200,10 +205,13 @@ class BunkeringOptimizer:
         if call_duration > self.max_call_hours:
             return  # Skip infeasible combination
 
+        # Get SFOC for this shuttle size (v4: MCR-based SFOC map)
+        sfoc = self.sfoc_map.get(shuttle_size_int, self.sfoc_default)
+
         # Calculate fuel costs using timing from cycle calculator
         # For Case 1: One-way travel; Case 2: Round-trip travel
         travel_factor = 1.0 if self.has_storage_at_busan else 2.0
-        shuttle_fuel_per_cycle = (mcr * self.sfoc * travel_factor * self.travel_time_hours) / 1e6
+        shuttle_fuel_per_cycle = (mcr * sfoc * travel_factor * self.travel_time_hours) / 1e6
         shuttle_fuel_cost_per_cycle = shuttle_fuel_per_cycle * self.fuel_price
 
         # Pump fuel cost based on pumping time per bunkering call
@@ -217,7 +225,7 @@ class BunkeringOptimizer:
         pump_fuel_per_call = (self.cost_calc.calculate_pump_power(pump_size,
                                                                    self.config["propulsion"]["pump_delta_pressure_bar"],
                                                                    self.config["propulsion"]["pump_efficiency"]) *
-                             pumping_time_hr_call * self.sfoc) / 1e6
+                             pumping_time_hr_call * sfoc) / 1e6
         pump_fuel_cost_per_call = pump_fuel_per_call * self.fuel_price
 
         # Cost components
