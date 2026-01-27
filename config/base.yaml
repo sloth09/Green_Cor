@@ -83,7 +83,7 @@ operations:
 shore_supply:
   enabled: false                 # Cost control: false = exclude shore costs (DEFAULT)
   pump_rate_m3ph: 1500.0         # Shore pump capacity for loading shuttles (m³/h) - FIXED
-  loading_time_fixed_hours: 0.0  # Additional fixed time for setup/shutdown
+  loading_time_fixed_hours: 2.0  # Additional fixed time for setup/shutdown (hose connection/disconnection)
 
 # Tank system (storage at Busan Port for Case 1)
 tank_storage:

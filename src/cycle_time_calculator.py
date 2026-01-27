@@ -111,8 +111,10 @@ class CycleTimeCalculator:
         cycle_duration = shore_loading + basic_cycle
 
         # Call duration: time to fulfill one complete demand "call"
+        # NOTE: Must use cycle_duration (includes shore_loading) not basic_cycle
+        # Each trip requires shore loading, so total time = trips × full_cycle_time
         trips_per_call = shuttle_cycle['trips_per_call']
-        call_duration = trips_per_call * basic_cycle
+        call_duration = trips_per_call * cycle_duration
 
         # Annual operations and supply metrics
         # NOTE: These represent MAXIMUM THEORETICAL values for a single shuttle at 100% utilization

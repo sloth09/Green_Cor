@@ -4,6 +4,8 @@
 
 This report has verified the MILP optimization results for the Green Corridor ammonia bunkering infrastructure project. All key calculations have been manually verified against the CSV output files.
 
+**v5 MCR Update**: All results reflect Power Law MCR values (MCR = 17.17 x DWT^0.566).
+
 ---
 
 ## 7.2 Master Verification Checklist
@@ -38,11 +40,11 @@ This report has verified the MILP optimization results for the Green Corridor am
 | 14 | Case 2-2 Distance | 59 nm | 59 nm | PASS |
 | 15 | Case 2-2 Travel Time | 3.93 hr | 3.93 hr | PASS |
 
-### Cycle Time Verification
+### Cycle Time Verification (v5)
 
 | # | Case | Shuttle | Expected | Actual | Status |
 |---|------|---------|----------|--------|--------|
-| 16 | Case 1 | 1000 m3 | 5.67 hr | 5.67 hr | PASS |
+| 16 | Case 1 | 2500 m3 | 8.17 hr | 8.17 hr | PASS |
 | 17 | Case 2-1 | 10000 m3 | 36.13 hr | 36.13 hr | PASS |
 | 18 | Case 2-2 | 5000 m3 | 21.19 hr | 21.19 hr | PASS |
 
@@ -50,7 +52,7 @@ This report has verified the MILP optimization results for the Green Corridor am
 
 | # | Item | Expected | Actual | Status |
 |---|------|----------|--------|--------|
-| 19 | Shuttle CAPEX (1000 m3) | $3.87M | $3.87M | PASS |
+| 19 | Shuttle CAPEX (2500 m3) | $7.69M | $7.69M | PASS |
 | 20 | Shuttle CAPEX (5000 m3) | $12.93M | $12.93M | PASS |
 | 21 | Shuttle CAPEX (10000 m3) | $21.74M | $21.74M | PASS |
 | 22 | Pump CAPEX (1000 m3/h) | $0.32M | $0.32M | PASS |
@@ -64,21 +66,21 @@ This report has verified the MILP optimization results for the Green Corridor am
 | 25 | Case 2-1 Shuttle vOPEX | MCR-based | CSV matches | PASS |
 | 26 | Case 2-2 Shuttle vOPEX | MCR-based | CSV matches | PASS |
 
-### NPC Verification
+### NPC Verification (v5)
 
 | # | Case | Optimal | NPC | LCO | Status |
 |---|------|---------|-----|-----|--------|
-| 27 | Case 1 | 1000 m3 | $238.39M | $1.01/ton | PASS |
-| 28 | Case 2-1 | 10000 m3 | $791.47M | $3.36/ton | PASS |
-| 29 | Case 2-2 | 5000 m3 | $650.60M | $2.76/ton | PASS |
+| 27 | Case 1 | 2500 m3 | $249.80M | $1.06/ton | PASS |
+| 28 | Case 2-1 | 10000 m3 | $847.56M | $3.60/ton | PASS |
+| 29 | Case 2-2 | 5000 m3 | $667.70M | $2.83/ton | PASS |
 
-### MCR/SFOC Verification (v4.1)
+### MCR/SFOC Verification (v5 Power Law)
 
-| # | Shuttle | MCR (kW) | SFOC (g/kWh) | Status |
-|---|---------|----------|--------------|--------|
-| 30 | 1000 m3 | 620 | 505 | PASS |
-| 31 | 5000 m3 | 1810 | 436 | PASS |
-| 32 | 10000 m3 | 2420 | 413 | PASS |
+| # | Shuttle | MCR v5 (kW) | SFOC (g/kWh) | Status |
+|---|---------|-------------|--------------|--------|
+| 30 | 2500 m3 | 1310 | 505 | PASS |
+| 31 | 5000 m3 | 1930 | 436 | PASS |
+| 32 | 10000 m3 | 2990 | 413 | PASS |
 
 ---
 
@@ -117,19 +119,28 @@ This report has verified the MILP optimization results for the Green Corridor am
 
 ## 7.5 Key Findings
 
-### Optimal Configurations (v4.1)
+### Optimal Configurations (v5)
 
 | Rank | Case | Shuttle | NPC | LCOAmmonia |
 |------|------|---------|-----|------------|
-| 1 | Case 1 | 1,000 m3 | $238.39M | $1.01/ton |
-| 2 | Case 2-2 | 5,000 m3 | $650.60M | $2.76/ton |
-| 3 | Case 2-1 | 10,000 m3 | $791.47M | $3.36/ton |
+| 1 | Case 1 | 2,500 m3 | $249.80M | $1.06/ton |
+| 2 | Case 2-2 | 5,000 m3 | $667.70M | $2.83/ton |
+| 3 | Case 2-1 | 10,000 m3 | $847.56M | $3.60/ton |
 
-### v4.1 Update Impacts
+### v4 to v5 Update Impacts
 
-1. **MCR Update**: More accurate propulsion power estimates based on MAN Energy Solutions data
-2. **SFOC Update**: DWT-based fuel consumption rates provide better cost accuracy
-3. **Case 2-2 Distance**: Corrected from 25 nm to 59 nm, increasing costs but still more economical than Case 2-1
+| Case | v4 Shuttle | v5 Shuttle | v4 NPC | v5 NPC | Change |
+|------|------------|------------|--------|--------|--------|
+| Case 1 | 1,000 m3 | **2,500 m3** | $238.39M | $249.80M | +4.8% |
+| Case 2-1 | 10,000 m3 | 10,000 m3 | $791.47M | $847.56M | +7.1% |
+| Case 2-2 | 5,000 m3 | 5,000 m3 | $650.60M | $667.70M | +2.6% |
+
+### Key Changes in v5
+
+1. **MCR Update**: Power Law formula `MCR = 17.17 x DWT^0.566` applied to all shuttle sizes
+2. **Small Shuttle Impact**: Small shuttles (500-2000 m3) experienced largest MCR corrections (+20-37%)
+3. **Case 1 Optimal Shift**: Changed from 1000 m3 to 2500 m3 due to corrected MCR values
+4. **Case 2 Unchanged**: Optimal shuttle sizes remain at 10000 m3 (Yeosu) and 5000 m3 (Ulsan)
 
 ---
 
@@ -138,23 +149,24 @@ This report has verified the MILP optimization results for the Green Corridor am
 ### Primary: Case 1 (Busan Storage)
 
 **Recommended Configuration:**
-- Shuttle Size: 1,000 m3
+- Shuttle Size: 2,500 m3
 - Pump Rate: 1,000 m3/h
-- 20-year NPC: $238.39M
-- LCOAmmonia: $1.01/ton
+- 20-year NPC: $249.80M
+- LCOAmmonia: $1.06/ton
 
 **Rationale:**
-- Lowest cost option by a significant margin (3x cheaper than Case 2)
+- Lowest cost option by a significant margin (2.7-3.4x cheaper than Case 2)
 - Simple operational model with short cycle times
 - Requires investment in local storage infrastructure
+- v5 MCR update shifted optimal from 1000 m3 to 2500 m3
 
 ### Alternative: Case 2-2 (Ulsan Direct)
 
 **Recommended Configuration:**
 - Shuttle Size: 5,000 m3
 - Pump Rate: 1,000 m3/h
-- 20-year NPC: $650.60M
-- LCOAmmonia: $2.76/ton
+- 20-year NPC: $667.70M
+- LCOAmmonia: $2.83/ton
 
 **Rationale:**
 - No local storage required
@@ -173,14 +185,15 @@ This report has verified the MILP optimization results for the Green Corridor am
 - [x] All OPEX calculations verified
 - [x] All NPC totals verified
 - [x] All LCOAmmonia values verified
-- [x] MCR/SFOC updates (v4.1) verified
+- [x] MCR/SFOC updates (v5 Power Law) verified
 - [x] Cross-case comparison completed
+- [x] Variable OPEX pattern analysis completed
 
 ### Verification Report Status
 
 **Status**: COMPLETE
 
-**Version**: v4.1 (MCR/SFOC Update + Ulsan Distance Change)
+**Version**: v5 (Power Law MCR Update)
 
 **Date**: 2026-01-21
 
@@ -220,6 +233,12 @@ Annualized = Actual_CAPEX / Annuity_Factor
 ### Fuel Cost per Cycle
 ```
 Fuel_cost = MCR x SFOC x Travel_Time x Travel_Factor / 1e6 x Fuel_Price
+```
+
+### MCR Power Law (v5)
+```
+MCR = 17.17 x DWT^0.566
+DWT = Cargo_m3 x 0.680 / 0.80
 ```
 
 ### LCOAmmonia
