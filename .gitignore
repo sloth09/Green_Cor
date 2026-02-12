@@ -36,6 +36,9 @@ nul
 # Results folder should be ignored
 results/
 
+# Reference PDFs (too large for git)
+References/
+
 # All files in docs/reports_docx/ should still be tracked
 !docs/reports_docx/
 !docs/reports_docx/**/*
