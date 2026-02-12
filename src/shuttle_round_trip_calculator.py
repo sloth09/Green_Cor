@@ -32,10 +32,10 @@ class ShuttleRoundTripCalculator:
         Args:
             travel_time_hours: One-way travel time (case-specific)
                 - Case 1 (Busan port): 1.0-2.0 hours
-                - Case 2-1 (Yeosu): 5.63 hours
-                - Case 2-2 (Ulsan): 1.67 hours
+                - Case 2 (Ulsan): 1.67 hours
+                - Case 3 (Yeosu): 5.63 hours
             setup_time_hours: Connection/disconnection setup time per endpoint
-                - Usually 0.5 hours per operation
+                - Direct per-endpoint value (2.0 hours), no multiplier applied
         """
         self.travel_time_hours = travel_time_hours
         self.setup_time_hours = setup_time_hours
@@ -89,9 +89,9 @@ class ShuttleRoundTripCalculator:
             # CASE 2: Pumping time = how fast each ship gets filled
             pumping_per_vessel = bunker_volume_per_call_m3 / pump_size_m3ph
 
-        # Setup times (connection + venting)
-        setup_inbound = 2.0 * self.setup_time_hours   # 0.5h + 0.5h = 1.0h
-        setup_outbound = 2.0 * self.setup_time_hours  # 0.5h + 0.5h = 1.0h
+        # Setup times (direct per-endpoint value, no multiplier)
+        setup_inbound = self.setup_time_hours   # Direct per-endpoint setup time (2.0h)
+        setup_outbound = self.setup_time_hours  # Direct per-endpoint setup time (2.0h)
 
         # ===== Case 2 specific: Port operations =====
         port_entry = 1.0 if not has_storage_at_busan else 0.0   # Port entry time

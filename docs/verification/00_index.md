@@ -1,48 +1,45 @@
-# Green Corridor MILP Verification Report
+# Green Corridor MILP Optimization - Verification Report v8.0
+
+**Project**: Ammonia Bunkering Infrastructure Optimization for Busan Port
+**Model Version**: v3.1.0 (STS Pump Rate 500 m3/h)
+**Report Version**: v8.0
+**Date**: 2026-02-12
+
+---
 
 ## Table of Contents
 
-1. [Executive Summary](01_executive_summary.md)
-2. [Parameters](02_parameters.md)
-3. [Case 1: Busan Port](03_case1_busan.md)
-4. [Case 2-1: Yeosu to Busan](04_case2_yeosu.md)
-5. [Case 2-2: Ulsan to Busan](05_case2_ulsan.md)
-6. [Cross-Case Comparison](06_comparison.md)
-7. [Conclusion & Checklist](07_conclusion.md)
+| Chapter | Title | Description |
+|---------|-------|-------------|
+| [01](01_executive_summary.md) | Executive Summary | Key results and decision-maker overview |
+| [02](02_parameters.md) | Input Parameters | All model parameters with sources and units |
+| [03](03_case1_busan.md) | Case 1: Busan Port | Cycle time, cost, and NPC verification for Case 1 |
+| [04](04_case2_ulsan.md) | Case 2: Ulsan to Busan | Cycle time, cost, and NPC verification for Case 2 |
+| [05](05_case3_yeosu.md) | Case 3: Yeosu to Busan | Cycle time, cost, and NPC verification for Case 3 |
+| [06](06_comparison.md) | Cross-Case Comparison | NPC, LCOA, and cost structure comparison across all cases |
+| [07](07_conclusion.md) | Conclusion | Verification checklist and final assessment |
 
 ---
 
-**Report Version**: v4.1 (MCR/SFOC Update + Ulsan Distance Change)
+## Optimal Results Summary (v3.1.0)
 
-**Generated**: 2026-01-21
-
-**Data Source**: `results/MILP_scenario_summary_case_*.csv`
-
----
-
-## Version Changes (v4.1)
-
-This report reflects the following parameter updates from the previous version:
-
-| Parameter | Old Value | New Value | Notes |
-|-----------|-----------|-----------|-------|
-| **Case 2-2 Distance** | 25 nm | 59 nm | Corrected Ulsan-Busan sea route |
-| **MCR Map** | Previous estimates | MAN Energy Solutions official data | Updated for all shuttle sizes |
-| **SFOC Map** | Uniform value | DWT-based engine type matching | Different SFOC per vessel size |
-
-### Key Impacts
-
-1. **Case 2-2 (Ulsan)**: Travel time increased from 1.67 hr to 3.93 hr per leg
-2. **OPEX Calculations**: More accurate fuel cost estimation with size-specific SFOC
-3. **Optimal Configurations**: May differ from previous versions due to corrected parameters
+| Case | Route | Optimal Shuttle | Pump | NPC (USD M) | LCOA (USD/ton) |
+|------|-------|----------------|------|-------------|-----------------|
+| Case 1 | Busan Port (Storage) | 1,000 m3 | 500 m3/h | 447.53 | 1.90 |
+| Case 2 | Ulsan -> Busan (59 nm) | 5,000 m3 | 500 m3/h | 906.80 | 3.85 |
+| Case 3 | Yeosu -> Busan (86 nm) | 5,000 m3 | 500 m3/h | 1,094.12 | 4.64 |
 
 ---
 
-## Document Conventions
+## Data Sources
 
-- **PASS**: Calculated value matches CSV within 1% tolerance
-- **FAIL**: Calculated value differs from CSV by more than 1%
-- All costs in USD millions (USDm) unless otherwise noted
-- Time periods: 2030-2050 (21 years)
-- Discount rate: 0% (no time value discounting)
-- Annualization interest rate: 7% (for asset annualization)
+- **Config files**: `config/base.yaml`, `config/case_1.yaml`, `config/case_2_ulsan.yaml`, `config/case_3_yeosu.yaml`
+- **Optimization results**: `results/deterministic/MILP_scenario_summary_case_*.csv`
+- **Yearly results**: `results/deterministic/MILP_per_year_results_case_*.csv`
+- **Source code**: `src/shuttle_round_trip_calculator.py`, `src/cost_calculator.py`, `src/optimizer.py`
+
+## Verification Criteria
+
+- Difference < 1%: **PASS**
+- Difference 1-5%: **REVIEW** (explain)
+- Difference > 5%: **FAIL** (investigate)

@@ -295,21 +295,20 @@ class CostCalculator:
         return calculate_tank_volume_m3(tank_ton, density)
 
     # ========== SHORE SUPPLY PUMP COSTS ==========
-    # Fixed capacity: 1500 m³/h shore supply pump
 
     def calculate_shore_pump_capex(self) -> float:
         """
-        Calculate capital cost for shore supply pump (1500 m³/h).
+        Calculate capital cost for shore supply pump.
 
         CAPEX = pump_power (kW) × cost_per_kW
 
         Args:
-            None (uses fixed 1500 m³/h and config)
+            None (uses config shore_supply.pump_rate_m3ph)
 
         Returns:
             CAPEX in USD for shore pump
         """
-        shore_pump_flow = 1500.0  # Fixed shore pump capacity
+        shore_pump_flow = self.config["shore_supply"]["pump_rate_m3ph"]
         delta_pressure = self.config["propulsion"]["pump_delta_pressure_bar"]
         efficiency = self.config["propulsion"]["pump_efficiency"]
         cost_per_kw = self.config["propulsion"]["pump_power_cost_usd_per_kw"]
@@ -345,7 +344,7 @@ class CostCalculator:
         Returns:
             Variable OPEX in USD per operating hour
         """
-        shore_pump_flow = 1500.0  # Fixed shore pump capacity
+        shore_pump_flow = self.config["shore_supply"]["pump_rate_m3ph"]
         delta_pressure = self.config["propulsion"]["pump_delta_pressure_bar"]
         efficiency = self.config["propulsion"]["pump_efficiency"]
         sfoc = self.config["propulsion"]["sfoc_g_per_kwh"]

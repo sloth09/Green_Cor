@@ -1,5 +1,5 @@
 """
-Case 2 Yeosu 최적 Shuttle 용량 분석
+Case 3 Yeosu 최적 Shuttle 용량 분석
 왜 10000m3이 최적인지, 그리고 5000m3/50000m3와의 비교 분석
 """
 
@@ -7,8 +7,8 @@ import pandas as pd
 import numpy as np
 
 # CSV 파일 읽기
-df_summary = pd.read_csv('results/MILP_scenario_summary_case_2_yeosu.csv')
-df_yearly = pd.read_csv('results/MILP_per_year_results_case_2_yeosu.csv')
+df_summary = pd.read_csv('results/MILP_scenario_summary_case_3.csv')
+df_yearly = pd.read_csv('results/MILP_per_year_results_case_3.csv')
 
 # 주요 컬럼만 선택 (Summary)
 columns_of_interest = [
@@ -46,7 +46,7 @@ for idx, row in optimal_per_size.iterrows():
         optimal_per_size.at[idx, 'Required_Shuttles_2050'] = shuttles_2050
 
 print("=" * 100)
-print("Case 2 Yeosu: 각 Shuttle 용량별 최적 조합 (최적 Pump 선택)")
+print("Case 3 Yeosu: 각 Shuttle 용량별 최적 조합 (최적 Pump 선택)")
 print("=" * 100)
 # 컬럼 순서 재정렬
 display_cols = columns_of_interest + ['Required_Shuttles_2030', 'Required_Shuttles_2050']

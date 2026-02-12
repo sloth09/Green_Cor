@@ -134,7 +134,7 @@ def run_all_analyses(
 
         # Compare all cases
         comparison = be_analyzer.compare_all_cases(
-            case_ids=["case_1", "case_2_yeosu", "case_2_ulsan"],
+            case_ids=["case_1", "case_2", "case_3"],
             shuttle_sizes=[optimal_shuttle],
             pump_sizes=[optimal_pump],
             verbose=verbose

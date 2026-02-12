@@ -24,7 +24,7 @@ pip install -r requirements.txt
 ```yaml
 execution:
   run_mode: "single"        # single, all, multiple, single_scenario
-  single_case: "case_2_ulsan"
+  single_case: "case_2"
 ```
 
 ### 3. 실행
@@ -39,8 +39,8 @@ python main.py
 
 ### 세 가지 시나리오 (Case)
 1. **Case 1**: 부산항 저장소 기반 (셔틀 왕복)
-2. **Case 2-1**: 여수 → 부산 (장거리)
-3. **Case 2-2**: 울산 → 부산 (근거리)
+2. **Case 2**: 울산 → 부산 (근거리)
+3. **Case 3**: 여수 → 부산 (장거리)
 
 ### 주요 파라미터
 | 항목 | 기본값 |
@@ -73,7 +73,7 @@ Green_Cor/
 ```yaml
 execution:
   run_mode: "single_scenario"
-  single_case: "case_2_ulsan"
+  single_case: "case_2"
   single_scenario_shuttle_cbm: 5000
   single_scenario_pump_m3ph: 1000
 ```
@@ -82,7 +82,7 @@ execution:
 ```yaml
 execution:
   run_mode: "single"
-  single_case: "case_2_ulsan"
+  single_case: "case_2"
 ```
 
 ### 모든 케이스 병렬 실행 (10분)

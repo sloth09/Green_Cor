@@ -70,7 +70,7 @@ sfoc_map_g_per_kwh:
 # Operating parameters
 operations:
   max_annual_hours_per_vessel: 8000.0  # H_max
-  setup_time_hours: 0.5          # Hose connection/disconnection/purging time
+  setup_time_hours: 2.0          # Per-endpoint setup time (connection + purging) - direct value, no multiplier
   tank_safety_factor: 2.0        # Beta - tank capacity safety factor
   daily_peak_factor: 1.5         # F_peak - daily peak demand factor
   transport_safety_factor: 1.0   # Redundancy prevention factor
@@ -82,8 +82,8 @@ operations:
 # enabled: false = exclude shore tank + pump costs (time is still included)
 shore_supply:
   enabled: false                 # Cost control: false = exclude shore costs (DEFAULT)
-  pump_rate_m3ph: 1500.0         # Shore pump capacity for loading shuttles (m³/h) - FIXED
-  loading_time_fixed_hours: 2.0  # Additional fixed time for setup/shutdown (hose connection/disconnection)
+  pump_rate_m3ph: 700.0          # Shore pump capacity for loading shuttles (m³/h) - FIXED
+  loading_time_fixed_hours: 4.0  # Additional fixed time for setup/shutdown (2h inbound + 2h outbound)
 
 # Tank system (storage at Busan Port for Case 1)
 tank_storage:
@@ -110,22 +110,28 @@ bunkering:
 pumps:
   # Fixed pump rate for main optimization (10 scenarios per case)
   available_flow_rates:
-    - 1000
+    - 500
   # Full range for sensitivity analysis (S7 figure)
   sensitivity_flow_rates:
+    - 100
+    - 200
+    - 300
     - 400
+    - 500
     - 600
+    - 700
     - 800
+    - 900
     - 1000
+    - 1100
     - 1200
+    - 1300
     - 1400
-    - 1600
-    - 1800
-    - 2000
+    - 1500
 
 # Constraints
 constraints:
-  max_call_duration_hours: 72.0  # Maximum time for one bunkering call
+  max_call_duration_hours: 80.0  # Maximum time for one bunkering call
 
 # Output settings
 output:
@@ -165,7 +171,7 @@ execution:
   run_mode: "all"
 
   # For run_mode: "yearly_simulation", "single_scenario", "annual_simulation", "yearly_simulation" - which case to use
-  # Example values: "case_1", "case_2_yeosu", "case_2_ulsan"
+  # Example values: "case_1", "case_2", "case_3"
   # This field is IGNORED if run_mode is "multiple"
   single_case: "case_1"
 
@@ -189,7 +195,7 @@ execution:
   # This field is IGNORED if run_mode is "single", "single_scenario", or "all"
   multi_cases:
     - "case_1"
-    - "case_2_ulsan"
+    - "case_2"
 
   # Number of parallel jobs for multi-case execution
   # 1 = sequential execution (slower but uses less memory)

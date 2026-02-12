@@ -246,6 +246,103 @@ class BreakevenAnalyzer:
 
         return result
 
+    def find_breakeven_distance_heterogeneous(
+        self,
+        case1_config: Dict,
+        case2_config: Dict,
+        case1_shuttle_size: float,
+        case2_shuttle_size: float,
+        distance_range: Tuple[float, float] = (10, 200),
+        n_points: int = 20,
+        verbose: bool = True
+    ) -> BreakevenResult:
+        """
+        Find break-even distance using different (optimal) shuttle sizes per case.
+
+        Unlike find_breakeven_distance which uses the same shuttle size for both
+        cases, this method allows each case to use its own optimal shuttle size.
+
+        Args:
+            case1_config: Case 1 configuration (typically with storage)
+            case2_config: Case 2 configuration (direct supply)
+            case1_shuttle_size: Shuttle size for Case 1 (e.g., 2500 m3)
+            case2_shuttle_size: Shuttle size for Case 2 (e.g., 10000 m3)
+            distance_range: Range of distances in nautical miles
+            n_points: Number of points to evaluate
+            verbose: Print progress
+
+        Returns:
+            BreakevenResult with break-even distance
+        """
+        case1_name = case1_config.get("case_name", "Case 1")
+        case2_name = case2_config.get("case_name", "Case 2")
+
+        if verbose:
+            print("\n" + "="*60)
+            print("Break-even Distance Analysis (Optimal-vs-Optimal)")
+            print("="*60)
+            print(f"Case 1: {case1_name} (shuttle={case1_shuttle_size} m3)")
+            print(f"Case 2: {case2_name} (shuttle={case2_shuttle_size} m3)")
+            print(f"Distance range: {distance_range[0]} - {distance_range[1]} nm")
+
+        # Get base travel speed from case2 config
+        base_travel_time = case2_config["operations"]["travel_time_hours"]
+        base_distance = case2_config["operations"].get("distance_nm", 86)
+        speed_knots = base_distance / base_travel_time if base_travel_time > 0 else 15.0
+
+        # Generate distance points
+        distances = np.linspace(distance_range[0], distance_range[1], n_points)
+
+        # Case 1 NPC (constant - uses its own optimal shuttle size)
+        pump = self.pump_size or case1_config["pumps"]["available_flow_rates"][0]
+        case1_npc, _ = self._run_optimization(
+            case1_config, shuttle_size=case1_shuttle_size, pump_size=pump
+        )
+        case1_npcs = [case1_npc] * len(distances)
+
+        if verbose:
+            print(f"\n{case1_name} NPC (fixed, {case1_shuttle_size} m3): ${case1_npc:.2f}M")
+
+        # Case 2 NPCs (vary with distance, using case2's optimal shuttle)
+        case2_npcs = []
+
+        for dist in distances:
+            travel_time = dist / speed_knots
+            modified_config = copy.deepcopy(case2_config)
+            modified_config["operations"]["travel_time_hours"] = travel_time
+
+            npc, _ = self._run_optimization(
+                modified_config, shuttle_size=case2_shuttle_size, pump_size=pump
+            )
+            case2_npcs.append(npc)
+
+            if verbose:
+                print(f"  Distance={dist:.0f}nm (travel={travel_time:.2f}h): ${npc:.2f}M")
+
+        # Find break-even point
+        breakeven_distance = self._find_crossover(distances, case1_npcs, case2_npcs)
+
+        result = BreakevenResult(
+            parameter_name="Distance_nm",
+            breakeven_value=breakeven_distance,
+            case1_name=case1_name,
+            case2_name=case2_name,
+            param_values=list(distances),
+            case1_npcs=case1_npcs,
+            case2_npcs=case2_npcs,
+            case1_better_below=(case1_npc < case2_npcs[0]) if case2_npcs else True,
+        )
+
+        if verbose:
+            print(f"\nBreak-even distance (optimal-vs-optimal): ", end="")
+            if breakeven_distance is not None:
+                print(f"{breakeven_distance:.1f} nm")
+            else:
+                print("No crossover in range")
+            print("="*60)
+
+        return result
+
     def find_breakeven_demand(
         self,
         case1_config: Dict,
@@ -477,7 +574,7 @@ class BreakevenAnalyzer:
             CaseComparisonResult with comparison data
         """
         if case_ids is None:
-            case_ids = ["case_1", "case_2_yeosu", "case_2_ulsan"]
+            case_ids = ["case_1", "case_3", "case_2"]
 
         if verbose:
             print("\n" + "="*60)
@@ -555,7 +652,7 @@ class BreakevenAnalyzer:
     def run_full_analysis(
         self,
         case1_id: str = "case_1",
-        case2_id: str = "case_2_yeosu",
+        case2_id: str = "case_3",
         output_dir: Optional[str] = None,
         verbose: bool = True
     ) -> Dict[str, Any]:
@@ -619,7 +716,7 @@ class BreakevenAnalyzer:
 
 def run_breakeven_analysis(
     case1_id: str = "case_1",
-    case2_id: str = "case_2_yeosu",
+    case2_id: str = "case_3",
     shuttle_size: Optional[float] = None,
     pump_size: Optional[float] = None,
     output_dir: Optional[str] = None,

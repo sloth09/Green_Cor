@@ -38,7 +38,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Run for all three cases
-    cases = ["case_1", "case_2_yeosu", "case_2_ulsan"]
+    cases = ["case_1", "case_2", "case_3"]
     all_results = {}
 
     for case_id in cases:

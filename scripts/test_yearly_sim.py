@@ -1,8 +1,7 @@
 """Test script to run yearly_simulation with current code."""
 
 from pathlib import Path
-from src.config_loader import load_config
-from main import run_yearly_simulation
+from src import load_config, run_yearly_simulation
 
 # Load config
 config = load_config("case_1")

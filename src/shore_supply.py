@@ -13,13 +13,13 @@ class ShoreSupply:
     Manages shore supply (dock/terminal) operations for shuttle loading/unloading.
 
     Key features:
-    - Fixed pump rate (1,500 m³/h standard)
+    - Fixed pump rate (700 m³/h standard)
     - Configurable for different shore facilities
     - Supports both loading and unloading operations
     """
 
     # Standard shore supply pump rate (m³/h)
-    STANDARD_PUMP_RATE_M3PH = 1500.0
+    STANDARD_PUMP_RATE_M3PH = 700.0
 
     def __init__(self, config: Dict):
         """
@@ -28,7 +28,7 @@ class ShoreSupply:
         Args:
             config: Configuration dictionary containing:
                 - shore_supply.enabled: bool
-                - shore_supply.pump_rate_m3ph: float (optional, defaults to 1500)
+                - shore_supply.pump_rate_m3ph: float (optional, defaults to 700)
                 - shore_supply.loading_time_fixed_hours: float (optional additional fixed time)
         """
         self.config = config

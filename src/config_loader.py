@@ -10,6 +10,17 @@ import sys
 from .utils import validate_config
 
 
+# Alias mapping: canonical case_id -> config filename stem
+# Allows load_config("case_2") to find "case_2_ulsan.yaml"
+CASE_ALIASES = {
+    "case_2": "case_2_ulsan",
+    "case_3": "case_3_yeosu",
+}
+
+# Reverse mapping for get_available_cases()
+_REVERSE_ALIASES = {v: k for k, v in CASE_ALIASES.items()}
+
+
 class ConfigLoader:
     """Load and manage configuration from YAML files."""
 
@@ -77,7 +88,7 @@ class ConfigLoader:
         Merges base.yaml with case-specific YAML file.
 
         Args:
-            case_name: Case identifier (e.g., "case_1", "case_2_yeosu")
+            case_name: Case identifier (e.g., "case_1", "case_2", "case_3")
 
         Returns:
             Complete configuration dictionary
@@ -89,8 +100,9 @@ class ConfigLoader:
         # Load base configuration
         base_config = self.load_yaml("base.yaml")
 
-        # Load case-specific configuration
-        case_filename = f"{case_name}.yaml"
+        # Load case-specific configuration (resolve alias if needed)
+        resolved_name = CASE_ALIASES.get(case_name, case_name)
+        case_filename = f"{resolved_name}.yaml"
         case_config = self.load_yaml(case_filename)
 
         # Merge configurations (case overrides base)
@@ -144,7 +156,7 @@ class ConfigLoader:
             List of case names (without .yaml extension)
         """
         case_files = [f.stem for f in self.config_dir.glob("case_*.yaml")]
-        return sorted(case_files)
+        return sorted([_REVERSE_ALIASES.get(f, f) for f in case_files])
 
     def load_config_from_file(self, filepath: str) -> Dict[str, Any]:
         """

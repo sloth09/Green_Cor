@@ -7,7 +7,7 @@ Cycle Time Calculator for ammonia bunkering shuttle operations.
 3. optimizer.py (top layer) - Optimization logic
 
 Handles time structure calculations for all cases, including:
-- Shore supply loading time (fixed 1,500 m³/h pump)
+- Shore supply loading time (fixed 700 m³/h pump)
 - Basic shuttle round-trip time (from ShuttleRoundTripCalculator)
 - Transit time
 - Bunkering time
@@ -24,19 +24,19 @@ class CycleTimeCalculator:
 
     Supports three cases:
     - Case 1: Port-based storage (Busan)
-    - Case 2-1: Production-based (Yeosu) long-distance
-    - Case 2-2: Production-based (Ulsan) short-distance
+    - Case 2: Production-based (Ulsan) short-distance
+    - Case 3: Production-based (Yeosu) long-distance
     """
 
     # Fixed shore supply pump rate (m³/h)
-    SHORE_PUMP_RATE_M3PH = 1500.0
+    SHORE_PUMP_RATE_M3PH = 700.0
 
     def __init__(self, case_type: str, config: Dict):
         """
         Initialize calculator with case type and configuration.
 
         Args:
-            case_type: One of "case_1", "case_2_yeosu", "case_2_ulsan"
+            case_type: One of "case_1", "case_2", "case_3"
             config: Configuration dictionary containing operational parameters
         """
         self.case_type = case_type
@@ -102,7 +102,7 @@ class CycleTimeCalculator:
         )
 
         # Step 2: Add shore supply loading time (ALWAYS INCLUDED - not optional)
-        # Shore supply pump (1500 m³/h) is a mandatory operational step for all cases
+        # Shore supply pump (700 m³/h) is a mandatory operational step for all cases
         # Only the COST of this facility is controlled by shore_supply.enabled
         shore_loading = self.shore_supply.load_shuttle(shuttle_size_m3)
 
@@ -171,7 +171,7 @@ class CycleTimeCalculator:
             shuttle_size_m3: Shuttle capacity in m³
 
         Returns:
-            Loading time in hours (shuttle_size / 1500)
+            Loading time in hours (shuttle_size / 700)
         """
         return self.shore_supply.load_shuttle(shuttle_size_m3)
 

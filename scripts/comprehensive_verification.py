@@ -14,7 +14,7 @@ print("="*100)
 # Test cases
 cases = [
     ("case_1", "Case 1: Busan Port with Storage"),
-    ("case_2_ulsan", "Case 2-2: Ulsan → Busan"),
+    ("case_2", "Case 2: Ulsan → Busan"),
 ]
 
 for case_id, case_name in cases:

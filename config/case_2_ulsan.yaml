@@ -1,5 +1,5 @@
 # ============================================================================
-# CASE 2-2 - Ulsan to Busan (울산 → 부산)
+# CASE 2 - Ulsan to Busan (울산 → 부산)
 # ============================================================================
 # Assumption: NO storage tanks at Busan Port
 # Shuttles transport fuel from Ulsan source to Busan ships
@@ -8,8 +8,8 @@
 # Distance: 59 nautical miles (v4 updated from 25nm)
 # Travel time: ~3.93 hours at 15 knots
 
-case_name: "Case 2-2: Ulsan → Busan"
-case_id: "case_2_ulsan"
+case_name: "Case 2: Ulsan → Busan"
+case_id: "case_2"
 
 # Route information
 route:
@@ -61,7 +61,7 @@ operations:
   has_storage_at_busan: false
 
   # Fixed pump rate at Busan receiving point
-  port_pump_rate_m3h: 1500.0
+  port_pump_rate_m3h: 700.0
 
 # Bunkering call definition
 bunkering:

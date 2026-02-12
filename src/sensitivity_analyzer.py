@@ -263,6 +263,15 @@ class SensitivityAnalyzer:
             modified_config = copy.deepcopy(self.base_config)
             self._set_nested_value(modified_config, param_path, new_value)
 
+            # Propagate SFOC variation to the size-dependent SFOC map
+            if param_path == "propulsion.sfoc_g_per_kwh" and base_value != 0:
+                scale_factor = new_value / base_value
+                sfoc_map = modified_config.get("sfoc_map_g_per_kwh", {})
+                if sfoc_map:
+                    modified_config["sfoc_map_g_per_kwh"] = {
+                        k: v * scale_factor for k, v in sfoc_map.items()
+                    }
+
             # Run optimization
             npc, lco = self._run_optimization(modified_config)
 
@@ -595,7 +604,7 @@ def analyze_pump_rate_sensitivity(
     This generates data for the S7 figure in the paper.
 
     Args:
-        case_id: Case identifier (e.g., "case_1", "case_2_yeosu", "case_2_ulsan")
+        case_id: Case identifier (e.g., "case_1", "case_2", "case_3")
         pump_rates: List of pump rates to test (default: config sensitivity_flow_rates)
         shuttle_sizes: Shuttle sizes to test (default: from case config)
         output_dir: Output directory for CSV results (optional)

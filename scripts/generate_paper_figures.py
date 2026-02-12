@@ -65,6 +65,7 @@ def main():
         print(f"\nGenerating specific figures: {args.figures}")
 
         figure_map = {
+            # Deterministic figures (D1-D12)
             'D1': generator.fig_d1_npc_vs_shuttle,
             'D2': generator.fig_d2_yearly_cost_evolution,
             'D3': generator.fig_d3_yearly_fleet_demand,
@@ -77,12 +78,28 @@ def main():
             'D10': generator.fig_d10_case_npc_comparison,
             'D11': generator.fig_d11_top_configurations,
             'D12': generator.fig_d12_npc_heatmap,
+            # Stochastic figures (S1-S7)
             'S1': generator.fig_s1_npc_boxplot,
             'S2': generator.fig_s2_vss_evpi,
             'S3': generator.fig_s3_mc_distribution,
             'S4': generator.fig_s4_vessel_distribution,
             'S5': generator.fig_s5_tornado,
             'S6': generator.fig_s6_twoway_sensitivity,
+            'S7': generator.fig_s7_pump_sensitivity,
+            # New deterministic sensitivity figures (Fig7-Fig10, FigS4-S5)
+            'FIG7': generator.fig_7_tornado_deterministic,
+            'FIG8': generator.fig_8_fuel_price_sensitivity,
+            'FIG9': generator.fig_9_breakeven_distance,
+            'FIG10': generator.fig_10_demand_scenarios,
+            'FIGS4': generator.fig_s4_twoway_deterministic,
+            'FIGS5': generator.fig_s5_bunker_volume_sensitivity,
+            # Discount rate sensitivity figures (Fig11-Fig12)
+            'FIG11': generator.fig_11_discount_rate_sensitivity,
+            'FIG12': generator.fig_12_discount_rate_fleet,
+            # Yang & Lam DES comparison figures (Fig13-Fig14)
+            'FIG13': generator.fig_13_yang_lam_service_time,
+            'FIG14': generator.fig_14_yang_lam_sensitivity,
+            # Combined figures (C1-C4)
             'C1': generator.fig_c1_det_vs_stoch,
             'C2': generator.fig_c2_breakeven_distance,
             'C3': generator.fig_c3_breakeven_demand,

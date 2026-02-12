@@ -34,7 +34,7 @@ SHUTTLE_EQUIPMENT_RATIO = 0.03
 BUNKERING_FIXED_OPEX_RATIO = 0.05
 
 # Operational
-SHORE_PUMP_RATE = 1500.0  # m3/h
+SHORE_PUMP_RATE = 700.0  # m3/h
 MAX_ANNUAL_HOURS = 8000
 BUNKER_VOLUME = 5000.0  # m3
 
@@ -66,13 +66,13 @@ CASE_PARAMS = {
         'has_storage': True,
         'travel_factor': 1.0,  # code uses 1.0 for Case 1
     },
-    'case_2_yeosu': {
-        'travel_time': 5.73,  # 86nm / 15knots
+    'case_2': {
+        'travel_time': 3.93,  # 59nm / 15knots
         'has_storage': False,
         'travel_factor': 2.0,
     },
-    'case_2_ulsan': {
-        'travel_time': 3.93,  # 59nm / 15knots
+    'case_3': {
+        'travel_time': 5.73,  # 86nm / 15knots
         'has_storage': False,
         'travel_factor': 2.0,
     }
@@ -152,7 +152,7 @@ def calc_cycle_time_case1(shuttle_size, pump_rate):
     shore_loading = shuttle_size / SHORE_PUMP_RATE
     travel_out = 1.0
     travel_return = 1.0
-    setup_total = 2.0  # 2 x (inbound + outbound) = 2 x 1.0
+    setup_total = 4.0  # inbound 2.0h + outbound 2.0h = 4.0h
     pumping = shuttle_size / pump_rate
 
     return shore_loading + travel_out + travel_return + setup_total + pumping
@@ -163,7 +163,7 @@ def calc_cycle_time_case2(shuttle_size, pump_rate, travel_time):
     shore_loading = shuttle_size / SHORE_PUMP_RATE
     travel_out = travel_time
     travel_return = travel_time
-    setup_total = 2.0
+    setup_total = 4.0  # inbound 2.0h + outbound 2.0h = 4.0h
 
     vessels_per_trip = max(1, shuttle_size // BUNKER_VOLUME)
     pumping_per_vessel = BUNKER_VOLUME / pump_rate
@@ -248,11 +248,11 @@ def verify_case(case_id, shuttle_sizes):
         results.append(('Shuttle CAPEX', size, manual_shuttle_capex, csv_per_shuttle, diff_capex, status_capex))
 
         # 2. Pump Power & CAPEX
-        pump_rate = 1000
+        pump_rate = 500
         manual_pump_power = calc_pump_power(pump_rate)
         manual_pump_capex = calc_pump_capex(pump_rate)
 
-        print(f"  Pump (1000 m3/h):")
+        print(f"  Pump (500 m3/h):")
         print(f"    Power:   {manual_pump_power:.2f} kW")
         print(f"    CAPEX:   ${manual_pump_capex:,.0f}")
 
@@ -363,13 +363,13 @@ def main():
     case1_sizes = [500, 1000, 2500, 5000, 10000]
     verify_case('case_1', case1_sizes)
 
-    # 4. Case 2-1 Verification
-    case2_1_sizes = [5000, 10000, 20000]
-    verify_case('case_2_yeosu', case2_1_sizes)
+    # 4. Case 2 Verification
+    case2_sizes = [5000, 10000, 20000]
+    verify_case('case_2', case2_sizes)
 
-    # 5. Case 2-2 Verification
-    case2_2_sizes = [5000, 10000, 20000]
-    verify_case('case_2_ulsan', case2_2_sizes)
+    # 5. Case 3 Verification
+    case3_sizes = [5000, 10000, 20000]
+    verify_case('case_3', case3_sizes)
 
     print("\n" + "=" * 70)
     print("VERIFICATION COMPLETE")

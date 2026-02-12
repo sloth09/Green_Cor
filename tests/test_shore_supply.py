@@ -17,7 +17,7 @@ from src.shore_supply import ShoreSupply
 SHORE_SUPPLY_ENABLED = {
     "shore_supply": {
         "enabled": True,
-        "pump_rate_m3ph": 1500.0,
+        "pump_rate_m3ph": 700.0,
         "loading_time_fixed_hours": 0.0,
     }
 }
@@ -47,7 +47,7 @@ class TestShoreSupplyInitialization:
         ss = ShoreSupply(SHORE_SUPPLY_ENABLED)
 
         assert ss.enabled is True
-        assert ss.pump_rate_m3ph == 1500.0
+        assert ss.pump_rate_m3ph == 700.0
         assert ss.fixed_time_hours == 0.0
 
     def test_custom_configuration(self):
@@ -69,7 +69,7 @@ class TestShoreSupplyInitialization:
         ss = ShoreSupply(SHORE_SUPPLY_DEFAULTS)
 
         assert ss.enabled is True
-        assert ss.pump_rate_m3ph == 1500.0  # Standard rate
+        assert ss.pump_rate_m3ph == 700.0  # Standard rate
         assert ss.fixed_time_hours == 0.0
 
 
@@ -88,20 +88,20 @@ class TestShoreSupplyMethods:
 
     def test_get_pump_rate(self):
         """Test get_pump_rate method."""
-        assert self.ss.get_pump_rate() == 1500.0
+        assert self.ss.get_pump_rate() == 700.0
         assert self.ss_custom.get_pump_rate() == 2000.0
 
     def test_load_shuttle_5000m3(self):
         """Test loading time for 5000 m³ shuttle."""
-        # Time = 5000 / 1500 = 3.33 hours
+        # Time = 5000 / 700 = 7.143 hours
         time = self.ss.load_shuttle(5000.0)
-        assert pytest.approx(time, rel=1e-3) == 3.333
+        assert pytest.approx(time, rel=1e-3) == 7.143
 
     def test_load_shuttle_25000m3(self):
         """Test loading time for 25000 m³ shuttle."""
-        # Time = 25000 / 1500 = 16.67 hours
+        # Time = 25000 / 700 = 35.714 hours
         time = self.ss.load_shuttle(25000.0)
-        assert pytest.approx(time, rel=1e-3) == 16.667
+        assert pytest.approx(time, rel=1e-3) == 35.714
 
     def test_load_shuttle_custom_pump_rate(self):
         """Test loading with custom pump rate."""
@@ -116,10 +116,11 @@ class TestShoreSupplyMethods:
         assert pytest.approx(time) == 3.0
 
     def test_load_shuttle_disabled(self):
-        """Test loading time when disabled."""
+        """Test loading time when disabled (time still calculated, only cost excluded)."""
         ss_disabled = ShoreSupply(SHORE_SUPPLY_DISABLED)
         time = ss_disabled.load_shuttle(5000.0)
-        assert time == 0.0
+        # Even when disabled, time is still calculated (enabled only controls cost)
+        assert pytest.approx(time, rel=1e-3) == 7.143
 
     def test_unload_shuttle(self):
         """Test unloading returns zero."""
@@ -136,24 +137,24 @@ class TestShoreSupplyMethods:
     def test_calculate_load_unload_time_load_only(self):
         """Test combined load time (unload not included)."""
         time = self.ss.calculate_load_unload_time(5000.0, include_unload=False)
-        assert pytest.approx(time, rel=1e-3) == 3.333
+        assert pytest.approx(time, rel=1e-3) == 7.143
 
     def test_calculate_load_unload_time_both(self):
         """Test combined load+unload time."""
         # Since unload is 0, should be same as load
         time = self.ss.calculate_load_unload_time(5000.0, include_unload=True)
-        assert pytest.approx(time, rel=1e-3) == 3.333
+        assert pytest.approx(time, rel=1e-3) == 7.143
 
     def test_calculate_pump_capacity(self):
         """Test pump capacity getter."""
-        assert self.ss.calculate_pump_capacity() == 1500.0
+        assert self.ss.calculate_pump_capacity() == 700.0
         assert self.ss_custom.calculate_pump_capacity() == 2000.0
 
     def test_get_annual_loading_capacity(self):
         """Test annual loading capacity calculation."""
-        # 8000 hours * 1500 m³/h = 12,000,000 m³
+        # 8000 hours * 700 m³/h = 5,600,000 m³
         capacity = self.ss.get_annual_loading_capacity()
-        assert capacity == 12_000_000.0
+        assert capacity == 5_600_000.0
 
         # Custom: 8000 * 2000 = 16,000,000 m³
         capacity_custom = self.ss_custom.get_annual_loading_capacity()
@@ -172,7 +173,7 @@ class TestShoreSupplyValidation:
         """Test validation fails with negative pump rate."""
         config = {
             "shore_supply": {
-                "pump_rate_m3ph": -1500.0,
+                "pump_rate_m3ph": -700.0,
             }
         }
         ss = ShoreSupply(config)
@@ -196,7 +197,7 @@ class TestShoreSupplyValidation:
         """Test validation fails with negative fixed time."""
         config = {
             "shore_supply": {
-                "pump_rate_m3ph": 1500.0,
+                "pump_rate_m3ph": 700.0,
                 "loading_time_fixed_hours": -1.0,
             }
         }
@@ -209,7 +210,7 @@ class TestShoreSupplyValidation:
         """Test validation passes with zero fixed time."""
         config = {
             "shore_supply": {
-                "pump_rate_m3ph": 1500.0,
+                "pump_rate_m3ph": 700.0,
                 "loading_time_fixed_hours": 0.0,
             }
         }
@@ -227,7 +228,7 @@ class TestShoreSupplyRepresentation:
 
         assert "ShoreSupply" in repr_str
         assert "Enabled" in repr_str
-        assert "1500" in repr_str
+        assert "700" in repr_str
 
     def test_repr_disabled(self):
         """Test __repr__ for disabled shore supply."""
@@ -257,25 +258,25 @@ class TestShoreSupplyScaling:
 
     def test_loading_time_scales_inversely_with_pump_rate(self):
         """Test that loading time scales inversely with pump rate."""
-        ss_1500 = ShoreSupply({"shore_supply": {"pump_rate_m3ph": 1500.0}})
-        ss_3000 = ShoreSupply({"shore_supply": {"pump_rate_m3ph": 3000.0}})
+        ss_700 = ShoreSupply({"shore_supply": {"pump_rate_m3ph": 700.0}})
+        ss_1400 = ShoreSupply({"shore_supply": {"pump_rate_m3ph": 1400.0}})
 
-        time_1500 = ss_1500.load_shuttle(5000.0)
-        time_3000 = ss_3000.load_shuttle(5000.0)
+        time_700 = ss_700.load_shuttle(5000.0)
+        time_1400 = ss_1400.load_shuttle(5000.0)
 
         # Double pump rate should halve loading time
-        assert pytest.approx(time_3000) == time_1500 / 2
+        assert pytest.approx(time_1400) == time_700 / 2
 
     def test_various_shuttle_sizes(self):
         """Test loading times for various shuttle sizes."""
         expected_times = {
-            500.0: 500.0 / 1500.0,
-            1000.0: 1000.0 / 1500.0,
-            2500.0: 2500.0 / 1500.0,
-            5000.0: 5000.0 / 1500.0,
-            10000.0: 10000.0 / 1500.0,
-            25000.0: 25000.0 / 1500.0,
-            50000.0: 50000.0 / 1500.0,
+            500.0: 500.0 / 700.0,
+            1000.0: 1000.0 / 700.0,
+            2500.0: 2500.0 / 700.0,
+            5000.0: 5000.0 / 700.0,
+            10000.0: 10000.0 / 700.0,
+            25000.0: 25000.0 / 700.0,
+            50000.0: 50000.0 / 700.0,
         }
 
         for size, expected_time in expected_times.items():
@@ -287,8 +288,8 @@ class TestShoreSupplyStandardPump:
     """Test standard pump rate constant."""
 
     def test_standard_pump_rate(self):
-        """Test that standard pump rate is 1500 m³/h."""
-        assert ShoreSupply.STANDARD_PUMP_RATE_M3PH == 1500.0
+        """Test that standard pump rate is 700 m³/h."""
+        assert ShoreSupply.STANDARD_PUMP_RATE_M3PH == 700.0
 
     def test_default_uses_standard_pump_rate(self):
         """Test that default config uses standard pump rate."""

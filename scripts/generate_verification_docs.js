@@ -135,7 +135,7 @@ function createChapter1() {
     new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun("Executive Summary")] }),
     new Paragraph({ children: [new TextRun({ text: "Key Findings", bold: true, size: 24 })] }),
     new Paragraph({ spacing: { after: 200 }, children: [new TextRun(
-      "The MILP optimization identifies the most cost-effective ammonia bunkering configurations for Busan Port across three supply scenarios. Case 1 (local storage) is the most economical, followed by Case 2-2 (Ulsan), with Case 2-1 (Yeosu) being the most expensive due to longer transport distances."
+      "The MILP optimization identifies the most cost-effective ammonia bunkering configurations for Busan Port across three supply scenarios. Case 1 (local storage) is the most economical, followed by Case 2 (Ulsan), with Case 3 (Yeosu) being the most expensive due to longer transport distances."
     )] }),
 
     new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Optimal Configurations")] }),
@@ -143,8 +143,8 @@ function createChapter1() {
       ["Case", "Shuttle Size", "NPC (20yr)", "LCOAmmonia", "Fleet (2050)"],
       [
         ["Case 1: Busan", "2,500 m3", "$237.05M", "$1.01/ton", "~20 shuttles"],
-        ["Case 2-1: Yeosu", "10,000 m3", "$747.18M", "$3.17/ton", "~10 shuttles"],
-        ["Case 2-2: Ulsan", "5,000 m3", "$402.37M", "$1.71/ton", "~15 shuttles"]
+        ["Case 2: Ulsan", "5,000 m3", "$402.37M", "$1.71/ton", "~15 shuttles"],
+        ["Case 3: Yeosu", "10,000 m3", "$747.18M", "$3.17/ton", "~10 shuttles"]
       ]
     ),
 
@@ -153,8 +153,8 @@ function createChapter1() {
       ["Case", "NPC", "vs Baseline"],
       [
         ["Case 1 (Busan)", "$237M", "Baseline"],
-        ["Case 2-2 (Ulsan)", "$402M", "+70%"],
-        ["Case 2-1 (Yeosu)", "$747M", "+215%"]
+        ["Case 2 (Ulsan)", "$402M", "+70%"],
+        ["Case 3 (Yeosu)", "$747M", "+215%"],
       ]
     ),
 
@@ -266,10 +266,10 @@ function createChapter3() {
   ];
 }
 
-// Chapter 4: Case 2-1 Yeosu
+// Chapter 4: Case 3 Yeosu
 function createChapter4() {
   return [
-    new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun("Case 2-1: Yeosu to Busan")] }),
+    new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun("Case 3: Yeosu to Busan")] }),
 
     new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Overview")] }),
     createTable(
@@ -282,7 +282,7 @@ function createChapter4() {
       ]
     ),
 
-    new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Cycle Time Formula (Case 2)")] }),
+    new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Cycle Time Formula (Case 2/3: No Storage)")] }),
     new Paragraph({ children: [new TextRun({ text: "Vessels_per_Trip = floor(Shuttle_Size / Bunker_Volume)", font: "Courier New", size: 20 })] }),
     new Paragraph({ children: [new TextRun({ text: "Cycle = Shore + Travel_RT + Port + (Vessels x Per_Vessel)", font: "Courier New", size: 20 })] }),
 
@@ -308,10 +308,10 @@ function createChapter4() {
   ];
 }
 
-// Chapter 5: Case 2-2 Ulsan
+// Chapter 5: Case 2 Ulsan
 function createChapter5() {
   return [
-    new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun("Case 2-2: Ulsan to Busan")] }),
+    new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun("Case 2: Ulsan to Busan")] }),
 
     new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Overview")] }),
     createTable(
@@ -346,7 +346,7 @@ function createChapter5() {
 
     new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Comparison with Yeosu")] }),
     createTable(
-      ["Metric", "Case 2-1 (Yeosu)", "Case 2-2 (Ulsan)", "Difference"],
+      ["Metric", "Case 3 (Yeosu)", "Case 2 (Ulsan)", "Difference"],
       [
         ["Distance", "86 nm", "25 nm", "-71%"],
         ["Travel Time", "5.73 hr", "1.67 hr", "-71%"],
@@ -367,8 +367,8 @@ function createChapter6() {
       ["Case", "Shuttle", "NPC", "LCO", "Travel Time"],
       [
         ["Case 1", "2,500 m3", "$237.05M", "$1.01/ton", "1.0 hr"],
-        ["Case 2-1", "10,000 m3", "$747.18M", "$3.17/ton", "5.73 hr"],
-        ["Case 2-2", "5,000 m3", "$402.37M", "$1.71/ton", "1.67 hr"],
+        ["Case 2", "5,000 m3", "$402.37M", "$1.71/ton", "1.67 hr"],
+        ["Case 3", "10,000 m3", "$747.18M", "$3.17/ton", "5.73 hr"],
       ]
     ),
 
@@ -416,8 +416,8 @@ function createChapter7() {
         ["Annuity Factor", "10.8355", "10.8355", "PASS"],
         ["Pump Rate", "1000 m3/h", "1000", "PASS"],
         ["Case 1 Optimal", "2,500 m3", "2,500 m3", "PASS"],
-        ["Case 2-1 Optimal", "10,000 m3", "10,000 m3", "PASS"],
-        ["Case 2-2 Optimal", "5,000 m3", "5,000 m3", "PASS"],
+        ["Case 2 Optimal", "5,000 m3", "5,000 m3", "PASS"],
+        ["Case 3 Optimal", "10,000 m3", "10,000 m3", "PASS"],
       ]
     ),
 
@@ -427,8 +427,8 @@ function createChapter7() {
       [
         ["Case 1", "2,500 m3", "8.167 hr", "8.1667 hr", "PASS"],
         ["Case 1", "5,000 m3", "12.333 hr", "12.3333 hr", "PASS"],
-        ["Case 2-1", "10,000 m3", "36.127 hr", "36.1267 hr", "PASS"],
-        ["Case 2-2", "5,000 m3", "16.673 hr", "16.6733 hr", "PASS"],
+        ["Case 2", "5,000 m3", "16.673 hr", "16.6733 hr", "PASS"],
+        ["Case 3", "10,000 m3", "36.127 hr", "36.1267 hr", "PASS"],
       ]
     ),
 
@@ -443,10 +443,10 @@ function createChapter7() {
       new TextRun({ text: "Primary: ", bold: true }), new TextRun("Case 1 (Busan Storage) - $237.05M, $1.01/ton")
     ]}),
     new Paragraph({ numbering: { reference: "numbered-list", level: 0 }, children: [
-      new TextRun({ text: "Alternative: ", bold: true }), new TextRun("Case 2-2 (Ulsan) - $402.37M, $1.71/ton (+70%)")
+      new TextRun({ text: "Alternative: ", bold: true }), new TextRun("Case 2 (Ulsan) - $402.37M, $1.71/ton (+70%)")
     ]}),
     new Paragraph({ numbering: { reference: "numbered-list", level: 0 }, children: [
-      new TextRun({ text: "Not Recommended: ", bold: true }), new TextRun("Case 2-1 (Yeosu) - $747.18M, $3.17/ton (+215%)")
+      new TextRun({ text: "Not Recommended: ", bold: true }), new TextRun("Case 3 (Yeosu) - $747.18M, $3.17/ton (+215%)")
     ]}),
 
     new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Report Information")] }),
@@ -528,8 +528,8 @@ async function generateDocuments() {
     { name: "01_executive_summary", fn: createChapter1 },
     { name: "02_parameters", fn: createChapter2 },
     { name: "03_case1_busan", fn: createChapter3 },
-    { name: "04_case2_yeosu", fn: createChapter4 },
-    { name: "05_case2_ulsan", fn: createChapter5 },
+    { name: "04_case2_ulsan", fn: createChapter5 },
+    { name: "05_case3_yeosu", fn: createChapter4 },
     { name: "06_comparison", fn: createChapter6 },
     { name: "07_conclusion", fn: createChapter7 },
   ];

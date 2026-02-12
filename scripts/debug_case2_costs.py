@@ -7,11 +7,11 @@ from src.config_loader import ConfigLoader
 from src.cost_calculator import CostCalculator
 from src.utils import interpolate_mcr, calculate_annual_demand, calculate_vessel_growth, calculate_m3_per_voyage
 
-# Load Case 2-2 (Ulsan) configuration
-config = ConfigLoader().load_config("case_2_ulsan")
+# Load Case 2: Ulsan configuration
+config = ConfigLoader().load_config("case_2")
 
 print("="*80)
-print("CASE 2-2 (ULSAN → BUSAN) COST ANALYSIS")
+print("CASE 2 (ULSAN → BUSAN) COST ANALYSIS")
 print("="*80)
 print()
 

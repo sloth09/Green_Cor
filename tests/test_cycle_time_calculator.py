@@ -17,7 +17,7 @@ from src.cycle_time_calculator import CycleTimeCalculator
 CASE1_CONFIG = {
     "operations": {
         "travel_time_hours": 2.0,
-        "setup_time_hours": 0.5,
+        "setup_time_hours": 2.0,
         "has_storage_at_busan": True,
     },
     "bunkering": {
@@ -28,7 +28,7 @@ CASE1_CONFIG = {
 CASE2_ULSAN_CONFIG = {
     "operations": {
         "travel_time_hours": 1.67,
-        "setup_time_hours": 0.5,
+        "setup_time_hours": 2.0,
         "has_storage_at_busan": False,
     },
     "bunkering": {
@@ -39,7 +39,7 @@ CASE2_ULSAN_CONFIG = {
 CASE2_YEOSU_CONFIG = {
     "operations": {
         "travel_time_hours": 5.63,
-        "setup_time_hours": 0.5,
+        "setup_time_hours": 2.0,
         "has_storage_at_busan": False,
     },
     "bunkering": {
@@ -60,19 +60,19 @@ class TestCycleTimeCalculatorCase1:
         assert self.calc.case_type == "case_1"
         assert self.calc.travel_time_hours == 2.0
         assert self.calc.has_storage_at_busan is True
-        assert self.calc.SHORE_PUMP_RATE_M3PH == 1500.0
+        assert self.calc.SHORE_PUMP_RATE_M3PH == 700.0
 
     def test_shore_loading_time_5000m3(self):
         """Test shore loading time for 5,000 m³ shuttle."""
-        # Expected: 5000 / 1500 = 3.33 hours
+        # Expected: 5000 / 700 = 7.143 hours
         time = self.calc.calculate_shore_loading_time(5000.0)
-        assert pytest.approx(time, rel=1e-3) == 3.333
+        assert pytest.approx(time, rel=1e-3) == 7.143
 
     def test_shore_loading_time_25000m3(self):
         """Test shore loading time for 25,000 m³ shuttle."""
-        # Expected: 25000 / 1500 = 16.67 hours
+        # Expected: 25000 / 700 = 35.714 hours
         time = self.calc.calculate_shore_loading_time(25000.0)
-        assert pytest.approx(time, rel=1e-3) == 16.667
+        assert pytest.approx(time, rel=1e-3) == 35.714
 
     def test_pumping_time_5000m3_1000m3ph(self):
         """Test pumping time calculation."""
@@ -93,19 +93,16 @@ class TestCycleTimeCalculatorCase1:
         assert result["case_type"] == "case_1"
 
         # Check individual components
-        assert pytest.approx(result["shore_loading"], rel=1e-3) == 3.333
+        # shore_loading = 5000/700 = 7.143h
+        assert pytest.approx(result["shore_loading"], rel=1e-3) == 7.143
         assert pytest.approx(result["travel_outbound"]) == 2.0
         assert pytest.approx(result["travel_return"]) == 2.0
 
-        # Call duration should be time for one complete demand call
-        # trips_per_call = 1 (5000 / 5000 = 1)
-        # basic_cycle = travel(2) + move(1) + setup(1) + pump(5) + setup(1) + travel(2) = 12
-        # call_duration = trips_per_call * basic_cycle = 1 * 12 = 12 hours
-        assert pytest.approx(result["call_duration"]) == 12.0
-
-        # Cycle duration = shore_loading + basic_cycle
-        # = 3.33 + 12.0 = 15.33 hours
-        assert pytest.approx(result["cycle_duration"], abs=0.1) == 15.33
+        # basic_cycle = travel(2) + setup_in(2) + pump(5) + setup_out(2) + travel(2) = 13.0
+        # cycle_duration = shore_loading(7.143) + basic_cycle(13.0) = 20.143
+        # call_duration = trips_per_call(1) * cycle_duration = 20.143
+        assert pytest.approx(result["call_duration"], abs=0.1) == 20.143
+        assert pytest.approx(result["cycle_duration"], abs=0.1) == 20.143
 
     def test_single_cycle_3000m3_1200m3ph(self):
         """Test Case 1 cycle with 3000 m³ shuttle."""
@@ -114,8 +111,8 @@ class TestCycleTimeCalculatorCase1:
         # 3000 < 5000, so trips_per_call = 2
         assert result["trips_per_call"] == 2
 
-        # Shore loading = 3000 / 1500 = 2 hours
-        assert pytest.approx(result["shore_loading"]) == 2.0
+        # Shore loading = 3000 / 700 = 4.286 hours
+        assert pytest.approx(result["shore_loading"], rel=1e-3) == 4.286
 
     def test_annual_operations_case1(self):
         """Test annual operations calculation for Case 1."""
@@ -124,9 +121,9 @@ class TestCycleTimeCalculatorCase1:
 
         # Annual ops = 8000 / cycle_duration
         annual_ops = self.calc.get_annual_operations_per_shuttle(cycle_duration)
-        # cycle_duration = 15.33h
-        # annual_ops = 8000 / 15.33 ≈ 522
-        assert pytest.approx(annual_ops, abs=1) == 522
+        # cycle_duration = 20.143h
+        # annual_ops = 8000 / 20.143 ≈ 397
+        assert pytest.approx(annual_ops, abs=1) == 397
 
 
 class TestCycleTimeCalculatorCase2:
@@ -134,25 +131,25 @@ class TestCycleTimeCalculatorCase2:
 
     def setup_method(self):
         """Setup for each test."""
-        self.calc_ulsan = CycleTimeCalculator("case_2_ulsan", CASE2_ULSAN_CONFIG)
-        self.calc_yeosu = CycleTimeCalculator("case_2_yeosu", CASE2_YEOSU_CONFIG)
+        self.calc_ulsan = CycleTimeCalculator("case_2", CASE2_ULSAN_CONFIG)
+        self.calc_yeosu = CycleTimeCalculator("case_3", CASE2_YEOSU_CONFIG)
 
     def test_initialization_case2_ulsan(self):
-        """Test Case 2-2 initialization."""
-        assert self.calc_ulsan.case_type == "case_2_ulsan"
+        """Test Case 2 initialization."""
+        assert self.calc_ulsan.case_type == "case_2"
         assert self.calc_ulsan.travel_time_hours == 1.67
         assert self.calc_ulsan.has_storage_at_busan is False
 
     def test_single_cycle_case2_ulsan_25000m3_1000m3ph(self):
-        """Test complete Case 2-2 cycle for 25000 m³ shuttle, 5 vessels."""
+        """Test complete Case 2 cycle for 25000 m³ shuttle, 5 vessels."""
         result = self.calc_ulsan.calculate_single_cycle(25000.0, 1000.0, num_vessels=5)
 
         # Verify structure
-        assert result["case_type"] == "case_2_ulsan"
+        assert result["case_type"] == "case_2"
         assert result["vessels_per_trip"] == 5  # 25000 / 5000 = 5 vessels
 
-        # Shore loading = 25000 / 1500 = 16.67 hours
-        assert pytest.approx(result["shore_loading"], rel=1e-3) == 16.667
+        # Shore loading = 25000 / 700 = 35.714 hours
+        assert pytest.approx(result["shore_loading"], rel=1e-3) == 35.714
 
         # Check travel times (Ulsan specific)
         assert pytest.approx(result["travel_outbound"]) == 1.67
@@ -194,24 +191,24 @@ class TestCycleTimeCalculatorCase2:
         result = self.calc_ulsan.calculate_single_cycle(50000.0, 1000.0, num_vessels=10)
 
         assert result["vessels_per_trip"] == 10
-        # Shore loading = 50000 / 1500 = 33.33 hours
-        assert pytest.approx(result["shore_loading"], rel=1e-3) == 33.333
+        # Shore loading = 50000 / 700 = 71.429 hours
+        assert pytest.approx(result["shore_loading"], rel=1e-3) == 71.429
 
 
 class TestShoreLoadingComparison:
     """Compare shore loading across all cases."""
 
     def test_standard_5000m3_shuttle(self):
-        """Test that 5000 m³ shuttle takes 3.33 hours to load."""
+        """Test that 5000 m³ shuttle takes 7.143 hours to load."""
         calc1 = CycleTimeCalculator("case_1", CASE1_CONFIG)
-        calc2 = CycleTimeCalculator("case_2_ulsan", CASE2_ULSAN_CONFIG)
+        calc2 = CycleTimeCalculator("case_2", CASE2_ULSAN_CONFIG)
 
         # Both should have identical shore loading time
         time1 = calc1.calculate_shore_loading_time(5000.0)
         time2 = calc2.calculate_shore_loading_time(5000.0)
 
         assert pytest.approx(time1, rel=1e-3) == pytest.approx(time2, rel=1e-3)
-        assert pytest.approx(time1, rel=1e-3) == 3.333
+        assert pytest.approx(time1, rel=1e-3) == 7.143
 
     def test_shore_loading_proportional_to_size(self):
         """Test that shore loading time scales linearly with shuttle size."""

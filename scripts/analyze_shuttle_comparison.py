@@ -6,9 +6,9 @@ Shuttle Size Comparison Analysis Script.
 Generates detailed shuttle size comparison table for any case.
 
 Usage:
-    python scripts/analyze_shuttle_comparison.py --case case_2_yeosu --pump 2000
+    python scripts/analyze_shuttle_comparison.py --case case_3 --pump 2000
     python scripts/analyze_shuttle_comparison.py --case case_1 --pump 1000
-    python scripts/analyze_shuttle_comparison.py --case case_2_ulsan --year 2040
+    python scripts/analyze_shuttle_comparison.py --case case_2 --year 2040
 """
 
 import pandas as pd
@@ -90,8 +90,8 @@ def analyze_shuttle_comparison(case_id: str, pump_rate: int = 2000, year: int = 
 
 def main():
     parser = argparse.ArgumentParser(description="Shuttle size comparison analysis")
-    parser.add_argument("--case", "-c", default="case_2_yeosu",
-                        help="Case ID (case_1, case_2_yeosu, case_2_ulsan)")
+    parser.add_argument("--case", "-c", default="case_3",
+                        help="Case ID (case_1, case_2, case_3)")
     parser.add_argument("--pump", "-p", type=int, default=1000,
                         help="Pump rate in m3/h (default: 1000)")
     parser.add_argument("--year", "-y", type=int, default=2050,

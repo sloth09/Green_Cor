@@ -6,16 +6,32 @@
 
 **목표**: 2030~2050년 20년 동안 친환경 해운 회랑에서의 암모니아 연료 수요를 충족하기 위해 필요한 셔틀 선박 및 저장 시설의 최적 규모와 개수를 결정하고, 전체 순현재가(Net Present Cost, NPC)를 최소화합니다.
 
-**버전**: v2.3.3 (Discount 제거 + v2.3.2 기능 통합)
+**버전**: v3.1.0 (STS Pump Rate 500 m3/h)
 
 ---
 
-## 주요 개선사항 (v2.0 → v2.3.3)
+## 주요 개선사항 (v3.0.0 → v3.1.0)
 
-- ✅ **Case 1, 2-1, 2-2 모두 지원**
+- ✅ **STS Pump Rate 변경**: 1,000 → 500 m3/h (펌핑 시간 2배 증가)
+- ✅ **Case 1 최적 셔틀 변경**: 2,500 → 1,000 m3 (느린 펌프로 소형 셔틀 유리)
+- ✅ **전체 파이프라인 재실행**: 최적화, 민감도, 그림, 보존 사본 모두 재생성
+- ✅ **검증보고서 v7.0 재작성**: Case 순서 통일 (1→2→3), LCOA 용어 통일
+- ✅ **용어 통일**: LCO/LCOAmmonia → LCOA (Levelized Cost of Ammonia)
+
+### v2.3.3 → v3.0.0 (이전)
+
+- ✅ **Shore pump rate 보정**: 1,500 → 700 m3/h (하드코딩 제거, config 단일 소스)
+- ✅ **Setup time 직관화**: config 0.5 x 2배곱셈 → config 2.0h 직접값 (곱셈자 제거)
+- ✅ **Shore loading fixed time 보정**: 2.0h → 4.0h (inbound 2h + outbound 2h)
+- ✅ **Pump sensitivity range 확장**: 400-2000 → 100-1500 m3/h (15점, 100간격)
+- ✅ **전체 결과, 그림, 검증보고서, 논문 재생성 완료**
+
+### v2.0 → v2.3.3 (이전)
+
+- ✅ **Case 1, 2, 3 모두 지원**
 - ✅ **YAML 기반 설정 파일로 쉬운 파라미터 관리**
 - ✅ **다중 케이스 병렬 실행 지원**
-- ✅ **Case 1/2 아키텍처 분리 및 통일**
+- ✅ **Case 1/2/3 아키텍처 분리 및 통일**
 - ✅ **펌핑 시간 계산 정확화**
 - ✅ **공통 로직 라이브러리화 (FleetSizing, CycleTime)**
 - ✅ **시간 가치 할인 제거 (No Discounting)** - 모든 연도 동일 가중치
@@ -31,8 +47,8 @@ D:\code\Green_Cor\
 ├── config/                          # YAML 설정 파일들
 │   ├── base.yaml                    # 공통 파라미터
 │   ├── case_1.yaml                  # Case 1: 부산항 저장소
-│   ├── case_2_yeosu.yaml            # Case 2-1: 여수→부산
-│   └── case_2_ulsan.yaml            # Case 2-2: 울산→부산
+│   ├── case_2_ulsan.yaml            # Case 2: 울산→부산
+│   └── case_3_yeosu.yaml            # Case 3: 여수→부산
 ├── src/                             # Python 프로덕션 코드
 │   ├── __init__.py
 │   ├── config_loader.py             # YAML 설정 로더
@@ -52,6 +68,12 @@ D:\code\Green_Cor\
 │   ├── test_shuttle_round_trip_calculator.py
 │   └── test_annualized_capex_consistency.py
 ├── scripts/                         # 개발/디버그 스크립트
+│   ├── run_deterministic_sensitivity.py  # 민감도 분석 (연료가격/토네이도/벙커볼륨/Two-way)
+│   ├── run_demand_scenarios.py      # 수요 시나리오 분석 (Low/Base/High/VeryHigh)
+│   ├── run_breakeven_analysis.py    # Break-even 거리 분석 (Case 1 vs Case 2/3)
+│   ├── run_yang_lam_comparison.py   # Yang & Lam DES 모델 정량 비교
+│   ├── generate_paper_figures.py    # 논문 그림 생성 (D1-D12, S1-S7, FIG7-FIG10, FIGS4-FIGS5)
+│   ├── preserve_paper_results.py   # 작업 결과 -> 논문별 보존 디렉토리 복사
 │   ├── debug_*.py                   # 디버깅 스크립트
 │   ├── verify_*.py                  # 검증 스크립트
 │   └── ...
@@ -67,13 +89,32 @@ D:\code\Green_Cor\
 │   ├── PDFs/                        # PDF 참고자료
 │   └── archive/                     # 레거시 코드 및 구 문서
 ├── results/                         # 결과 출력 (자동 생성, git 제외)
-│   ├── MILP_scenario_summary_*.csv  # 시나리오 요약 (main.py 출력)
-│   ├── MILP_per_year_results_*.csv  # 연도별 결과 (main.py 출력)
+│   ├── deterministic/               # main.py 출력 (MILP_*.csv, 6 files)
+│   ├── sensitivity/                 # 민감도 분석 결과 CSV (~20 files)
+│   ├── stochastic/                  # case_1 확률적 결과
+│   ├── stochastic_case2/            # case_2 확률적 결과
+│   ├── stochastic_case3/            # case_3 확률적 결과
+│   ├── paper_figures/               # Python 생성 그림 (volatile, 재생성됨)
 │   ├── MILP_results_*.xlsx          # Excel 통합 파일
 │   ├── MILP_Report_*.docx           # Word 리포트
-│   ├── paper_figures/               # 논문용 그림 (generate_paper_figures.py)
-│   ├── sensitivity/                 # 민감도 분석 결과
-│   └── stochastic*/                 # 확률적 최적화 결과
+│   ├── paper1_deterministic/        # Paper 1 보존 사본 (stable)
+│   │   ├── data/                    # MILP CSVs
+│   │   ├── sensitivity/             # 민감도 CSVs
+│   │   ├── figures/                 # D1-D12, Fig7-10, FigS4-5
+│   │   └── reports/                 # xlsx, docx, analysis report
+│   ├── paper2_stochastic/           # Paper 2 보존 사본 (stable)
+│   │   ├── data/                    # 확률적 CSVs
+│   │   ├── sensitivity/             # tornado, fuel_price, pump CSVs
+│   │   ├── figures/                 # S1-S7, C1-C4
+│   │   └── reports/                 # analysis report
+│   ├── verification_bundle/         # 검증 패키지 (self-contained)
+│   │   ├── data/                    # MILP CSVs
+│   │   ├── figures/                 # 검증 참조 그림
+│   │   └── docs/                    # md + docx + pdf
+│   ├── discount_rate_analysis/      # 향후 분석 (pre-created, empty)
+│   ├── yang_lam_des_comparison/     # Yang & Lam DES 비교 (완료)
+│   │   └── data/                    # 비교 CSVs + summary.txt
+│   └── _archive/                    # 통합 아카이브 (이전 백업들)
 ├── main.py                          # 메인 진입점
 ├── run_all_cases.py                 # 다중 케이스 실행
 ├── CLAUDE.md                        # 이 파일
@@ -93,15 +134,26 @@ D:\code\Green_Cor\
 
 ```
 1. main.py (최적화 실행)
-   ↓ 출력: results/MILP_scenario_summary_*.csv
-   ↓ 출력: results/MILP_per_year_results_*.csv
+   ↓ 출력: results/deterministic/MILP_*.csv
 
-2. generate_paper_figures.py (그림 생성)
-   ↓ 입력: results/MILP_*.csv (자동 감지)
-   ↓ 출력: results/paper_figures/*.png, *.pdf
+2. 민감도 분석 스크립트 (순서 무관, 독립 실행)
+   ↓ scripts/run_deterministic_sensitivity.py
+   ↓ scripts/run_demand_scenarios.py
+   ↓ scripts/run_breakeven_analysis.py
+   ↓ 출력: results/sensitivity/*.csv
 
-3. verification-report skill (검증 문서)
-   ↓ 입력: results/MILP_*.csv
+3. generate_paper_figures.py (그림 생성)
+   ↓ 입력: results/deterministic/MILP_*.csv + results/sensitivity/*.csv
+   ↓ 출력: results/paper_figures/*.png, *.pdf (volatile, 재생성됨)
+
+4. preserve_paper_results.py (보존 복사)
+   ↓ 입력: results/deterministic/, sensitivity/, paper_figures/, stochastic*/
+   ↓ 출력: results/paper1_deterministic/ (stable)
+   ↓ 출력: results/paper2_stochastic/ (stable)
+   ↓ 출력: results/verification_bundle/ (stable)
+
+5. verification-report skill (검증 문서)
+   ↓ 입력: results/deterministic/MILP_*.csv
    ↓ 입력: results/paper_figures/*.png
    ↓ 출력: docs/verification/*.md
 ```
@@ -110,17 +162,165 @@ D:\code\Green_Cor\
 
 | 단계 | 출력 파일 | 경로 |
 |------|----------|------|
-| 최적화 | 시나리오 요약 | `results/MILP_scenario_summary_{case_id}.csv` |
-| 최적화 | 연도별 결과 | `results/MILP_per_year_results_{case_id}.csv` |
+| 최적화 | 시나리오 요약 | `results/deterministic/MILP_scenario_summary_{case_id}.csv` |
+| 최적화 | 연도별 결과 | `results/deterministic/MILP_per_year_results_{case_id}.csv` |
 | 최적화 | Excel 통합 | `results/MILP_results_{case_id}.xlsx` |
-| 그림 | 논문 그림 | `results/paper_figures/D*.png`, `S*.png` |
+| 민감도 | 연료가격 | `results/sensitivity/fuel_price_{case_id}.csv` |
+| 민감도 | 토네이도 | `results/sensitivity/tornado_det_{case_id}.csv` |
+| 민감도 | 벙커볼륨 | `results/sensitivity/bunker_volume_{case_id}.csv` |
+| 민감도 | Two-way | `results/sensitivity/two_way_det_{case_id}.csv` |
+| 민감도 | 수요시나리오 | `results/sensitivity/demand_scenarios_{case_id}.csv` |
+| 민감도 | 수요요약 | `results/sensitivity/demand_scenarios_summary.csv` |
+| 민감도 | Break-even | `results/sensitivity/breakeven_distance_{ulsan,yeosu,combined}.csv` |
+| 민감도 | 펌프유량 | `results/sensitivity/pump_sensitivity_{case_id}.csv` |
+| 그림 | 논문 그림 (volatile) | `results/paper_figures/D*.png`, `S*.png`, `Fig*.png`, `FigS*.png` |
 | 검증 | 검증 문서 | `docs/verification/0*.md` |
+| 보존 | Paper 1 그림 (stable) | `results/paper1_deterministic/figures/` |
+| 보존 | Paper 2 그림 (stable) | `results/paper2_stochastic/figures/` |
+| 보존 | 검증 패키지 | `results/verification_bundle/` |
+| 향후 | 할인율 분석 | `results/discount_rate_analysis/` |
+| Yang & Lam | 비교 데이터 (7 files) | `results/yang_lam_des_comparison/data/` |
+
+### 중요: Working vs Preserved 구분
+
+- **Working pipeline** (`deterministic/`, `sensitivity/`, `paper_figures/`): Python 스크립트가 읽고 쓰는 디렉토리. 재실행 시 덮어씀 (volatile)
+- **Preserved copies** (`paper1_deterministic/`, `paper2_stochastic/`, `verification_bundle/`): `preserve_paper_results.py`가 복사한 안정 사본. 스크립트가 직접 쓰지 않음 (stable)
+- 그림 재생성 후 반드시 `python scripts/preserve_paper_results.py` 실행하여 보존 사본 업데이트
 
 ### 중요: 파일 경로 일관성
 
-- `paper_figures.py`는 `MILP_scenario_summary_*.csv`를 **우선** 읽음
-- 레거시 경로(`results/deterministic/`)도 fallback으로 지원
+- `paper_figures.py`는 `deterministic/MILP_scenario_summary_*.csv`를 우선 읽음
+- 루트 경로(`results/MILP_*.csv`), 레거시 경로(`scenarios_*.csv`)도 fallback으로 지원
 - 새 결과 생성 후 반드시 `generate_paper_figures.py` 재실행 필요
+
+---
+
+## Two-Paper Strategy
+
+이 프로젝트의 결과물은 **두 편의 SCI 논문**으로 출판됩니다.
+
+### Paper 1: Deterministic Analysis
+
+- **그림**: D1-D12 (기본 결과), Fig7-10 (민감도), FigS4-5 (보충)
+- **데이터**: `results/deterministic/MILP_*.csv`, `results/sensitivity/*.csv`
+- **보존 위치**: `results/paper1_deterministic/`
+- **상태**: 완료
+
+### Paper 2: Stochastic Analysis
+
+- **그림**: S1-S7 (확률적 결과), C1-C4 (비교 분석)
+- **데이터**: `results/stochastic*/`, pump sensitivity
+- **보존 위치**: `results/paper2_stochastic/`
+- **상태**: 데이터 수집 완료
+
+### Upcoming Analyses
+
+- **Discount Rate Analysis**: `results/discount_rate_analysis/` (할인율 영향 분석, 예정)
+- **Yang & Lam DES Comparison**: `results/yang_lam_des_comparison/` (DES 모델 비교, 완료)
+  - Service time agreement: <1.2% (adjusted), Annual cost: 1.1% difference
+  - Script: `scripts/run_yang_lam_comparison.py`, Figures: FIG13, FIG14
+
+---
+
+## 민감도 분석 인프라 (Sensitivity Analysis Infrastructure)
+
+### 최적 구성 상수 (Deterministic Optimal)
+
+모든 민감도 분석 스크립트에서 공통으로 사용하는 기준값:
+
+| Case | Optimal Shuttle (m3) | Pump (m3/h) | NPC (USD M) | LCOA (USD/ton) |
+|------|---------------------|-------------|-------------|----------------|
+| case_1 | 1,000 | 500 | 447.53 | 1.90 |
+| case_2 | 5,000 | 500 | 906.80 | 3.85 |
+| case_3 | 5,000 | 500 | 1,094.12 | 4.64 |
+
+### 분석 스크립트 상세
+
+**`scripts/run_deterministic_sensitivity.py`**
+- 4가지 민감도 분석: `--analyses {fuel,tornado,bunker,twoway}`
+- 연료가격: $300~$1,200/ton 절대값 9포인트
+- 토네이도: 6개 파라미터 +/-20% (fuel_price, max_annual_hours, travel_time, bunker_volume, capex_scaling_exponent, sfoc)
+- 벙커볼륨: 2,500~10,000 m3 절대값 7포인트
+- Two-way: 연료가격 x 벙커볼륨 5x5 매트릭스 (case_1만 기본 실행)
+- CLI: `python scripts/run_deterministic_sensitivity.py --cases case_1 case_2 --analyses fuel tornado`
+
+**`scripts/run_demand_scenarios.py`**
+- 4개 수요 시나리오: Low(250), Base(500), High(750), VeryHigh(1000) end_vessels
+- 각 시나리오에서 전체 셔틀/펌프 조합 최적화 수행
+- 출력: case별 CSV + 전체 요약 summary CSV
+- CLI: `python scripts/run_demand_scenarios.py --cases case_1 case_2 case_3`
+
+**`scripts/run_breakeven_analysis.py`**
+- `BreakevenAnalyzer` 활용, 10~200nm 범위 20포인트
+- Ulsan 분석: shuttle_size=5,000 m3 (Case 1 vs Case 2)
+- Yeosu 분석: shuttle_size=10,000 m3 (Case 1 vs Case 3)
+- 결과: Ulsan은 교차점 없음(Case 1 항상 우위), Yeosu는 ~59.6nm에서 교차
+- CLI: `python scripts/run_breakeven_analysis.py`
+
+**`scripts/run_yang_lam_comparison.py`**
+- Yang & Lam (2023) DES 모델과 정량 비교 (5 dimensions)
+- src/shuttle_round_trip_calculator.py 사용 (검증된 서비스 시간 계산)
+- 서비스 시간: 3개 검증 포인트 (855t, 1384t, 2000t), 조정 후 <1.2% 차이
+- 연간 비용: $13.85M vs $13.7M (1.1% 차이)
+- 출력: `results/yang_lam_des_comparison/data/` (7 files)
+- CLI: `python scripts/run_yang_lam_comparison.py`
+
+### 논문 그림 (Paper Figures)
+
+`src/paper_figures.py`의 `PaperFigureGenerator` 클래스에서 생성.
+
+| 그림 ID | 함수명 | 설명 | 데이터 소스 |
+|---------|--------|------|-------------|
+| **기존 (Deterministic)** | | | |
+| D1-D12 | `fig_d1()` ~ `fig_d12()` | 기본 최적화 결과 그림 | MILP_*.csv |
+| **기존 (Supplementary)** | | | |
+| S1-S7 | `fig_s1()` ~ `fig_s7()` | 보충 그림 (펌프민감도 등) | MILP_*.csv + sensitivity/ |
+| **기존 (Combined)** | | | |
+| C1-C4 | `fig_c1()` ~ `fig_c4()` | 3 Case 통합 비교 | MILP_*.csv |
+| **신규 (SCI Paper)** | | | |
+| FIG7 | `fig_7_tornado_deterministic()` | 토네이도 다이어그램 (3 cases) | tornado_det_*.csv |
+| FIG8 | `fig_8_fuel_price_sensitivity()` | 연료가격 민감도 (NPC+LCOA) | fuel_price_*.csv |
+| FIG9 | `fig_9_breakeven_distance()` | Break-even 거리 분석 | breakeven_distance_*.csv |
+| FIG10 | `fig_10_demand_scenarios()` | 수요 시나리오 비교 (NPC+LCOA) | demand_scenarios_*.csv |
+| FIGS4 | `fig_s4_twoway_deterministic()` | Two-way 히트맵 | two_way_det_*.csv |
+| FIGS5 | `fig_s5_bunker_volume_sensitivity()` | 벙커볼륨 민감도 (NPC+LCOA) | bunker_volume_*.csv |
+| **Yang & Lam DES 비교** | | | |
+| FIG13 | `fig_13_yang_lam_service_time()` | DES vs MILP 서비스 시간 비교 (3점) | yang_lam_des_comparison/data/ |
+| FIG14 | `fig_14_yang_lam_sensitivity()` | DES vs MILP 민감도 비교 | yang_lam_des_comparison/data/ |
+
+### 전체 재실행 명령어
+
+```bash
+# 1. 기본 최적화 (이미 완료된 경우 생략 가능)
+python main.py
+
+# 2. 민감도 분석 (각각 독립 실행, 순서 무관)
+python scripts/run_deterministic_sensitivity.py
+python scripts/run_demand_scenarios.py
+python scripts/run_breakeven_analysis.py
+python scripts/run_yang_lam_comparison.py
+
+# 3. 모든 그림 생성 (위 CSV가 모두 있어야 함)
+python scripts/generate_paper_figures.py
+
+# 4. 보존 사본 업데이트 (그림 재생성 후 반드시 실행)
+python scripts/preserve_paper_results.py
+
+# 5. 특정 그림만 생성
+python scripts/generate_paper_figures.py --figures FIG7 FIG8 FIG9
+
+# 6. 그림만 보존 업데이트
+python scripts/preserve_paper_results.py --figures
+```
+
+### 주요 분석 결과 요약
+
+- **토네이도**: Case 1은 CAPEX Scaling이 최대 영향(67.9%), Case 2/3은 Bunker Volume이 최대 (75.5~102%)
+- **연료가격**: Case 1 NPC $374.5M~$482.0M ($300~$1,200/ton 범위)
+- **Break-even**: Ulsan(5,000m3) 교차점 없음, Yeosu(10,000m3) ~84nm에서 교차
+- **수요시나리오**: Case 1 LCOA가 가장 안정적 ($1.72~$1.79/ton, Low~VeryHigh, 4.0% 변동)
+- **SFOC**: Case 1 토네이도에서 swing $28.68M (7.0%)
+- **Yang & Lam**: 서비스 시간 <1.2% 차이, 연간 비용 1.1% 차이, flow rate 민감도 8pp gap (DES 확률 평활)
 
 ---
 
@@ -160,7 +360,7 @@ D:\code\Green_Cor\
 
 | Layer | 파일 | 역할 | 의존성 |
 |-------|------|------|--------|
-| **1 (기초)** | `shuttle_round_trip_calculator.py` | 핵심 시간 계산 (Case 1/2 분기) | 없음 (독립) |
+| **1 (기초)** | `shuttle_round_trip_calculator.py` | 핵심 시간 계산 (Case 1/2/3 분기) | 없음 (독립) |
 | | `shore_supply.py` | 육상 공급 시설 관리 | 없음 (독립) |
 | | `cycle_time_calculator.py` | 시간 계산 통합 | Layer 1 내부 |
 | | `fleet_sizing_calculator.py` | 함대 규모 계산 | 없음 (독립) |
@@ -191,7 +391,7 @@ Layer 1+2+3 통합    →  최종 결과 검증
 | `annual_simulation` | Layer 1 + 일부 2 | 연간 계산 검증 |
 | `single` / `all` | Layer 1+2+3 | 완전 최적화 |
 
-### 핵심 분기점: Case 1 vs Case 2
+### 핵심 분기점: Case 1 vs Case 2/3
 
 **Layer 1의 `shuttle_round_trip_calculator.py`에서 핵심 로직이 분기됩니다:**
 
@@ -199,7 +399,7 @@ Layer 1+2+3 통합    →  최종 결과 검증
 if has_storage_at_busan:  # Case 1
     pumping_time = shuttle_size / pump_rate
     # 셔틀이 얼마나 빨리 비워지는가?
-else:  # Case 2
+else:  # Case 2/3
     pumping_time = bunker_volume / pump_rate
     # 각 선박이 얼마나 빨리 채워지는가?
 ```
@@ -231,21 +431,22 @@ else:  # Case 2
 
 | 항목 | 설명 |
 |------|------|
-| 기본 사이클 | 3시간 (이동 + 연결/해제) + 펌핑시간 |
+| 기본 사이클 | 이동(2h) + 연결/해제(4h) + 펌핑시간 |
 | 펌핑 시간 | Shuttle_Size_m3 / Pump_Rate_m3ph |
-| 육상 적재 | Shuttle_Size_m3 / 1500 (고정 펌프 유량) |
-| **예시** | 5,000 m³ 셔틀 + 1,000 m³/h: **12.33시간/사이클** |
+| 육상 적재 | Shuttle_Size_m3 / 700 + 4.0h (shore pump 700 m3/h + fixed time 4h) |
+| Setup | 2.0h per endpoint (inbound + outbound) |
+| **예시** | 1,000 m³ 셔틀 + 500 m³/h: **13.43시간/사이클** |
 
-### Case 2: 여수/울산 → 부산 장거리 운송
+### Case 2/3: 울산/여수 → 부산 장거리 운송
 
-**KEY**: 한 번의 항해로 **여러 선박에 급유**
+**KEY**: 한 번의 항해로 **선박에 급유** (5,000 m³ 최적 시 1척/trip)
 
-| 항목 | Case 2-1 (여수) | Case 2-2 (울산) |
-|------|-----------------|-----------------|
-| 편도 항해 | 86해리 → 5.73시간 | 25해리 → 1.67시간 |
-| 셔틀 크기 예 | 10,000 m³ | 10,000 m³ |
-| 총 사이클 | ~36시간 | ~28시간 |
-| 연간 항해 | ~217회 | ~282회 |
+| 항목 | Case 2 (울산) | Case 3 (여수) |
+|------|---------------|---------------|
+| 편도 항해 | 59해리 → 3.93시간 | 86해리 → 5.73시간 |
+| 최적 셔틀 | 5,000 m³ | 5,000 m³ |
+| 총 사이클 | 36.00시간 | 39.60시간 |
+| 연간 항해 | 222회 | 202회 |
 
 ---
 
@@ -258,26 +459,26 @@ else:  # Case 2
 | **출발지** | 부산항 저장소 |
 | **목적지** | 부산항 내 선박 |
 | **특징** | 여러 트립 필요 (shuttle_size < bunker_volume) |
-| **셔틀 크기** | 500 ~ 5000 m³ |
+| **셔틀 크기** | 500 ~ 10000 m³ |
 | **저장 탱크** | 있음 (35,000톤) |
 | **펌핑 시간** | shuttle_size / pump_rate |
 
-### Case 2-1: 여수 → 부산 (장거리)
+### Case 2: 울산 → 부산 (근거리)
+
+| 항목 | 값 |
+|------|-----|
+| **출발지** | 울산 |
+| **거리** | 59 해리 |
+| **특징** | 한 번의 항해로 선박 서빙 (5,000 m³ 최적 시 1척/trip) |
+| **셔틀 크기** | 5000 ~ 50000 m³ |
+| **펌핑 시간** | bunker_volume / pump_rate (선박 요구량 기준) |
+
+### Case 3: 여수 → 부산 (장거리)
 
 | 항목 | 값 |
 |------|-----|
 | **출발지** | 여수 (암모니아 생산시설) |
 | **거리** | 86 해리 |
-| **특징** | 한 번의 항해로 여러 선박 서빙 |
-| **셔틀 크기** | 5000 ~ 50000 m³ |
-| **펌핑 시간** | bunker_volume / pump_rate (선박 요구량 기준) |
-
-### Case 2-2: 울산 → 부산 (근거리)
-
-| 항목 | 값 |
-|------|-----|
-| **출발지** | 울산 |
-| **거리** | 25 해리 |
 | **특징** | 한 번의 항해로 여러 선박 서빙 |
 | **셔틀 크기** | 5000 ~ 50000 m³ |
 | **펌핑 시간** | bunker_volume / pump_rate (선박 요구량 기준) |
@@ -304,7 +505,7 @@ shipping:
 
 operations:
   max_annual_hours_per_vessel: 8000  # 연간 최대 가동시간
-  setup_time_hours: 0.5              # 호스 연결 시간
+  setup_time_hours: 2.0              # per-endpoint setup time (direct, no multiplier)
   tank_safety_factor: 2.0            # 탱크 여유계수
 ```
 
@@ -350,7 +551,7 @@ pip install -r requirements.txt
 ```yaml
 execution:
   run_mode: "single"                # single, single_scenario, all, multiple
-  single_case: "case_2_ulsan"       # run_mode=single일 때
+  single_case: "case_2"       # run_mode=single일 때
   num_jobs: 1                       # 병렬 작업 수
   output_directory: "results"
   export:
@@ -365,7 +566,7 @@ execution:
 ```yaml
 execution:
   run_mode: "single"
-  single_case: "case_2_ulsan"
+  single_case: "case_2"
 ```
 
 **모든 케이스 병렬 실행**:
@@ -379,9 +580,9 @@ execution:
 ```yaml
 execution:
   run_mode: "single_scenario"
-  single_case: "case_2_ulsan"
+  single_case: "case_2"
   single_scenario_shuttle_cbm: 5000
-  single_scenario_pump_m3ph: 1000
+  single_scenario_pump_m3ph: 500
 ```
 
 > **상세한 실행 시나리오는** [`docs/configuration.md`](./docs/configuration.md) 참조
@@ -427,9 +628,12 @@ execution:
 
 | 항목 | 기본값 | 설명 |
 |------|--------|------|
-| **셔틀 크기** | 500-5000 m³ | Case별로 다름 |
-| **펌프 유량** | 1000 m³/h | pumps.available_flow_rates (고정) |
-| **펌프 유량 (민감도)** | 400-2000 m³/h | pumps.sensitivity_flow_rates (S7 분석용) |
+| **셔틀 크기** | 500-10000 m³ (Case 1), 2500-50000 m³ (Case 2/3) | Case별로 다름 |
+| **펌프 유량** | 500 m³/h | pumps.available_flow_rates (고정) |
+| **펌프 유량 (민감도)** | 100-1500 m³/h | pumps.sensitivity_flow_rates (S7 분석용, 15점) |
+| **Shore pump rate** | 700 m³/h | shore_supply.pump_rate_m3ph |
+| **Setup time** | 2.0 h/endpoint | operations.setup_time_hours (직접값, 곱셈자 없음) |
+| **Shore fixed time** | 4.0 h | shore_supply.loading_time_fixed_hours |
 | **할인율** | 0% (No discounting) | economy.discount_rate - 모든 연도 동일 가중치 |
 | **연료 가격** | 600 USD/ton | economy.fuel_price_usd_per_ton |
 | **초기 선박 수** | 50척 (2030년) | shipping.start_vessels |
@@ -460,6 +664,17 @@ ls config/  # 또는 dir config (Windows)
 ### 4. 느린 실행 속도
 - 셔틀/펌프 조합 줄이기
 - 병렬 처리 사용 (run_all_cases.py)
+
+### 5. DOCX/PPTX → PDF 변환 시 Word/PowerPoint COM 멈춤
+- **원인**: 연구실 환경에서 보안 정책(Protected View 등)이 적용되어 COM 자동화로 파일을 열 때 보안 대화상자가 차단함
+- **증상**: `comtypes`, `docx2pdf` 등 COM 기반 변환이 무한 대기
+- **해결**: COM으로 파일을 여는 방식 대신 pandoc + xelatex로 직접 변환
+  ```bash
+  # DOCX 대신 markdown → PDF 직접 변환
+  pandoc paper_final.md -o paper.pdf --pdf-engine=xelatex -V geometry:margin=1in
+  # PPTX → PDF는 파일을 열지 않는 방식 사용 (또는 수동 변환)
+  ```
+- **주의**: DOCX/PPTX 파일 **생성**은 문제 없음 (python-docx, python-pptx). **열기**만 보안에 걸림
 
 ---
 
@@ -499,7 +714,7 @@ Green Corridor Research Team, 2025
 - 버전 변경 이력: `docs/changelog.md`
 - 아키텍처 설명: `docs/architecture.md`
 
-**마지막 업데이트**: 2025-11-22 (v2.4 - Annualized CAPEX 수정, Annualization Rate 도입)
+**마지막 업데이트**: 2026-02-11 (v3.1.0: STS Pump Rate 500 m3/h - 전체 파이프라인 재실행, 검증보고서 v7.0 재작성)
 
 ---
 
@@ -560,7 +775,7 @@ Green Corridor Research Team, 2025
 
 3. **한국어는 사용 가능** (UTF-8이므로)
 ```python
-print("LCOAmmonia 일치성 검증")  # OK
+print("LCOA 일치성 검증")  # OK
 print(f"결과: ${lco_value:.2f}/ton")  # OK
 ```
 

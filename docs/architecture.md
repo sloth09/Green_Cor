@@ -148,7 +148,7 @@ class BunkeringOptimizer:
         # Case별 제약식 적용
         if self.case_type == 'case_1':
             self._apply_case1_constraints(cycle_info)
-        elif self.case_type in ['case_2_yeosu', 'case_2_ulsan']:
+        elif self.case_type in ['case_3', 'case_2']:
             self._apply_case2_constraints(cycle_info)
 ```
 

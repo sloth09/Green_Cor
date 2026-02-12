@@ -7,7 +7,7 @@
 ### 케이스 선택
 ```yaml
 execution:
-  case: "case_2_yeosu"  # case_1, case_2_yeosu, case_2_ulsan
+  case: "case_3"  # case_1, case_3, case_2
   run_mode: "single"
 ```
 
@@ -17,7 +17,7 @@ execution:
   run_mode: "multiple"
   cases_to_run:
     - "case_1"
-    - "case_2_yeosu"
+    - "case_3"
   num_jobs: 4
 ```
 
@@ -114,7 +114,7 @@ shuttle:
 
 ### MCR 값 커스터마이징
 ```yaml
-# config/case_2_yeosu.yaml
+# config/case_3.yaml
 shuttle:
   mcr_map_kw:
     5000: 1694
@@ -180,8 +180,8 @@ tank_storage:
 - **Case 1 편도 이동 시간**: 기본값 2.0시간 (항만 내부)
   - operations.travel_time_hours
 - **Case 2 항해 거리 기반**:
-  - Case 2-1 (여수): 86해리 → 5.63시간 (자동 계산)
-  - Case 2-2 (울산): 25해리 → 1.67시간 (자동 계산)
+  - Case 3 (여수): 86해리 → 5.63시간 (자동 계산)
+  - Case 2 (울산): 25해리 → 1.67시간 (자동 계산)
 - **호스 연결/해제 시간**: 각 0.5시간 (총 1시간)
   - operations.setup_time_hours (기본값 0.5시간)
 - **육상 연료 공급 펌프 유량**: 1,500 m³/h (고정값, 변경 가능)

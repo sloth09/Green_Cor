@@ -1,247 +1,121 @@
-# Chapter 7: Conclusion & Verification Checklist
+# 7. Conclusion and Verification Checklist
 
-## 7.1 Verification Summary
+## 7.1 Verification Methodology
 
-This report has verified the MILP optimization results for the Green Corridor ammonia bunkering infrastructure project. All key calculations have been manually verified against the CSV output files.
+Each verification item follows this process:
+1. **Formula**: State the exact mathematical formula
+2. **Input**: Substitute values from config YAML files
+3. **Calculate**: Perform manual step-by-step calculation
+4. **Compare**: Compare result against CSV output value
+5. **Assess**: Classify as PASS (< 1%), REVIEW (1-5%), or FAIL (> 5%)
 
-**v5 MCR Update**: All results reflect Power Law MCR values (MCR = 17.17 x DWT^0.566).
-
----
-
-## 7.2 Master Verification Checklist
+## 7.2 Complete Verification Checklist
 
 ### Economic Parameters
 
+| # | Item | Manual Calc | CSV Value | Diff | Status |
+|---|------|-------------|-----------|------|--------|
+| E1 | Annuity Factor (r=7%, n=21) | 10.8355 | 10.8355 | 0.00% | [PASS] |
+| E2 | Pump Power (500 m3/h) | 79.37 kW | (derived) | - | [PASS] |
+| E3 | Pump CAPEX | $158,730 | (derived) | - | [PASS] |
+| E4 | Discount Factor (all years) | 1.0 | 1.0 | 0.00% | [PASS] |
+
+### Case 1: Busan Port (1,000 m3 Optimal)
+
+| # | Item | Manual Calc | CSV Value | Diff | Status |
+|---|------|-------------|-----------|------|--------|
+| C1-1 | Shore Loading Time | 5.4286 h | 5.4286 h | 0.00% | [PASS] |
+| C1-2 | Pumping Time | 2.0 h | 2.0 h | 0.00% | [PASS] |
+| C1-3 | Cycle Duration | 13.4286 h | 13.4286 h | 0.00% | [PASS] |
+| C1-4 | Trips per Call | 5 | 5.0 | 0.00% | [PASS] |
+| C1-5 | Call Duration | 67.14 h | 67.1429 h | 0.00% | [PASS] |
+| C1-6 | Annual Cycles Max | 595 | 595.74 | 0.12% | [PASS] |
+| C1-7 | Shuttle CAPEX (per unit) | $3,866,602 | $3,866,600 | 0.00% | [PASS] |
+| C1-8 | Bunkering CAPEX (per unit) | $274,728 | $274,733 | 0.00% | [PASS] |
+| C1-9 | Shuttle Fuel Cost/Cycle | $233.31 | $233.30 | 0.00% | [PASS] |
+| C1-10 | Pump Fuel Cost/Call | $240.49 | $240.50 | 0.00% | [PASS] |
+| C1-11 | NPC Component Sum | 447.54 USDm | 447.53 USDm | 0.00% | [PASS] |
+| C1-12 | LCOA | $1.90/ton | $1.90/ton | 0.00% | [PASS] |
+
+### Case 2: Ulsan to Busan (5,000 m3 Optimal)
+
+| # | Item | Manual Calc | CSV Value | Diff | Status |
+|---|------|-------------|-----------|------|--------|
+| C2-1 | Shore Loading Time | 11.1429 h | 11.1429 h | 0.00% | [PASS] |
+| C2-2 | Pumping Time (per vessel) | 10.0 h | 10.0 h | 0.00% | [PASS] |
+| C2-3 | Basic Cycle Duration | 24.86 h | 24.86 h | 0.00% | [PASS] |
+| C2-4 | Total Cycle Duration | 36.0029 h | 36.0029 h | 0.00% | [PASS] |
+| C2-5 | Annual Cycles Max | 222 | 222.2 | 0.09% | [PASS] |
+| C2-6 | Shuttle CAPEX (per unit) | $12,928,530 | $12,928,767 | 0.00% | [PASS] |
+| C2-7 | Shuttle Fuel Cost/Cycle | $3,968.4 | $3,968.5 | 0.00% | [PASS] |
+| C2-8 | Pump Fuel Cost/Cycle | $207.63 | $207.67 | 0.02% | [PASS] |
+| C2-9 | NPC Component Sum | 906.80 USDm | 906.80 USDm | 0.00% | [PASS] |
+| C2-10 | LCOA | $3.85/ton | $3.85/ton | 0.00% | [PASS] |
+
+### Case 3: Yeosu to Busan (5,000 m3 Optimal)
+
+| # | Item | Manual Calc | CSV Value | Diff | Status |
+|---|------|-------------|-----------|------|--------|
+| C3-1 | Shore Loading Time | 11.1429 h | 11.1429 h | 0.00% | [PASS] |
+| C3-2 | Pumping Time (per vessel) | 10.0 h | 10.0 h | 0.00% | [PASS] |
+| C3-3 | Basic Cycle Duration | 28.46 h | 28.46 h | 0.00% | [PASS] |
+| C3-4 | Total Cycle Duration | 39.6029 h | 39.6029 h | 0.00% | [PASS] |
+| C3-5 | Annual Cycles Max | 202 | 202.01 | 0.00% | [PASS] |
+| C3-6 | Shuttle CAPEX (per unit) | $12,928,530 | $12,928,767 | 0.00% | [PASS] |
+| C3-7 | Shuttle Fuel Cost/Cycle | $5,786.0 | $5,786.0 | 0.00% | [PASS] |
+| C3-8 | Pump Fuel Cost/Cycle | $207.63 | $207.67 | 0.02% | [PASS] |
+| C3-9 | NPC Component Sum | 1,094.12 USDm | 1,094.12 USDm | 0.00% | [PASS] |
+| C3-10 | LCOA | $4.64/ton | $4.64/ton | 0.00% | [PASS] |
+
+### Cross-Case Checks
+
 | # | Item | Expected | Actual | Status |
 |---|------|----------|--------|--------|
-| 1 | Discount Rate | 0.0 | 0.0 | PASS |
-| 2 | Annualization Interest Rate | 7% | 7% | PASS |
-| 3 | Annuity Factor | 10.8355 | 10.8355 | PASS |
-| 4 | Fuel Price | $600/ton | $600/ton | PASS |
-| 5 | Total Years | 21 | 21 | PASS |
+| X1 | NPC ordering: Case 1 < 2 < 3 | Yes | 447.53 < 906.80 < 1,094.12 | [PASS] |
+| X2 | LCOA ordering: Case 1 < 2 < 3 | Yes | 1.90 < 3.85 < 4.64 | [PASS] |
+| X3 | Total supply identical | 235,620,000 | All 3 cases match | [PASS] |
+| X4 | Case 3/2 fuel ratio = distance ratio | 1.458 | 1.458 | [PASS] |
+| X5 | Bunkering costs approximately equal | ~$40M | 39.89, 39.43, 41.92 | [PASS] |
 
-### Operational Parameters
+## 7.3 Results Summary
 
-| # | Item | Expected | Actual | Status |
-|---|------|----------|--------|--------|
-| 6 | Max Annual Hours | 8000 hr | 8000 hr | PASS |
-| 7 | Setup Time | 0.5 hr | 0.5 hr | PASS |
-| 8 | Shore Pump Rate | 1500 m3/h | 1500 m3/h | PASS |
-| 9 | Bunker Volume | 5000 m3 | 5000 m3 | PASS |
-| 10 | Pump Flow Rate | 1000 m3/h | 1000 m3/h | PASS |
+### Total Verification Items: 41
 
-### Case-Specific Parameters
+| Category | Items | Passed | Failed |
+|----------|-------|--------|--------|
+| Economic Parameters | 4 | 4 | 0 |
+| Case 1 Verification | 12 | 12 | 0 |
+| Case 2 Verification | 10 | 10 | 0 |
+| Case 3 Verification | 10 | 10 | 0 |
+| Cross-Case Checks | 5 | 5 | 0 |
+| **Total** | **41** | **41** | **0** |
 
-| # | Item | Expected | Actual | Status |
-|---|------|----------|--------|--------|
-| 11 | Case 1 Travel Time | 1.0 hr | 1.0 hr | PASS |
-| 12 | Case 2-1 Distance | 86 nm | 86 nm | PASS |
-| 13 | Case 2-1 Travel Time | 5.73 hr | 5.73 hr | PASS |
-| 14 | Case 2-2 Distance | 59 nm | 59 nm | PASS |
-| 15 | Case 2-2 Travel Time | 3.93 hr | 3.93 hr | PASS |
+**Pass Rate: 41/41 (100%)**
 
-### Cycle Time Verification (v5)
+## 7.4 Key Findings
 
-| # | Case | Shuttle | Expected | Actual | Status |
-|---|------|---------|----------|--------|--------|
-| 16 | Case 1 | 2500 m3 | 8.17 hr | 8.17 hr | PASS |
-| 17 | Case 2-1 | 10000 m3 | 36.13 hr | 36.13 hr | PASS |
-| 18 | Case 2-2 | 5000 m3 | 21.19 hr | 21.19 hr | PASS |
+1. **Model consistency**: All MILP optimization outputs are traceable to input parameters through documented formulas. Manual calculations reproduce CSV values with negligible rounding differences.
 
-### CAPEX Verification
+2. **Case 1 superiority**: Busan Port with storage (Case 1) achieves the lowest NPC ($447.53M) and LCOA ($1.90/ton), primarily due to:
+   - Small shuttle size (1,000 m3) benefits from the 0.75 scaling exponent
+   - Minimal travel distance eliminates fuel cost as a major driver
+   - No port entry/exit/movement overhead
 
-| # | Item | Expected | Actual | Status |
-|---|------|----------|--------|--------|
-| 19 | Shuttle CAPEX (2500 m3) | $7.69M | $7.69M | PASS |
-| 20 | Shuttle CAPEX (5000 m3) | $12.93M | $12.93M | PASS |
-| 21 | Shuttle CAPEX (10000 m3) | $21.74M | $21.74M | PASS |
-| 22 | Pump CAPEX (1000 m3/h) | $0.32M | $0.32M | PASS |
+3. **Distance-cost relationship**: NPC increases proportionally with travel distance. The Case 3/Case 2 travel ratio (5.73/3.93 = 1.458) matches the shuttle variable OPEX ratio exactly.
 
-### OPEX Verification
+4. **Cost structure shift**: Longer routes shift the cost structure from CAPEX-dominated (50.7% for Case 1) to variable OPEX-dominated (38.0% for Case 3), making fuel price a more significant risk factor for remote supply options.
 
-| # | Item | Expected | Actual | Status |
-|---|------|----------|--------|--------|
-| 23 | Case 1 Shuttle fOPEX | 5% of CAPEX | 5% of CAPEX | PASS |
-| 24 | Case 1 Shuttle vOPEX | MCR-based | CSV matches | PASS |
-| 25 | Case 2-1 Shuttle vOPEX | MCR-based | CSV matches | PASS |
-| 26 | Case 2-2 Shuttle vOPEX | MCR-based | CSV matches | PASS |
+5. **Bunkering system**: Bunkering costs (pump + equipment) remain nearly constant (~$40M) across all cases, confirming that the pump system is a minor cost component.
 
-### NPC Verification (v5)
+## 7.5 Verification Statement
 
-| # | Case | Optimal | NPC | LCO | Status |
-|---|------|---------|-----|-----|--------|
-| 27 | Case 1 | 2500 m3 | $249.80M | $1.06/ton | PASS |
-| 28 | Case 2-1 | 10000 m3 | $847.56M | $3.60/ton | PASS |
-| 29 | Case 2-2 | 5000 m3 | $667.70M | $2.83/ton | PASS |
+This verification report confirms that the MILP optimization model (v3.1.0) produces results that are:
 
-### MCR/SFOC Verification (v5 Power Law)
+- **Mathematically correct**: All formulas verified through independent calculation
+- **Internally consistent**: NPC component sums match totals across all cases
+- **Physically reasonable**: Cost rankings and magnitudes align with engineering expectations
+- **Traceable**: Every output value can be derived from documented input parameters
 
-| # | Shuttle | MCR v5 (kW) | SFOC (g/kWh) | Status |
-|---|---------|-------------|--------------|--------|
-| 30 | 2500 m3 | 1310 | 505 | PASS |
-| 31 | 5000 m3 | 1930 | 436 | PASS |
-| 32 | 10000 m3 | 2990 | 413 | PASS |
-
----
-
-## 7.3 Verification Results Summary
-
-| Category | Total Items | Passed | Failed | Pass Rate |
-|----------|-------------|--------|--------|-----------|
-| Economic Parameters | 5 | 5 | 0 | 100% |
-| Operational Parameters | 5 | 5 | 0 | 100% |
-| Case-Specific Parameters | 5 | 5 | 0 | 100% |
-| Cycle Time | 3 | 3 | 0 | 100% |
-| CAPEX | 4 | 4 | 0 | 100% |
-| OPEX | 4 | 4 | 0 | 100% |
-| NPC | 3 | 3 | 0 | 100% |
-| MCR/SFOC | 3 | 3 | 0 | 100% |
-| **TOTAL** | **32** | **32** | **0** | **100%** |
-
----
-
-## 7.4 Discrepancies and Notes
-
-### Minor Calculation Differences
-
-1. **Overhead Time in Case 2**: The basic cycle time includes additional overhead not explicitly documented in the formula. This overhead accounts for:
-   - Port entry/exit procedures
-   - Movement between vessels at anchorage
-   - This overhead is consistent across all Case 2 calculations
-
-2. **Bunkering vOPEX**: Minor variations (~15%) observed between manual calculation and CSV values. This is attributed to:
-   - Rounding in intermediate calculations
-   - Additional pump operating time not captured in simple formula
-
-### These differences do NOT affect the final results or recommendations.
-
----
-
-## 7.5 Key Findings
-
-### Optimal Configurations (v5)
-
-| Rank | Case | Shuttle | NPC | LCOAmmonia |
-|------|------|---------|-----|------------|
-| 1 | Case 1 | 2,500 m3 | $249.80M | $1.06/ton |
-| 2 | Case 2-2 | 5,000 m3 | $667.70M | $2.83/ton |
-| 3 | Case 2-1 | 10,000 m3 | $847.56M | $3.60/ton |
-
-### v4 to v5 Update Impacts
-
-| Case | v4 Shuttle | v5 Shuttle | v4 NPC | v5 NPC | Change |
-|------|------------|------------|--------|--------|--------|
-| Case 1 | 1,000 m3 | **2,500 m3** | $238.39M | $249.80M | +4.8% |
-| Case 2-1 | 10,000 m3 | 10,000 m3 | $791.47M | $847.56M | +7.1% |
-| Case 2-2 | 5,000 m3 | 5,000 m3 | $650.60M | $667.70M | +2.6% |
-
-### Key Changes in v5
-
-1. **MCR Update**: Power Law formula `MCR = 17.17 x DWT^0.566` applied to all shuttle sizes
-2. **Small Shuttle Impact**: Small shuttles (500-2000 m3) experienced largest MCR corrections (+20-37%)
-3. **Case 1 Optimal Shift**: Changed from 1000 m3 to 2500 m3 due to corrected MCR values
-4. **Case 2 Unchanged**: Optimal shuttle sizes remain at 10000 m3 (Yeosu) and 5000 m3 (Ulsan)
-
----
-
-## 7.6 Final Recommendations
-
-### Primary: Case 1 (Busan Storage)
-
-**Recommended Configuration:**
-- Shuttle Size: 2,500 m3
-- Pump Rate: 1,000 m3/h
-- 20-year NPC: $249.80M
-- LCOAmmonia: $1.06/ton
-
-**Rationale:**
-- Lowest cost option by a significant margin (2.7-3.4x cheaper than Case 2)
-- Simple operational model with short cycle times
-- Requires investment in local storage infrastructure
-- v5 MCR update shifted optimal from 1000 m3 to 2500 m3
-
-### Alternative: Case 2-2 (Ulsan Direct)
-
-**Recommended Configuration:**
-- Shuttle Size: 5,000 m3
-- Pump Rate: 1,000 m3/h
-- 20-year NPC: $667.70M
-- LCOAmmonia: $2.83/ton
-
-**Rationale:**
-- No local storage required
-- Shorter distance than Yeosu route
-- Suitable if Busan port storage is not feasible
-
----
-
-## 7.7 Report Sign-off
-
-### Verification Completed
-
-- [x] All input parameters verified
-- [x] All cycle time calculations verified
-- [x] All CAPEX calculations verified
-- [x] All OPEX calculations verified
-- [x] All NPC totals verified
-- [x] All LCOAmmonia values verified
-- [x] MCR/SFOC updates (v5 Power Law) verified
-- [x] Cross-case comparison completed
-- [x] Variable OPEX pattern analysis completed
-
-### Verification Report Status
-
-**Status**: COMPLETE
-
-**Version**: v5 (Power Law MCR Update)
-
-**Date**: 2026-01-21
-
----
-
-## 7.8 Appendix: Formula Reference
-
-### Cycle Time (Case 1)
-```
-Cycle = Shore_Loading + Travel_Out + Travel_Return + Setup + Pumping
-      = (Shuttle/1500) + 1.0 + 1.0 + 1.0 + (Shuttle/Pump)
-```
-
-### Cycle Time (Case 2)
-```
-Cycle = Shore_Loading + Travel_Out + Travel_Return + Setup + Overhead
-      + (Vessels_per_Trip x Pumping_per_vessel)
-```
-
-### Shuttle CAPEX
-```
-CAPEX = 61.5M x (Shuttle_Size / 40000)^0.75
-```
-
-### Annuity Factor
-```
-AF = [1 - (1 + r)^(-n)] / r
-   = [1 - (1.07)^(-21)] / 0.07
-   = 10.8355
-```
-
-### Annualized CAPEX
-```
-Annualized = Actual_CAPEX / Annuity_Factor
-```
-
-### Fuel Cost per Cycle
-```
-Fuel_cost = MCR x SFOC x Travel_Time x Travel_Factor / 1e6 x Fuel_Price
-```
-
-### MCR Power Law (v5)
-```
-MCR = 17.17 x DWT^0.566
-DWT = Cargo_m3 x 0.680 / 0.80
-```
-
-### LCOAmmonia
-```
-LCO = NPC_Total / Total_Supply_20yr_ton
-```
+**Report Version**: v8.0
+**Model Version**: v3.1.0 (STS Pump Rate 500 m3/h)
+**Date**: 2026-02-12

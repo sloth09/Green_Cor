@@ -43,7 +43,7 @@ def print_cycle_time_breakdown(cycle_info, config, shuttle_size_cbm, pump_size_m
     """
     # Get land pump rate
     land_pump_rate = config["operations"].get("port_pump_rate_m3h",
-                                               config["operations"].get("shore_supply_pump_rate_m3ph", 1500.0))
+                                               config["operations"].get("shore_supply_pump_rate_m3ph", 700.0))
     ship_fuel_per_call = config["bunkering"]["bunker_volume_per_call_m3"]
 
     # Display time breakdown - case-specific structure

@@ -1,251 +1,157 @@
-# Chapter 6: Cross-Case Comparison
-
-## 6.1 Overview
-
-This chapter compares the three optimization cases to identify the most cost-effective ammonia bunkering configuration for the Green Corridor project.
-
-**v5 MCR Update**: All results reflect Power Law MCR values (MCR = 17.17 x DWT^0.566).
-
----
-
-## 6.2 Optimal Configurations Summary (v5 Results)
-
-| Case | Route | Distance | Optimal Shuttle | NPC (20yr) | LCOAmmonia |
-|------|-------|----------|-----------------|------------|------------|
-| Case 1 | Busan Storage | - | 2,500 m3 | $249.80M | $1.06/ton |
-| Case 2-1 | Yeosu -> Busan | 86 nm | 10,000 m3 | $847.56M | $3.60/ton |
-| Case 2-2 | Ulsan -> Busan | 59 nm | 5,000 m3 | $667.70M | $2.83/ton |
-
-**Winner**: Case 1 (Busan Storage) with $249.80M NPC and $1.06/ton LCOAmmonia
-
-### v4 to v5 Changes
-
-| Case | v4 Shuttle | v5 Shuttle | v4 NPC | v5 NPC | Change |
-|------|------------|------------|--------|--------|--------|
-| Case 1 | 1,000 m3 | **2,500 m3** | $238.39M | $249.80M | +4.8% |
-| Case 2-1 | 10,000 m3 | 10,000 m3 | $791.47M | $847.56M | +7.1% |
-| Case 2-2 | 5,000 m3 | 5,000 m3 | $650.60M | $667.70M | +2.6% |
-
-**Key Change**: Case 1 optimal shifted from 1000 m3 to 2500 m3 due to corrected MCR values for small vessels.
-
----
-
-## 6.3 NPC Comparison
-
-![D1: NPC vs Shuttle Size](../../results/paper_figures/D1_npc_vs_shuttle.png)
-
-### Key Observations
-
-1. **Case 1 has clear cost advantage** - roughly 2.5-3.4x cheaper than Case 2 alternatives
-2. **Optimal shuttle sizes differ** - driven by distance and operational characteristics:
-   - Case 1: Medium-small shuttles (2500 m3) optimal for short port distances
-   - Case 2-1: Large shuttles (10000 m3) optimal for long Yeosu route
-   - Case 2-2: Medium shuttles (5000 m3) optimal for moderate Ulsan route
-3. **Diminishing returns at larger sizes** - beyond optimal point, bigger is not better
-
----
-
-## 6.4 Cost Structure Comparison
-
-![D6: Cost Breakdown](../../results/paper_figures/D6_cost_breakdown.png)
-
-### Cost Component Breakdown (v5 Results)
-
-| Component | Case 1 | Case 2-1 | Case 2-2 | Unit |
-|-----------|--------|----------|----------|------|
-| **CAPEX** | 115.53 | 350.07 | 245.36 | USDm |
-| - Shuttle | 107.84 | 335.12 | 232.67 | USDm |
-| - Bunkering | 7.69 | 14.95 | 12.69 | USDm |
-| **Fixed OPEX** | 62.59 | 189.66 | 132.94 | USDm |
-| - Shuttle | 58.42 | 181.56 | 126.06 | USDm |
-| - Bunkering | 4.17 | 8.10 | 6.88 | USDm |
-| **Variable OPEX** | 71.68 | 307.84 | 289.40 | USDm |
-| - Shuttle Fuel | 55.01 | 294.21 | 275.01 | USDm |
-| - Bunkering | 16.67 | 13.63 | 14.39 | USDm |
-| **TOTAL** | **249.80** | **847.56** | **667.70** | USDm |
-
-### Cost Shares (v5)
-
-| Share | Case 1 | Case 2-1 | Case 2-2 |
-|-------|--------|----------|----------|
-| CAPEX | 46.3% | 41.3% | 36.7% |
-| Fixed OPEX | 25.1% | 22.4% | 19.9% |
-| Variable OPEX | 28.7% | 36.3% | 43.3% |
-
-**Key Insight**: Case 2 scenarios have higher variable OPEX shares due to longer travel distances and increased fuel consumption from higher MCR values.
-
-### Variable OPEX Pattern Difference
-
-**Case 2**: Variable OPEX decreases **monotonically** with shuttle size
-- Long travel distance (59-86 nm) makes fuel cost dominant
-- Vessels_per_Trip increases with shuttle size (economies of scale)
-- Fuel cost per m3 delivered decreases continuously
-
-**Case 1**: Variable OPEX shows **non-monotonic** (step + zigzag) pattern due to:
-
-1. **Trips_per_Call (Discrete Steps)**
-   ```
-   Trips_per_Call = ceil(5000 / Shuttle_Size)
-   ```
-   - 2500-4999 m3: 2 trips (MCR increases but trips constant → vOPEX rises)
-   - 5000+ m3: 1 trip (step drop in vOPEX)
-
-2. **SFOC Engine-Type Boundaries**
-   | DWT Range | SFOC (g/kWh) |
-   |-----------|--------------|
-   | < 3,000 | 505 (4-stroke high-speed) |
-   | 3,000 - 8,000 | 436 (4-stroke medium) |
-
-   - Shuttle 4000 m3 (DWT 3,400) crosses boundary → 14% SFOC drop
-   - Despite +8% MCR, net fuel consumption drops 7%
-
-See Chapter 3, Section 3.12 for detailed analysis.
-
----
-
-## 6.5 Cycle Time Comparison
-
-![D7: Cycle Time](../../results/paper_figures/D7_cycle_time.png)
-
-### Optimal Configuration Cycle Times (v5)
-
-| Case | Shuttle | Cycle Time | Annual Max Cycles |
-|------|---------|------------|-------------------|
-| Case 1 | 2,500 m3 | 8.17 hr | 980 |
-| Case 2-1 | 10,000 m3 | 36.13 hr | 221 |
-| Case 2-2 | 5,000 m3 | 21.19 hr | 377 |
-
-**Insight**: Case 1's shorter cycle time allows higher annual throughput per shuttle despite the shift to larger (2500 m3) shuttles.
-
----
-
-## 6.6 Fleet Evolution
-
-![D8: Fleet Evolution](../../results/paper_figures/D8_fleet_evolution.png)
-
-### Fleet Size at 2050 (Optimal Configurations, v5)
-
-| Case | Shuttle Size | Fleet Size | Total Capacity |
-|------|--------------|------------|----------------|
-| Case 1 | 2,500 m3 | ~16 shuttles | 40,000 m3 |
-| Case 2-1 | 10,000 m3 | ~16 shuttles | 160,000 m3 |
-| Case 2-2 | 5,000 m3 | ~18 shuttles | 90,000 m3 |
-
-**Note**: Case 2 requires larger total fleet capacity due to longer cycle times.
-
----
-
-## 6.7 LCO Comparison
-
-![D9: LCO Comparison](../../results/paper_figures/D9_lco_comparison.png)
-
-### LCOAmmonia by Shuttle Size (v5)
-
-| Shuttle (m3) | Case 1 | Case 2-1 | Case 2-2 |
-|--------------|--------|----------|----------|
-| 500 | $1.23 | - | - |
-| 1,000 | $1.08 | - | - |
-| 2,500 | **$1.06** | $4.79 | $3.65 |
-| 5,000 | $1.16 | $3.62 | **$2.83** |
-| 10,000 | $2.88 | **$3.60** | $3.00 |
-| 20,000 | - | $4.22 | $3.66 |
-| 50,000 | - | $6.13 | $5.75 |
-
-Bold = Optimal for each case
-
----
-
-## 6.8 Distance Impact Analysis
-
-### Travel Time vs NPC (v5)
-
-| Case | Distance (nm) | Travel Time (hr) | Optimal NPC ($M) | LCO ($/ton) |
-|------|---------------|------------------|------------------|-------------|
-| Case 1 | ~0 (internal) | 1.0 | 249.80 | 1.06 |
-| Case 2-2 | 59 | 3.93 | 667.70 | 2.83 |
-| Case 2-1 | 86 | 5.73 | 847.56 | 3.60 |
-
-**Regression Analysis:**
-- Each additional 27 nm increases NPC by ~$180M
-- Each additional 27 nm increases LCO by ~$0.77/ton
-
-### Break-Even Distance
-
-Based on the data, Case 2 would need a distance of approximately **10-15 nm** to approach Case 1 costs, assuming similar operational characteristics.
-
----
-
-## 6.9 MCR Update Impact Analysis
-
-### v5 Power Law MCR Effects
-
-| Shuttle | v4 MCR | v5 MCR | Change | Impact on Fuel Cost |
-|---------|--------|--------|--------|---------------------|
-| 1000 m3 | 620 kW | 770 kW | +24% | +24% per cycle |
-| 2500 m3 | 1160 kW | 1310 kW | +13% | +13% per cycle |
-| 5000 m3 | 1810 kW | 1930 kW | +7% | +7% per cycle |
-| 10000 m3 | 2420 kW | 2990 kW | +24% | +24% per cycle |
-
-**Key Observation**: Small shuttles (500-2000 m3) experienced the largest MCR corrections (+20-37%), which shifted the Case 1 optimal from 1000 m3 to 2500 m3.
-
----
-
-## 6.10 Decision Matrix
-
-| Factor | Case 1 | Case 2-1 | Case 2-2 | Notes |
-|--------|--------|----------|----------|-------|
-| **Cost (LCO)** | Best | Worst | Middle | Case 1 is 2.7-3.4x cheaper |
-| **Infrastructure** | Requires storage | No storage | No storage | Trade-off |
-| **Flexibility** | Low | High | High | Case 2 can adapt routes |
-| **Supply Security** | Single source | Diversified | Diversified | Case 2 has options |
-| **Scalability** | Limited by storage | Good | Good | Case 2 can add shuttles |
-
----
-
-## 6.11 Recommendations
-
-### Primary Recommendation: Case 1
-
-**If feasible to build storage at Busan Port:**
-- Lowest cost: $1.06/ton LCOAmmonia
-- Optimal shuttle: 2,500 m3 (updated from v4's 1,000 m3)
-- Simplest operations: Short shuttle trips within port
-- Lowest risk: Less exposure to fuel price fluctuations
-
-### Secondary Recommendation: Case 2-2 (Ulsan)
-
-**If no storage at Busan:**
-- Second lowest cost: $2.83/ton LCOAmmonia
-- Shorter distance than Yeosu (59 nm vs 86 nm)
-- Medium shuttle size (5,000 m3) is operationally practical
-
-### Avoid: Case 2-1 (Yeosu)
-
-**Unless Ulsan supply is unavailable:**
-- Highest cost: $3.60/ton LCOAmmonia
-- Long distance increases fuel costs and cycle times
-- Only viable for supply diversification purposes
-
----
-
-## 6.12 Key Figures
-
-### Figure D10: Case NPC Comparison
-![D10: Case NPC Comparison](../../results/paper_figures/D10_case_npc_comparison.png)
-
-### Figure D11: Top Configurations
-![D11: Top Configurations](../../results/paper_figures/D11_top_configurations.png)
-
----
-
-## 6.13 Summary Table (v5 Final Results)
-
-| Metric | Case 1 | Case 2-1 | Case 2-2 |
-|--------|--------|----------|----------|
-| Optimal Shuttle | 2,500 m3 | 10,000 m3 | 5,000 m3 |
-| NPC | $249.80M | $847.56M | $667.70M |
-| LCOAmmonia | $1.06/ton | $3.60/ton | $2.83/ton |
-| Rank | 1st | 3rd | 2nd |
-| Relative Cost | 100% | 339% | 267% |
-
-**Bottom Line**: Case 1 provides the lowest cost solution by a significant margin. The v5 MCR update shifted the optimal shuttle from 1000 m3 to 2500 m3, but Case 1 remains the preferred option if port storage is feasible.
+# 6. Cross-Case Comparison
+
+## 6.1 Optimal Configuration Summary
+
+| Parameter | Case 1 (Busan) | Case 2 (Ulsan) | Case 3 (Yeosu) |
+|-----------|----------------|----------------|----------------|
+| Route | Port internal | 59 nm | 86 nm |
+| Travel time (one-way) | 1.0 h | 3.93 h | 5.73 h |
+| Has storage at Busan | Yes | No | No |
+| Optimal shuttle | 1,000 m3 | 5,000 m3 | 5,000 m3 |
+| Vessels per trip | N/A (multi-trip) | 1 | 1 |
+| Trips per call | 5 | 1 | 1 |
+| Cycle duration | 13.43 h | 36.00 h | 39.60 h |
+| Annual cycles max | 595.74 | 222.20 | 202.01 |
+
+## 6.2 NPC Comparison
+
+| Component | Case 1 (USD M) | Case 2 (USD M) | Case 3 (USD M) |
+|-----------|----------------|----------------|----------------|
+| Shuttle CAPEX (ann.) | 211.97 | 384.21 | 422.39 |
+| Bunkering CAPEX (ann.) | 15.06 | 16.24 | 17.86 |
+| Terminal CAPEX (ann.) | 0.00 | 0.00 | 0.00 |
+| Shuttle Fixed OPEX | 114.84 | 208.15 | 228.84 |
+| Bunkering Fixed OPEX | 8.16 | 8.80 | 9.67 |
+| Terminal Fixed OPEX | 0.00 | 0.00 | 0.00 |
+| Shuttle Variable OPEX | 80.84 | 275.01 | 400.97 |
+| Bunkering Variable OPEX | 16.67 | 14.39 | 14.39 |
+| Terminal Variable OPEX | 0.00 | 0.00 | 0.00 |
+| **NPC Total** | **447.53** | **906.80** | **1,094.12** |
+| **LCOA (USD/ton)** | **1.90** | **3.85** | **4.64** |
+
+## 6.3 NPC Structure Analysis
+
+### By Cost Category
+
+| Category | Case 1 | % | Case 2 | % | Case 3 | % |
+|----------|--------|---|--------|---|--------|---|
+| CAPEX (annualized) | 227.03 | 50.7% | 400.45 | 44.2% | 440.25 | 40.2% |
+| Fixed OPEX | 123.00 | 27.5% | 216.95 | 23.9% | 238.51 | 21.8% |
+| Variable OPEX | 97.51 | 21.8% | 289.40 | 31.9% | 415.36 | 38.0% |
+| **Total** | **447.54** | 100% | **906.80** | 100% | **1,094.12** | 100% |
+
+**Key observation**: As travel distance increases, variable OPEX (fuel) share grows from 21.8% (Case 1) to 38.0% (Case 3), while CAPEX share decreases from 50.7% to 40.2%.
+
+### By Asset
+
+| Asset | Case 1 | % | Case 2 | % | Case 3 | % |
+|-------|--------|---|--------|---|--------|---|
+| Shuttle (CAPEX+fOPEX+vOPEX) | 407.65 | 91.1% | 867.37 | 95.7% | 1,052.20 | 96.2% |
+| Bunkering (CAPEX+fOPEX+vOPEX) | 39.89 | 8.9% | 39.43 | 4.3% | 41.92 | 3.8% |
+| Terminal | 0.00 | 0.0% | 0.00 | 0.0% | 0.00 | 0.0% |
+| **Total** | **447.54** | 100% | **906.80** | 100% | **1,094.12** | 100% |
+
+**Key observation**: Shuttle costs dominate in all cases (91-96%), with bunkering system costs being relatively constant (~$40M) across cases.
+
+## 6.4 Cost Driver Analysis
+
+### Travel Distance Impact
+
+| Metric | Case 1 | Case 2 | Case 3 |
+|--------|--------|--------|--------|
+| Round-trip travel (h) | 2.0 | 7.86 | 11.46 |
+| Travel as % of cycle | 14.9% | 21.8% | 28.9% |
+| Shuttle vOPEX (USD M) | 80.84 | 275.01 | 400.97 |
+| vOPEX ratio vs Case 1 | 1.00x | 3.40x | 4.96x |
+
+Shuttle variable OPEX scales with travel distance because:
+- Fuel consumption per cycle = MCR x SFOC x Travel_Time x Travel_Factor
+- Case 1: 770 kW x 505 g/kWh x 1.0 h x 1.0 = $233/cycle
+- Case 2: 1930 kW x 436 g/kWh x 3.93 h x 2.0 = $3,968/cycle
+- Case 3: 1930 kW x 436 g/kWh x 5.73 h x 2.0 = $5,786/cycle
+
+Case 3/Case 2 fuel ratio = 5,786 / 3,968 = 1.458, matching travel ratio 5.73/3.93 = 1.458.
+
+### Fleet Size Impact
+
+| Year | Case 1 Shuttles | Case 2 Shuttles | Case 3 Shuttles |
+|------|-----------------|-----------------|-----------------|
+| 2030 | 6 | 3 | 3 |
+| 2040 | 28 | 15 | 17 |
+| 2050 | 51 | 28 | 30 |
+
+Case 1 requires more shuttles due to smaller shuttle size (1,000 m3 vs 5,000 m3) but each shuttle has much lower CAPEX ($3.87M vs $12.93M).
+
+### Why Case 1 is Optimal Despite More Shuttles
+
+| Factor | Case 1 | Case 2/3 |
+|--------|--------|----------|
+| Shuttle CAPEX each | $3.87M | $12.93M |
+| Shuttles at 2050 | 51 | 28-30 |
+| Total fleet CAPEX at 2050 | ~$197M | ~$362-388M |
+| Fuel per cycle | $233 | $3,968-5,786 |
+| Cycles per year (2050) | 30,000 | 6,000 |
+| Annual fuel cost (2050) | ~$7.0M | ~$23.8-34.7M |
+
+Case 1's advantage comes from:
+1. Lower per-shuttle CAPEX (0.75 scaling exponent favors smaller vessels)
+2. Negligible travel fuel (1.0 h one-way within port vs 3.93-5.73 h)
+3. No port_entry/exit/movement overhead (Case 2/3 add 3.0h per cycle)
+
+## 6.5 LCOA Comparison
+
+| Case | NPC (USD M) | Total Supply (tons) | LCOA (USD/ton) | LCOA Ratio vs Case 1 |
+|------|-------------|--------------------|-----------------|-----------------------|
+| Case 1 | 447.53 | 235,620,000 | 1.90 | 1.00x |
+| Case 2 | 906.80 | 235,620,000 | 3.85 | 2.03x |
+| Case 3 | 1,094.12 | 235,620,000 | 4.64 | 2.44x |
+
+**Interpretation**: Total supply is identical across all cases because the same fleet (50-500 vessels) requires the same total fuel. Only the cost of delivery differs.
+
+### LCOA Increment Analysis
+
+| Comparison | NPC Diff (USD M) | LCOA Diff (USD/ton) | Primary Driver |
+|------------|-------------------|----------------------|---------------|
+| Case 2 vs Case 1 | +459.27 | +1.95 | Travel distance (59 nm), larger shuttles |
+| Case 3 vs Case 1 | +646.59 | +2.74 | Travel distance (86 nm), larger shuttles |
+| Case 3 vs Case 2 | +187.32 | +0.79 | Additional 27 nm travel (+45.8%) |
+
+## 6.6 Cycle Time Composition Comparison
+
+```
+Case 1 (1,000 m3, 13.43 h):
+|===Shore(5.43)===|=Trav(1.0)=|=Setup(2.0)=|=Pump(2.0)=|=Setup(2.0)=|=Trav(1.0)=|
+
+Case 2 (5,000 m3, 36.00 h):
+|=====Shore(11.14)=====|==Trav(3.93)==|PE|=Mvmt=|=Setup=|====Pump(10.0)====|=Setup=|PX|==Trav(3.93)==|
+
+Case 3 (5,000 m3, 39.60 h):
+|=====Shore(11.14)=====|===Trav(5.73)===|PE|=Mvmt=|=Setup=|====Pump(10.0)====|=Setup=|PX|===Trav(5.73)===|
+
+PE = Port Entry (1.0h), PX = Port Exit (1.0h), Mvmt = Movement (1.0h)
+```
+
+**Time breakdown:**
+
+| Component | Case 1 | Case 2 | Case 3 |
+|-----------|--------|--------|--------|
+| Shore loading | 5.43 (40.4%) | 11.14 (30.9%) | 11.14 (28.1%) |
+| Travel (round trip) | 2.00 (14.9%) | 7.86 (21.8%) | 11.46 (28.9%) |
+| Port entry/exit | 0.00 (0.0%) | 2.00 (5.6%) | 2.00 (5.1%) |
+| Movement | 0.00 (0.0%) | 1.00 (2.8%) | 1.00 (2.5%) |
+| Setup (total) | 4.00 (29.8%) | 4.00 (11.1%) | 4.00 (10.1%) |
+| Pumping | 2.00 (14.9%) | 10.00 (27.8%) | 10.00 (25.3%) |
+| **Total** | **13.43** | **36.00** | **39.60** |
+
+## 6.7 Verification Summary
+
+All cross-case calculations are internally consistent:
+
+| Check | Expected | Actual | Status |
+|-------|----------|--------|--------|
+| Case 1 NPC < Case 2 NPC | Yes | 447.53 < 906.80 | [PASS] |
+| Case 2 NPC < Case 3 NPC | Yes | 906.80 < 1094.12 | [PASS] |
+| Case 3/Case 2 fuel ratio = distance ratio | 1.458 | 5786/3968 = 1.458 | [PASS] |
+| Total supply identical across cases | 235,620,000 | All match | [PASS] |
+| LCOA ordering: Case 1 < Case 2 < Case 3 | Yes | 1.90 < 3.85 < 4.64 | [PASS] |
+| Bunkering costs approximately equal | ~$40M | 39.89, 39.43, 41.92 | [PASS] |

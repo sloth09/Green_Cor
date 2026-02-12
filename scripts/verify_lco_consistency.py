@@ -22,8 +22,7 @@ import time
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src import load_config
-from main import run_single_case, run_yearly_simulation
+from src import load_config, run_single_case, run_yearly_simulation
 
 
 def verify_lco_consistency(case_id: str):
@@ -31,7 +30,7 @@ def verify_lco_consistency(case_id: str):
     Verify LCOAmmonia consistency between single mode and yearly_simulation.
 
     Args:
-        case_id: Case ID to test (e.g., "case_1", "case_2_ulsan")
+        case_id: Case ID to test (e.g., "case_1", "case_2")
 
     Returns:
         Dictionary with verification results
@@ -174,7 +173,7 @@ def main():
     print("="*80)
 
     # Test cases
-    test_cases = ["case_1", "case_2_yeosu", "case_2_ulsan"]
+    test_cases = ["case_1", "case_2", "case_3"]
 
     results = {}
     for case in test_cases:

@@ -140,14 +140,14 @@ class CalculationVerifier:
         # Get config values
         travel_time = self.config["operations"]["travel_time_hours"]
         setup_time = self.config["operations"]["setup_time_hours"]
-        shore_pump_rate = 1500.0  # Fixed shore pump rate
+        shore_pump_rate = self.config.get("shore_supply", {}).get("pump_rate_m3ph", 700.0)
 
         # Shore loading time
         shore_loading = shuttle_size / shore_pump_rate
 
-        # Setup times: each endpoint has connection + purging = 2 * setup_time
-        setup_inbound = 2.0 * setup_time   # connection + purging
-        setup_outbound = 2.0 * setup_time  # disconnection + purging
+        # Setup times: direct per-endpoint value, no multiplier
+        setup_inbound = setup_time   # Direct per-endpoint setup time
+        setup_outbound = setup_time  # Direct per-endpoint setup time
 
         if has_storage:
             # Case 1: pumping based on shuttle size
@@ -403,7 +403,7 @@ def verify_case(
     Convenience function to verify a specific case/scenario.
 
     Args:
-        case_id: Case ID (e.g., "case_1", "case_2_ulsan")
+        case_id: Case ID (e.g., "case_1", "case_2")
         shuttle_size: Shuttle size in m3
         pump_size: Pump flow rate in m3/h
         verbose: Print results

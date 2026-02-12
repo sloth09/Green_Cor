@@ -37,13 +37,13 @@ warnings.filterwarnings('ignore', category=UserWarning)
 PAPER_STYLE = {
     'font.family': 'serif',
     'font.serif': ['Times New Roman', 'DejaVu Serif'],
-    'font.size': 12,            # Base font size (increased)
-    'axes.titlesize': 15,       # Subplot titles
-    'axes.labelsize': 14,       # X/Y axis labels
-    'xtick.labelsize': 12,      # X tick labels
-    'ytick.labelsize': 12,      # Y tick labels
-    'legend.fontsize': 11,      # Legend text
-    'figure.titlesize': 16,     # Figure suptitle
+    'font.size': 13,            # Base font size
+    'axes.titlesize': 16,       # Subplot titles
+    'axes.labelsize': 15,       # X/Y axis labels
+    'xtick.labelsize': 13,      # X tick labels
+    'ytick.labelsize': 13,      # Y tick labels
+    'legend.fontsize': 12,      # Legend text
+    'figure.titlesize': 17,     # Figure suptitle
     'figure.dpi': 300,
     'savefig.dpi': 300,
     'axes.unicode_minus': False,
@@ -52,41 +52,41 @@ PAPER_STYLE = {
 # Color scheme (colorblind-friendly)
 COLORS = {
     'case_1': '#1f77b4',       # Blue
-    'case_2_yeosu': '#ff7f0e', # Orange
-    'case_2_ulsan': '#2ca02c', # Green
+    'case_3': '#ff7f0e', # Orange
+    'case_2': '#2ca02c', # Green
 }
 
 CASE_LABELS = {
     'case_1': 'Case 1: Busan Storage',
-    'case_2_yeosu': 'Case 2-1: Yeosu Direct',
-    'case_2_ulsan': 'Case 2-2: Ulsan Direct',
+    'case_3': 'Case 3: Yeosu Direct',
+    'case_2': 'Case 2: Ulsan Direct',
 }
 
 CASE_SHORT = {
     'case_1': 'Case 1',
-    'case_2_yeosu': 'Case 2-1',
-    'case_2_ulsan': 'Case 2-2',
+    'case_3': 'Case 3',
+    'case_2': 'Case 2',
 }
 
 # Y-axis limits for clean round numbers (NPC in Million USD)
 Y_LIMITS_NPC = {
     'case_1': 700,
-    'case_2_yeosu': 1400,
-    'case_2_ulsan': 1400,
+    'case_3': 1400,
+    'case_2': 1400,
 }
 
 # Y-axis limits for yearly costs (Million USD/year)
 Y_LIMITS_YEARLY_COST = {
     'case_1': 35,
-    'case_2_yeosu': 70,
-    'case_2_ulsan': 50,
+    'case_3': 70,
+    'case_2': 50,
 }
 
 # Y-axis limits for fleet size
 Y_LIMITS_FLEET = {
     'case_1': 15,
-    'case_2_yeosu': 16,
-    'case_2_ulsan': 15,
+    'case_3': 16,
+    'case_2': 15,
 }
 
 
@@ -108,8 +108,8 @@ class PaperFigureGenerator:
         self.det_dir = self.results_dir / "deterministic"
         self.stoch_dirs = {
             'case_1': self.results_dir / "stochastic",
-            'case_2_yeosu': self.results_dir / "stochastic_case2_yeosu",
-            'case_2_ulsan': self.results_dir / "stochastic_case2_ulsan",
+            'case_3': self.results_dir / "stochastic_case3",
+            'case_2': self.results_dir / "stochastic_case2",
         }
 
         # Apply paper style
@@ -131,12 +131,15 @@ class PaperFigureGenerator:
         3. results/stochastic*/deterministic_scenarios_{case_id}.csv (stochastic fallback)
         """
         data = {}
-        for case_id in ['case_1', 'case_2_yeosu', 'case_2_ulsan']:
+        for case_id in ['case_1', 'case_2', 'case_3']:
             path = None
             # Priority 1: main.py output (MILP_scenario_summary_*)
             milp_path = self.results_dir / f"MILP_scenario_summary_{case_id}.csv"
             if milp_path.exists():
                 path = milp_path
+            # Priority 1.5: deterministic directory (MILP_scenario_summary_*)
+            elif (self.det_dir / f"MILP_scenario_summary_{case_id}.csv").exists():
+                path = self.det_dir / f"MILP_scenario_summary_{case_id}.csv"
             # Priority 2: deterministic directory (legacy)
             elif (self.det_dir / f"scenarios_{case_id}.csv").exists():
                 path = self.det_dir / f"scenarios_{case_id}.csv"
@@ -160,12 +163,15 @@ class PaperFigureGenerator:
         3. results/stochastic*/deterministic_yearly_{case_id}.csv (stochastic fallback)
         """
         data = {}
-        for case_id in ['case_1', 'case_2_yeosu', 'case_2_ulsan']:
+        for case_id in ['case_1', 'case_2', 'case_3']:
             path = None
             # Priority 1: main.py output (MILP_per_year_results_*)
             milp_path = self.results_dir / f"MILP_per_year_results_{case_id}.csv"
             if milp_path.exists():
                 path = milp_path
+            # Priority 1.5: deterministic directory (MILP_per_year_results_*)
+            elif (self.det_dir / f"MILP_per_year_results_{case_id}.csv").exists():
+                path = self.det_dir / f"MILP_per_year_results_{case_id}.csv"
             # Priority 2: deterministic directory (legacy)
             elif (self.det_dir / f"yearly_{case_id}.csv").exists():
                 path = self.det_dir / f"yearly_{case_id}.csv"
@@ -209,13 +215,87 @@ class PaperFigureGenerator:
         """Load pump rate sensitivity data for S7 figure."""
         data = {}
         sensitivity_dir = self.results_dir / "sensitivity"
-        for case_id in ['case_1', 'case_2_yeosu', 'case_2_ulsan']:
+        for case_id in ['case_1', 'case_2', 'case_3']:
             path = sensitivity_dir / f"pump_sensitivity_{case_id}.csv"
             if path.exists():
                 data[case_id] = pd.read_csv(path)
                 print(f"  [OK] Loaded {case_id} pump sensitivity data")
             else:
                 print(f"  [WARN] Missing {case_id} pump sensitivity data")
+        return data
+
+    def _load_fuel_price_sensitivity(self) -> Dict[str, pd.DataFrame]:
+        """Load fuel price sensitivity data for Fig8."""
+        data = {}
+        sensitivity_dir = self.results_dir / "sensitivity"
+        for case_id in ['case_1', 'case_2', 'case_3']:
+            path = sensitivity_dir / f"fuel_price_{case_id}.csv"
+            if path.exists():
+                data[case_id] = pd.read_csv(path)
+        return data
+
+    def _load_deterministic_tornado(self) -> Dict[str, pd.DataFrame]:
+        """Load deterministic tornado data for Fig7."""
+        data = {}
+        sensitivity_dir = self.results_dir / "sensitivity"
+        for case_id in ['case_1', 'case_2', 'case_3']:
+            path = sensitivity_dir / f"tornado_det_{case_id}.csv"
+            if path.exists():
+                data[case_id] = pd.read_csv(path)
+        return data
+
+    def _load_breakeven_distance(self) -> Dict[str, pd.DataFrame]:
+        """Load breakeven distance data for Fig9."""
+        data = {}
+        sensitivity_dir = self.results_dir / "sensitivity"
+        for name in ['ulsan', 'yeosu']:
+            path = sensitivity_dir / f"breakeven_distance_{name}.csv"
+            if path.exists():
+                data[name] = pd.read_csv(path)
+        return data
+
+    def _load_breakeven_distance_optimal(self) -> Dict[str, pd.DataFrame]:
+        """Load optimal-vs-optimal breakeven distance data for Fig9 overlay."""
+        data = {}
+        sensitivity_dir = self.results_dir / "sensitivity"
+        for name in ['ulsan', 'yeosu']:
+            path = sensitivity_dir / f"breakeven_distance_optimal_{name}.csv"
+            if path.exists():
+                data[name] = pd.read_csv(path)
+        return data
+
+    def _load_demand_scenarios(self) -> Dict[str, pd.DataFrame]:
+        """Load demand scenario data for Fig10."""
+        data = {}
+        sensitivity_dir = self.results_dir / "sensitivity"
+        for case_id in ['case_1', 'case_2', 'case_3']:
+            path = sensitivity_dir / f"demand_scenarios_{case_id}.csv"
+            if path.exists():
+                data[case_id] = pd.read_csv(path)
+        # Also try summary file
+        summary_path = sensitivity_dir / "demand_scenarios_summary.csv"
+        if summary_path.exists():
+            data['summary'] = pd.read_csv(summary_path)
+        return data
+
+    def _load_bunker_volume_sensitivity(self) -> Dict[str, pd.DataFrame]:
+        """Load bunker volume sensitivity data for FigS5."""
+        data = {}
+        sensitivity_dir = self.results_dir / "sensitivity"
+        for case_id in ['case_1', 'case_2', 'case_3']:
+            path = sensitivity_dir / f"bunker_volume_{case_id}.csv"
+            if path.exists():
+                data[case_id] = pd.read_csv(path)
+        return data
+
+    def _load_two_way_det(self) -> Dict[str, pd.DataFrame]:
+        """Load deterministic two-way sensitivity data for FigS4."""
+        data = {}
+        sensitivity_dir = self.results_dir / "sensitivity"
+        for case_id in ['case_1', 'case_2', 'case_3']:
+            path = sensitivity_dir / f"two_way_det_{case_id}.csv"
+            if path.exists():
+                data[case_id] = pd.read_csv(path, index_col=0)
         return data
 
     def _get_optimal(self, case_id: str) -> Dict[str, Any]:
@@ -293,7 +373,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'D1_npc_vs_shuttle.png', bbox_inches='tight')
-        plt.savefig(output_path / 'D1_npc_vs_shuttle.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] D1: Total Cost vs Shuttle Size")
 
@@ -344,7 +423,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'D2_yearly_cost_evolution.png', bbox_inches='tight')
-        plt.savefig(output_path / 'D2_yearly_cost_evolution.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] D2: Yearly Cost Evolution")
 
@@ -401,7 +479,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'D3_yearly_fleet_demand.png', bbox_inches='tight')
-        plt.savefig(output_path / 'D3_yearly_fleet_demand.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] D3: Yearly Fleet & Demand Evolution")
 
@@ -439,7 +516,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'D4_yearly_cycles.png', bbox_inches='tight')
-        plt.savefig(output_path / 'D4_yearly_cycles.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] D4: Annual Cycles")
 
@@ -478,7 +554,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'D5_yearly_utilization.png', bbox_inches='tight')
-        plt.savefig(output_path / 'D5_yearly_utilization.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] D5: Utilization Rate")
 
@@ -499,7 +574,7 @@ class PaperFigureGenerator:
 
         for idx, shuttle_size in enumerate(shuttle_sizes):
             df_shuttle = df[(df['Shuttle_Size_cbm'] == shuttle_size) &
-                           (df['Pump_Size_m3ph'] == 1000)].copy()
+                           (df['Pump_Size_m3ph'] == 500)].copy()
 
             if df_shuttle.empty:
                 continue
@@ -525,7 +600,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / f'D4_{case_label}.png', bbox_inches='tight')
-        plt.savefig(output_path / f'D4_{case_label}.pdf', bbox_inches='tight')
         plt.close()
         print(f"  [OK] D4_{case_label}: Annual Cycles")
 
@@ -546,7 +620,7 @@ class PaperFigureGenerator:
 
         for idx, shuttle_size in enumerate(shuttle_sizes):
             df_shuttle = df[(df['Shuttle_Size_cbm'] == shuttle_size) &
-                           (df['Pump_Size_m3ph'] == 1000)].copy()
+                           (df['Pump_Size_m3ph'] == 500)].copy()
 
             if df_shuttle.empty:
                 continue
@@ -573,7 +647,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / f'D5_{case_label}.png', bbox_inches='tight')
-        plt.savefig(output_path / f'D5_{case_label}.pdf', bbox_inches='tight')
         plt.close()
         print(f"  [OK] D5_{case_label}: Utilization Rate")
 
@@ -585,13 +658,13 @@ class PaperFigureGenerator:
         self.fig_d4_case_cycles(output_path, 'case_1', [2500, 5000], 'case1')
         self.fig_d5_case_utilization(output_path, 'case_1', [2500, 5000], 'case1')
 
-        # Case 2-1 (Yeosu): 5000, 10000, 15000 m3
-        self.fig_d4_case_cycles(output_path, 'case_2_yeosu', [5000, 10000, 15000], 'case2-1')
-        self.fig_d5_case_utilization(output_path, 'case_2_yeosu', [5000, 10000, 15000], 'case2-1')
+        # Case 2 (Ulsan): 2500, 5000, 10000 m3
+        self.fig_d4_case_cycles(output_path, 'case_2', [2500, 5000, 10000], 'case2')
+        self.fig_d5_case_utilization(output_path, 'case_2', [2500, 5000, 10000], 'case2')
 
-        # Case 2-2 (Ulsan): 2500, 5000, 10000 m3
-        self.fig_d4_case_cycles(output_path, 'case_2_ulsan', [2500, 5000, 10000], 'case2-2')
-        self.fig_d5_case_utilization(output_path, 'case_2_ulsan', [2500, 5000, 10000], 'case2-2')
+        # Case 3 (Yeosu): 5000, 10000, 15000 m3
+        self.fig_d4_case_cycles(output_path, 'case_3', [5000, 10000, 15000], 'case3')
+        self.fig_d5_case_utilization(output_path, 'case_3', [5000, 10000, 15000], 'case3')
 
     def fig_d12_npc_heatmap(self, output_path: Path) -> None:
         """D12: NPC Heatmaps for all cases (legacy, for multi-pump analysis)."""
@@ -606,8 +679,26 @@ class PaperFigureGenerator:
                 columns='Shuttle_Size_cbm'
             )
 
-            im = axes[idx].imshow(pivot.values, cmap='RdYlGn_r',
+            # Handle infeasible (NaN) cells: fill with gray background + hatching
+            mask = np.isnan(pivot.values)
+            plot_data = pivot.values.copy()
+            if mask.any():
+                plot_data[mask] = np.nanmax(plot_data)
+
+            im = axes[idx].imshow(plot_data, cmap='RdYlGn_r',
                                   aspect='auto', origin='lower')
+
+            # Overlay gray hatching on infeasible cells
+            if mask.any():
+                for r_i in range(mask.shape[0]):
+                    for c_i in range(mask.shape[1]):
+                        if mask[r_i, c_i]:
+                            axes[idx].add_patch(plt.Rectangle(
+                                (c_i - 0.5, r_i - 0.5), 1, 1,
+                                facecolor='#d0d0d0', edgecolor='gray',
+                                hatch='///', linewidth=0.5, zorder=2))
+                            axes[idx].text(c_i, r_i, 'N/A', ha='center', va='center',
+                                          fontsize=7, color='gray', zorder=3)
 
             # Set ticks
             axes[idx].set_xticks(np.arange(len(pivot.columns)))
@@ -617,12 +708,12 @@ class PaperFigureGenerator:
             x_labels = [str(int(c)) if i % 2 == 0 else ''
                        for i, c in enumerate(pivot.columns)]
             y_labels = [str(int(r)) for r in pivot.index]
-            axes[idx].set_xticklabels(x_labels, rotation=45, ha='right', fontsize=8)
-            axes[idx].set_yticklabels(y_labels, fontsize=8)
+            axes[idx].set_xticklabels(x_labels, rotation=45, ha='right', fontsize=11)
+            axes[idx].set_yticklabels(y_labels, fontsize=11)
 
             # Colorbar
             cbar = plt.colorbar(im, ax=axes[idx], shrink=0.8)
-            cbar.set_label('NPC (M USD)', fontsize=9)
+            cbar.set_label('NPC (M USD)', fontsize=11)
 
             # Mark optimal
             opt = self._get_optimal(case_id)
@@ -639,7 +730,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'D12_npc_heatmaps.png', bbox_inches='tight')
-        plt.savefig(output_path / 'D12_npc_heatmaps.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] D12: NPC Heatmaps (legacy)")
 
@@ -695,7 +785,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'D6_cost_breakdown.png', bbox_inches='tight')
-        plt.savefig(output_path / 'D6_cost_breakdown.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] D6: Cost Breakdown")
 
@@ -747,7 +836,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'D7_cycle_time.png', bbox_inches='tight')
-        plt.savefig(output_path / 'D7_cycle_time.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] D7: Cycle Time")
 
@@ -779,7 +867,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'D8_fleet_evolution.png', bbox_inches='tight')
-        plt.savefig(output_path / 'D8_fleet_evolution.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] D8: Fleet Evolution")
 
@@ -810,7 +897,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'D9_lco_comparison.png', bbox_inches='tight')
-        plt.savefig(output_path / 'D9_lco_comparison.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] D9: LCO Comparison")
 
@@ -841,7 +927,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'D10_case_npc_comparison.png', bbox_inches='tight')
-        plt.savefig(output_path / 'D10_case_npc_comparison.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] D10: Case NPC Comparison")
 
@@ -870,11 +955,10 @@ class PaperFigureGenerator:
             # Value labels
             for bar, v in zip(bars, npcs):
                 axes[idx].text(bar.get_width() + 1, bar.get_y() + bar.get_height()/2,
-                             f'${v:.1f}M', va='center', fontsize=9)
+                             f'${v:.1f}M', va='center', fontsize=11)
 
         plt.tight_layout()
         plt.savefig(output_path / 'D11_top_configurations.png', bbox_inches='tight')
-        plt.savefig(output_path / 'D11_top_configurations.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] D11: Top Configurations")
 
@@ -922,7 +1006,7 @@ class PaperFigureGenerator:
                 ci_upper = summary['CI_95_Upper_USDm']
                 ax.annotate(f'95% CI: [{ci_lower:.0f}, {ci_upper:.0f}]',
                           xy=(i, ci_upper), xytext=(i+0.3, ci_upper+30),
-                          fontsize=8, ha='left')
+                          fontsize=11, ha='left')
 
         ax.set_ylabel('NPC (Million USD)')
         ax.set_xlabel('Supply Scenario')
@@ -933,7 +1017,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'S1_npc_boxplot.png', bbox_inches='tight')
-        plt.savefig(output_path / 'S1_npc_boxplot.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] S1: NPC Box Plot")
 
@@ -984,7 +1067,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'S2_vss_evpi.png', bbox_inches='tight')
-        plt.savefig(output_path / 'S2_vss_evpi.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] S2: VSS/EVPI")
 
@@ -1020,12 +1102,11 @@ class PaperFigureGenerator:
             ax.set_xlabel('NPC (Million USD)')
             ax.set_ylabel('Frequency')
             ax.set_title(CASE_SHORT[case_id], fontweight='bold')
-            ax.legend(fontsize=8)
+            ax.legend(fontsize=11)
             ax.grid(axis='y', alpha=0.3)
 
         plt.tight_layout()
         plt.savefig(output_path / 'S3_mc_distribution.png', bbox_inches='tight')
-        plt.savefig(output_path / 'S3_mc_distribution.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] S3: MC Distribution")
 
@@ -1059,7 +1140,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'S4_vessel_distribution.png', bbox_inches='tight')
-        plt.savefig(output_path / 'S4_vessel_distribution.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] S4: Vessel Distribution")
 
@@ -1089,7 +1169,7 @@ class PaperFigureGenerator:
                           edgecolor='black')
 
             ax.set_yticks(y_pos)
-            ax.set_yticklabels(params, fontsize=9)
+            ax.set_yticklabels(params, fontsize=11)
             ax.set_xlabel('NPC Swing (Million USD)')
             ax.set_title(f'{CASE_SHORT[case_id]}\n(Base: ${base_npc:.1f}M)',
                         fontweight='bold')
@@ -1098,13 +1178,12 @@ class PaperFigureGenerator:
             for bar, swing in zip(bars, swings):
                 width = bar.get_width()
                 ax.text(width + 1, bar.get_y() + bar.get_height()/2,
-                       f'${swing:.1f}M', va='center', fontsize=8)
+                       f'${swing:.1f}M', va='center', fontsize=11)
 
             ax.grid(axis='x', alpha=0.3)
 
         plt.tight_layout()
         plt.savefig(output_path / 'S5_tornado.png', bbox_inches='tight')
-        plt.savefig(output_path / 'S5_tornado.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] S5: Tornado Diagram")
 
@@ -1155,11 +1234,10 @@ class PaperFigureGenerator:
         for i in range(len(volume_variations)):
             for j in range(len(fuel_variations)):
                 text = ax.text(j, i, f'{npc_matrix[i, j]:.0f}',
-                             ha='center', va='center', fontsize=8)
+                             ha='center', va='center', fontsize=11)
 
         plt.tight_layout()
         plt.savefig(output_path / 'S6_twoway_sensitivity.png', bbox_inches='tight')
-        plt.savefig(output_path / 'S6_twoway_sensitivity.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] S6: Two-Way Sensitivity")
 
@@ -1167,7 +1245,7 @@ class PaperFigureGenerator:
         """S7: Pump Rate Sensitivity - NPC vs Pump Rate for all cases.
 
         Shows how NPC changes with pump rate, with optimal shuttle size annotated.
-        Vertical dashed line at 1000 m3/h indicates the fixed rate used in main analysis.
+        Vertical dashed line at 500 m3/h indicates the fixed rate used in main analysis.
         """
         # Load pump sensitivity data
         pump_data = self._load_pump_sensitivity_data()
@@ -1196,22 +1274,22 @@ class PaperFigureGenerator:
                           ha='center', va='bottom', fontsize=7,
                           color=COLORS[case_id], alpha=0.8)
 
-        # Vertical line at fixed pump rate (1000 m3/h)
-        ax.axvline(x=1000, color='red', linestyle='--', linewidth=2, alpha=0.7,
-                  label='Fixed Rate (1000 m$^3$/h)')
+        # Vertical line at fixed pump rate (500 m3/h)
+        ax.axvline(x=500, color='red', linestyle='--', linewidth=2, alpha=0.7,
+                  label='Fixed Rate (500 m$^3$/h)')
 
         # Add annotation for fixed rate
         ymin, ymax = ax.get_ylim()
         ax.annotate('Main Analysis\nFixed Rate',
-                   xy=(1000, ymin + (ymax - ymin) * 0.15),
-                   ha='center', fontsize=9, color='red', alpha=0.8,
+                   xy=(500, ymin + (ymax - ymin) * 0.15),
+                   ha='center', fontsize=11, color='red', alpha=0.8,
                    bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
 
         ax.set_xlabel('Pump Rate (m$^3$/h)', fontsize=11)
         ax.set_ylabel('Minimum NPC (Million USD)', fontsize=11)
         ax.set_title('NPC Sensitivity to Pump Rate\n(Numbers indicate optimal shuttle size in m$^3$)',
                     fontweight='bold', fontsize=12)
-        ax.legend(loc='upper right', fontsize=9)
+        ax.legend(loc='upper right', fontsize=11)
         ax.grid(True, alpha=0.3)
 
         # Set x-axis limits with some padding
@@ -1219,9 +1297,446 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'S7_pump_sensitivity.png', bbox_inches='tight')
-        plt.savefig(output_path / 'S7_pump_sensitivity.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] S7: Pump Rate Sensitivity")
+
+    # =========================================================================
+    # New Deterministic Sensitivity Figures (Fig7-Fig10, FigS4-S5)
+    # =========================================================================
+
+    def fig_7_tornado_deterministic(self, output_path: Path) -> None:
+        """Fig7: Tornado diagram from deterministic sensitivity (+/-20%)."""
+        tornado_data = self._load_deterministic_tornado()
+
+        if not tornado_data:
+            print("  [WARN] Fig7: No deterministic tornado data available")
+            print("         Run: python scripts/run_deterministic_sensitivity.py --analyses tornado")
+            return
+
+        n_cases = len(tornado_data)
+        fig, axes = plt.subplots(1, n_cases, figsize=(5 * n_cases, 5))
+        if n_cases == 1:
+            axes = [axes]
+
+        fig.suptitle('Parameter Sensitivity Analysis ($\\pm$20%)',
+                     fontsize=16, fontweight='bold')
+
+        for idx, (case_id, df) in enumerate(tornado_data.items()):
+            ax = axes[idx]
+
+            # Sort by swing (ascending for horizontal bar chart, largest at top)
+            df_sorted = df.sort_values('Swing_USDm', ascending=True)
+
+            params = df_sorted['Parameter'].values
+            low_npcs = df_sorted['Low_NPC_USDm'].values
+            high_npcs = df_sorted['High_NPC_USDm'].values
+
+            # Get base NPC
+            opt = self._get_optimal(case_id)
+            base_npc = opt['npc'] if opt else df_sorted['Low_NPC_USDm'].mean()
+
+            y_pos = np.arange(len(params))
+            bar_height = 0.6
+
+            # Plot low-side bars (from base to low value)
+            low_delta = low_npcs - base_npc
+            high_delta = high_npcs - base_npc
+
+            ax.barh(y_pos, low_delta, bar_height, left=base_npc,
+                    color='#2ca02c', alpha=0.7, label='-20%')
+            ax.barh(y_pos, high_delta, bar_height, left=base_npc,
+                    color='#d62728', alpha=0.7, label='+20%')
+
+            # Base NPC line
+            ax.axvline(base_npc, color='black', linewidth=1.5, linestyle='-')
+
+            ax.set_yticks(y_pos)
+            ax.set_yticklabels(params, fontsize=10)
+            ax.set_xlabel('NPC (Million USD)', fontsize=12)
+            ax.set_title(f'{CASE_SHORT[case_id]}\n(Base: ${base_npc:.1f}M)',
+                         fontweight='bold', fontsize=13)
+            ax.legend(loc='lower right', fontsize=11)
+            ax.grid(axis='x', alpha=0.3)
+
+        plt.tight_layout()
+        plt.savefig(output_path / 'Fig7_tornado_deterministic.png', bbox_inches='tight')
+        plt.close()
+        print("  [OK] Fig7: Tornado Diagram (Deterministic)")
+
+    def fig_8_fuel_price_sensitivity(self, output_path: Path) -> None:
+        """Fig8: Fuel price sensitivity - LCO vs fuel price for all cases."""
+        fuel_data = self._load_fuel_price_sensitivity()
+
+        if not fuel_data:
+            print("  [WARN] Fig8: No fuel price sensitivity data available")
+            print("         Run: python scripts/run_deterministic_sensitivity.py --analyses fuel")
+            return
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.5))
+        fig.suptitle('Fuel Price Sensitivity Analysis',
+                     fontsize=16, fontweight='bold')
+
+        # Left panel: NPC vs Fuel Price
+        for case_id, df in fuel_data.items():
+            if df.empty:
+                continue
+            ax1.plot(df['Parameter_Value'], df['NPC_USDm'],
+                     marker='o', linewidth=2.5, markersize=7,
+                     color=COLORS[case_id], label=CASE_SHORT[case_id])
+
+        # Mark base case
+        ax1.axvline(x=600, color='gray', linestyle='--', linewidth=1.5, alpha=0.6,
+                    label='Base ($600/ton)')
+
+        ax1.set_xlabel('Ammonia Fuel Price (USD/ton)', fontsize=13)
+        ax1.set_ylabel('20-Year NPC (Million USD)', fontsize=13)
+        ax1.set_title('(a) Total Cost vs Fuel Price', fontweight='bold', fontsize=14)
+        ax1.legend(loc='upper left', fontsize=10)
+        ax1.grid(True, alpha=0.3)
+        ax1.tick_params(axis='both', labelsize=11)
+
+        # Right panel: LCO vs Fuel Price
+        for case_id, df in fuel_data.items():
+            if df.empty or 'LCO_USD_per_ton' not in df.columns:
+                continue
+            ax2.plot(df['Parameter_Value'], df['LCO_USD_per_ton'],
+                     marker='s', linewidth=2.5, markersize=7,
+                     color=COLORS[case_id], label=CASE_SHORT[case_id])
+
+        ax2.axvline(x=600, color='gray', linestyle='--', linewidth=1.5, alpha=0.6,
+                    label='Base ($600/ton)')
+
+        ax2.set_xlabel('Ammonia Fuel Price (USD/ton)', fontsize=13)
+        ax2.set_ylabel('LCO (USD/ton)', fontsize=13)
+        ax2.set_title('(b) Levelized Cost vs Fuel Price', fontweight='bold', fontsize=14)
+        ax2.legend(loc='upper left', fontsize=10)
+        ax2.grid(True, alpha=0.3)
+        ax2.tick_params(axis='both', labelsize=11)
+
+        plt.tight_layout()
+        plt.savefig(output_path / 'Fig8_fuel_price_sensitivity.png', bbox_inches='tight')
+        plt.close()
+        print("  [OK] Fig8: Fuel Price Sensitivity")
+
+    def fig_9_breakeven_distance(self, output_path: Path) -> None:
+        """Fig9: Break-even distance analysis - Case 1 vs Case 2 NPC curves."""
+        breakeven_data = self._load_breakeven_distance()
+
+        if not breakeven_data:
+            print("  [WARN] Fig9: No breakeven distance data available")
+            print("         Run: python scripts/run_breakeven_analysis.py")
+            return
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+
+        case1_npc_val = None
+
+        for name, df in breakeven_data.items():
+            # Find NPC columns dynamically (each CSV has different Case 2 column)
+            npc_cols = [c for c in df.columns if 'NPC_USDm' in c]
+            if len(npc_cols) < 2:
+                continue
+
+            # Case 1 column: contains "Case 1" or "Busan"
+            c1_cols = [c for c in npc_cols if 'Case 1' in c or 'Busan' in c]
+            c2_cols = [c for c in npc_cols if c not in c1_cols]
+
+            case1_col = c1_cols[0] if c1_cols else npc_cols[0]
+            case2_col = c2_cols[0] if c2_cols else npc_cols[1]
+
+            distances = df['Distance_nm'].values
+            case2_vals = df[case2_col].values
+
+            if case1_npc_val is None:
+                case1_npc_val = df[case1_col].iloc[0]
+
+            # Case 2 line (varies with distance)
+            color = COLORS['case_2'] if name == 'ulsan' else COLORS['case_3']
+            label = 'Case 2: Ulsan' if name == 'ulsan' else 'Case 3: Yeosu'
+            ax.plot(distances, case2_vals,
+                    marker='o', linewidth=2.5, markersize=6,
+                    color=color, label=label)
+
+            # Find and annotate breakeven point for this comparison
+            if case1_npc_val is not None:
+                diff = case1_npc_val - case2_vals
+                for i in range(len(diff) - 1):
+                    if diff[i] * diff[i + 1] < 0:
+                        x0, x1 = distances[i], distances[i + 1]
+                        d0, d1 = diff[i], diff[i + 1]
+                        x_cross = x0 - d0 * (x1 - x0) / (d1 - d0)
+
+                        ax.axvline(x=x_cross, color=color, linestyle=':', linewidth=1.5, alpha=0.6)
+                        ax.annotate(f'Break-even\n{x_cross:.0f} nm',
+                                    xy=(x_cross, case1_npc_val),
+                                    xytext=(x_cross + 8, case1_npc_val * 1.12),
+                                    fontsize=10, fontweight='bold', color=color,
+                                    arrowprops=dict(arrowstyle='->', color=color, lw=1.5))
+                        break
+
+        # Case 1 horizontal line (same-shuttle comparison)
+        if case1_npc_val is not None:
+            ax.axhline(y=case1_npc_val, color=COLORS['case_1'], linewidth=2.5,
+                       linestyle='--', label=f'Case 1 (same shuttle)')
+
+        # --- Optimal-vs-optimal overlay (dashed curves) ---
+        optimal_data = self._load_breakeven_distance_optimal()
+        opt_case1_npc_val = None
+
+        if optimal_data:
+            for name, df in optimal_data.items():
+                npc_cols = [c for c in df.columns if 'NPC_USDm' in c]
+                if len(npc_cols) < 2:
+                    continue
+
+                c1_cols = [c for c in npc_cols if 'Case 1' in c or 'Busan' in c]
+                c2_cols = [c for c in npc_cols if c not in c1_cols]
+
+                case1_col = c1_cols[0] if c1_cols else npc_cols[0]
+                case2_col = c2_cols[0] if c2_cols else npc_cols[1]
+
+                distances = df['Distance_nm'].values
+                case2_vals = df[case2_col].values
+
+                if opt_case1_npc_val is None:
+                    opt_case1_npc_val = df[case1_col].iloc[0]
+
+                color = COLORS['case_2'] if name == 'ulsan' else COLORS['case_3']
+                label = 'Ulsan (optimal)' if name == 'ulsan' else 'Yeosu (optimal)'
+                ax.plot(distances, case2_vals,
+                        linestyle='--', linewidth=2.0, markersize=0,
+                        color=color, alpha=0.7, label=label)
+
+                # Find and annotate optimal breakeven point
+                if opt_case1_npc_val is not None:
+                    diff = opt_case1_npc_val - case2_vals
+                    for i in range(len(diff) - 1):
+                        if diff[i] * diff[i + 1] < 0:
+                            x0, x1 = distances[i], distances[i + 1]
+                            d0, d1 = diff[i], diff[i + 1]
+                            x_cross = x0 - d0 * (x1 - x0) / (d1 - d0)
+
+                            ax.axvline(x=x_cross, color=color, linestyle='--',
+                                       linewidth=1.2, alpha=0.4)
+                            ax.annotate(f'Opt. BE\n{x_cross:.0f} nm',
+                                        xy=(x_cross, opt_case1_npc_val),
+                                        xytext=(x_cross - 20, opt_case1_npc_val * 0.85),
+                                        fontsize=11, fontstyle='italic', color=color,
+                                        arrowprops=dict(arrowstyle='->', color=color,
+                                                        lw=1.2, ls='--'))
+                            break
+
+            # Case 1 optimal horizontal line
+            if opt_case1_npc_val is not None and opt_case1_npc_val != case1_npc_val:
+                ax.axhline(y=opt_case1_npc_val, color=COLORS['case_1'], linewidth=2.0,
+                           linestyle=':', alpha=0.7,
+                           label=f'Case 1 (optimal, 2500 m3)')
+
+        ax.set_xlabel('Supply Distance (nautical miles)', fontsize=13)
+        ax.set_ylabel('21-Year NPC (Million USD)', fontsize=13)
+        ax.set_title('Break-even Distance: Storage vs Direct Supply',
+                     fontsize=15, fontweight='bold')
+        ax.legend(loc='upper left', fontsize=10)
+        ax.grid(True, alpha=0.3)
+        ax.tick_params(axis='both', labelsize=11)
+        ax.set_xlim(0, None)
+        ax.set_ylim(0, None)
+
+        plt.tight_layout()
+        plt.savefig(output_path / 'Fig9_breakeven_distance.png', bbox_inches='tight')
+        plt.close()
+        print("  [OK] Fig9: Break-even Distance")
+
+    def fig_10_demand_scenarios(self, output_path: Path) -> None:
+        """Fig10: Demand scenario comparison - grouped bar chart."""
+        demand_data = self._load_demand_scenarios()
+
+        # Prefer summary file
+        if 'summary' in demand_data:
+            df = demand_data['summary']
+        elif demand_data:
+            df = pd.concat(list(demand_data.values()), ignore_index=True)
+        else:
+            print("  [WARN] Fig10: No demand scenario data available")
+            print("         Run: python scripts/run_demand_scenarios.py")
+            return
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.5))
+        fig.suptitle('Impact of Demand Growth on Optimal Infrastructure',
+                     fontsize=16, fontweight='bold')
+
+        scenarios = df['Scenario'].unique()
+        cases = [c for c in ['case_1', 'case_2', 'case_3'] if c in df['Case'].unique()]
+        n_cases = len(cases)
+
+        x = np.arange(len(scenarios))
+        total_width = 0.7
+        bar_width = total_width / n_cases
+
+        # Left panel: NPC by scenario
+        for i, case_id in enumerate(cases):
+            case_data = df[df['Case'] == case_id]
+            # Sort by scenario order
+            scenario_order = {s: idx for idx, s in enumerate(scenarios)}
+            case_data = case_data.copy()
+            case_data['order'] = case_data['Scenario'].map(scenario_order)
+            case_data = case_data.sort_values('order')
+
+            offset = (i - n_cases / 2 + 0.5) * bar_width
+            bars = ax1.bar(x + offset, case_data['NPC_Total_USDm'].values,
+                           bar_width, color=COLORS[case_id],
+                           label=CASE_SHORT[case_id], edgecolor='black', linewidth=0.5)
+
+        ax1.set_xlabel('Demand Scenario', fontsize=13)
+        ax1.set_ylabel('20-Year NPC (Million USD)', fontsize=13)
+        ax1.set_title('(a) Total Cost by Scenario', fontweight='bold', fontsize=14)
+        ax1.set_xticks(x)
+        ax1.set_xticklabels(scenarios, fontsize=10)
+        ax1.legend(loc='upper left', fontsize=10)
+        ax1.grid(axis='y', alpha=0.3)
+        ax1.tick_params(axis='both', labelsize=11)
+
+        # Right panel: LCO by scenario
+        for i, case_id in enumerate(cases):
+            case_data = df[df['Case'] == case_id]
+            case_data = case_data.copy()
+            scenario_order = {s: idx for idx, s in enumerate(scenarios)}
+            case_data['order'] = case_data['Scenario'].map(scenario_order)
+            case_data = case_data.sort_values('order')
+
+            offset = (i - n_cases / 2 + 0.5) * bar_width
+            ax2.bar(x + offset, case_data['LCO_USD_per_ton'].values,
+                    bar_width, color=COLORS[case_id],
+                    label=CASE_SHORT[case_id], edgecolor='black', linewidth=0.5)
+
+        ax2.set_xlabel('Demand Scenario', fontsize=13)
+        ax2.set_ylabel('LCO (USD/ton)', fontsize=13)
+        ax2.set_title('(b) Levelized Cost by Scenario', fontweight='bold', fontsize=14)
+        ax2.set_xticks(x)
+        ax2.set_xticklabels(scenarios, fontsize=10)
+        ax2.legend(loc='upper right', fontsize=10)
+        ax2.grid(axis='y', alpha=0.3)
+        ax2.tick_params(axis='both', labelsize=11)
+
+        plt.tight_layout()
+        plt.savefig(output_path / 'Fig10_demand_scenarios.png', bbox_inches='tight')
+        plt.close()
+        print("  [OK] Fig10: Demand Scenarios")
+
+    def fig_s4_twoway_deterministic(self, output_path: Path) -> None:
+        """FigS4: Two-way sensitivity heatmap (actual optimization, not synthetic)."""
+        twoway_data = self._load_two_way_det()
+
+        if not twoway_data:
+            print("  [WARN] FigS4: No two-way deterministic data available")
+            print("         Run: python scripts/run_deterministic_sensitivity.py --analyses twoway")
+            return
+
+        n_cases = len(twoway_data)
+        fig, axes = plt.subplots(1, n_cases, figsize=(7 * n_cases, 5))
+        if n_cases == 1:
+            axes = [axes]
+
+        fig.suptitle('Two-Way Sensitivity: Fuel Price x Bunker Volume',
+                     fontsize=16, fontweight='bold')
+
+        for idx, (case_id, df) in enumerate(twoway_data.items()):
+            ax = axes[idx]
+
+            # Convert to numpy matrix
+            npc_matrix = df.values.astype(float)
+
+            im = ax.imshow(npc_matrix, cmap='RdYlGn_r', aspect='auto')
+
+            # Labels from index/columns
+            row_labels = [str(r).split('=')[-1] if '=' in str(r) else str(r) for r in df.index]
+            col_labels = [str(c).split('=')[-1] if '=' in str(c) else str(c) for c in df.columns]
+
+            ax.set_xticks(np.arange(len(col_labels)))
+            ax.set_yticks(np.arange(len(row_labels)))
+            ax.set_xticklabels(col_labels, rotation=45, ha='right', fontsize=11)
+            ax.set_yticklabels(row_labels, fontsize=11)
+
+            # Axis labels from index/column names
+            ax.set_xlabel('Bunker Volume Variation', fontsize=11)
+            ax.set_ylabel('Fuel Price Variation', fontsize=11)
+            ax.set_title(f'{CASE_SHORT[case_id]}', fontweight='bold', fontsize=13)
+
+            # Colorbar
+            cbar = plt.colorbar(im, ax=ax, shrink=0.8)
+            cbar.set_label('NPC (Million USD)', fontsize=10)
+
+            # Annotate cells
+            for i in range(npc_matrix.shape[0]):
+                for j in range(npc_matrix.shape[1]):
+                    val = npc_matrix[i, j]
+                    text_color = 'white' if val > np.median(npc_matrix) else 'black'
+                    ax.text(j, i, f'{val:.0f}', ha='center', va='center',
+                            fontsize=11, color=text_color)
+
+        plt.tight_layout()
+        plt.savefig(output_path / 'FigS4_twoway_deterministic.png', bbox_inches='tight')
+        plt.close()
+        print("  [OK] FigS4: Two-Way Sensitivity (Deterministic)")
+
+    def fig_s5_bunker_volume_sensitivity(self, output_path: Path) -> None:
+        """FigS5: Bunker volume sensitivity - NPC and LCO vs bunker volume."""
+        volume_data = self._load_bunker_volume_sensitivity()
+
+        if not volume_data:
+            print("  [WARN] FigS5: No bunker volume sensitivity data available")
+            print("         Run: python scripts/run_deterministic_sensitivity.py --analyses bunker")
+            return
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.5))
+        fig.suptitle('Bunker Volume Sensitivity Analysis',
+                     fontsize=16, fontweight='bold')
+
+        # Left panel: NPC vs Bunker Volume
+        for case_id, df in volume_data.items():
+            if df.empty:
+                continue
+            ax1.plot(df['Parameter_Value'], df['NPC_USDm'],
+                     marker='o', linewidth=2.5, markersize=7,
+                     color=COLORS[case_id], label=CASE_SHORT[case_id])
+
+        # Mark base volume
+        ax1.axvline(x=5000, color='gray', linestyle='--', linewidth=1.5, alpha=0.6,
+                    label='Base (5,000 m$^3$)')
+
+        ax1.set_xlabel('Bunker Volume per Call (m$^3$)', fontsize=13)
+        ax1.set_ylabel('20-Year NPC (Million USD)', fontsize=13)
+        ax1.set_title('(a) Total Cost vs Bunker Volume', fontweight='bold', fontsize=14)
+        ax1.legend(loc='upper left', fontsize=10)
+        ax1.grid(True, alpha=0.3)
+        ax1.tick_params(axis='both', labelsize=11)
+        ax1.xaxis.set_major_formatter(plt.FuncFormatter(
+            lambda x, p: f'{x/1000:.1f}k' if x >= 1000 else f'{x:.0f}'))
+
+        # Right panel: LCO vs Bunker Volume
+        for case_id, df in volume_data.items():
+            if df.empty or 'LCO_USD_per_ton' not in df.columns:
+                continue
+            ax2.plot(df['Parameter_Value'], df['LCO_USD_per_ton'],
+                     marker='s', linewidth=2.5, markersize=7,
+                     color=COLORS[case_id], label=CASE_SHORT[case_id])
+
+        ax2.axvline(x=5000, color='gray', linestyle='--', linewidth=1.5, alpha=0.6,
+                    label='Base (5,000 m$^3$)')
+
+        ax2.set_xlabel('Bunker Volume per Call (m$^3$)', fontsize=13)
+        ax2.set_ylabel('LCO (USD/ton)', fontsize=13)
+        ax2.set_title('(b) Levelized Cost vs Bunker Volume', fontweight='bold', fontsize=14)
+        ax2.legend(loc='upper right', fontsize=10)
+        ax2.grid(True, alpha=0.3)
+        ax2.tick_params(axis='both', labelsize=11)
+        ax2.xaxis.set_major_formatter(plt.FuncFormatter(
+            lambda x, p: f'{x/1000:.1f}k' if x >= 1000 else f'{x:.0f}'))
+
+        plt.tight_layout()
+        plt.savefig(output_path / 'FigS5_bunker_volume_sensitivity.png', bbox_inches='tight')
+        plt.close()
+        print("  [OK] FigS5: Bunker Volume Sensitivity")
 
     # =========================================================================
     # Combined Figures (C1-C4)
@@ -1254,11 +1769,11 @@ class PaperFigureGenerator:
         # Value labels
         for bar, v in zip(bars1, det_npcs):
             ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 5,
-                   f'${v:.0f}M', ha='center', va='bottom', fontsize=9, fontweight='bold')
+                   f'${v:.0f}M', ha='center', va='bottom', fontsize=11, fontweight='bold')
 
         for bar, v, std in zip(bars2, stoch_npcs, stoch_std):
             ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + std + 10,
-                   f'${v:.0f}M\n(+{std:.0f})', ha='center', va='bottom', fontsize=8)
+                   f'${v:.0f}M\n(+{std:.0f})', ha='center', va='bottom', fontsize=11)
 
         ax.set_ylabel('20-Year NPC (Million USD)')
         ax.set_xlabel('Supply Scenario')
@@ -1270,7 +1785,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'C1_det_vs_stoch.png', bbox_inches='tight')
-        plt.savefig(output_path / 'C1_det_vs_stoch.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] C1: Det vs Stoch")
 
@@ -1281,11 +1795,11 @@ class PaperFigureGenerator:
         # Distance data
         distances = {
             'case_1': 2,    # ~2nm within port
-            'case_2_ulsan': 25,  # 25nm
-            'case_2_yeosu': 86,  # 86nm
+            'case_2': 25,  # 25nm
+            'case_3': 86,  # 86nm
         }
 
-        cases = ['case_1', 'case_2_ulsan', 'case_2_yeosu']
+        cases = ['case_1', 'case_2', 'case_3']
         dist_vals = [distances[c] for c in cases]
         npc_vals = [self._get_optimal(c)['npc'] for c in cases]
 
@@ -1295,9 +1809,9 @@ class PaperFigureGenerator:
                       linewidth=2, label=CASE_SHORT[case_id], zorder=5)
 
         # Fit line for Case 2 (direct supply cases)
-        case2_dists = [distances['case_2_ulsan'], distances['case_2_yeosu']]
-        case2_npcs = [self._get_optimal('case_2_ulsan')['npc'],
-                     self._get_optimal('case_2_yeosu')['npc']]
+        case2_dists = [distances['case_2'], distances['case_3']]
+        case2_npcs = [self._get_optimal('case_2')['npc'],
+                     self._get_optimal('case_3')['npc']]
 
         # Linear extrapolation
         slope = (case2_npcs[1] - case2_npcs[0]) / (case2_dists[1] - case2_dists[0])
@@ -1332,7 +1846,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'C2_breakeven_distance.png', bbox_inches='tight')
-        plt.savefig(output_path / 'C2_breakeven_distance.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] C2: Break-even Distance")
 
@@ -1343,7 +1856,7 @@ class PaperFigureGenerator:
         # Create demand sensitivity (synthetic based on analysis)
         demand_factors = np.array([0.5, 0.75, 1.0, 1.25, 1.5])
 
-        cases = ['case_1', 'case_2_ulsan', 'case_2_yeosu']
+        cases = ['case_1', 'case_2', 'case_3']
 
         for case_id in cases:
             base_npc = self._get_optimal(case_id)['npc']
@@ -1361,7 +1874,6 @@ class PaperFigureGenerator:
 
         plt.tight_layout()
         plt.savefig(output_path / 'C3_breakeven_demand.png', bbox_inches='tight')
-        plt.savefig(output_path / 'C3_breakeven_demand.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] C3: Break-even Demand")
 
@@ -1384,7 +1896,7 @@ class PaperFigureGenerator:
         ax1.grid(axis='y', alpha=0.3)
         for bar, v in zip(bars, npcs):
             ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height(),
-                    f'${v:.0f}M', ha='center', va='bottom', fontsize=9)
+                    f'${v:.0f}M', ha='center', va='bottom', fontsize=11)
 
         # (b) LCO Comparison
         ax2 = fig.add_subplot(gs[0, 1])
@@ -1396,7 +1908,7 @@ class PaperFigureGenerator:
         ax2.grid(axis='y', alpha=0.3)
         for bar, v in zip(bars, lcos):
             ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height(),
-                    f'${v:.2f}', ha='center', va='bottom', fontsize=9)
+                    f'${v:.2f}', ha='center', va='bottom', fontsize=11)
 
         # (c) Fleet Growth
         ax3 = fig.add_subplot(gs[0, 2])
@@ -1411,7 +1923,7 @@ class PaperFigureGenerator:
         ax3.set_xlabel('Year')
         ax3.set_ylabel('Fleet Size')
         ax3.set_title('(c) Fleet Evolution', fontweight='bold')
-        ax3.legend(fontsize=8)
+        ax3.legend(fontsize=11)
         ax3.grid(True, alpha=0.3)
 
         # (d) Cost Structure Pie (Case 1)
@@ -1435,7 +1947,7 @@ class PaperFigureGenerator:
             y_pos = np.arange(len(df))
             ax5.barh(y_pos, df['Swing_USDm'].values, color=COLORS['case_1'], alpha=0.7)
             ax5.set_yticks(y_pos)
-            ax5.set_yticklabels(df['Parameter'].values, fontsize=9)
+            ax5.set_yticklabels(df['Parameter'].values, fontsize=11)
             ax5.set_xlabel('NPC Swing (M USD)')
             ax5.set_title('(e) Sensitivity Analysis', fontweight='bold')
             ax5.grid(axis='x', alpha=0.3)
@@ -1459,19 +1971,345 @@ class PaperFigureGenerator:
             ax6.bar(x - width/2, vss_vals, width, label='|VSS|', color='#d62728')
             ax6.bar(x + width/2, evpi_vals, width, label='EVPI', color='#2ca02c')
             ax6.set_xticks(x)
-            ax6.set_xticklabels([CASE_SHORT[c] for c in cases], fontsize=9)
+            ax6.set_xticklabels([CASE_SHORT[c] for c in cases], fontsize=11)
             ax6.set_ylabel('Value (M USD)')
             ax6.set_title('(f) Stochastic Value', fontweight='bold')
-            ax6.legend(fontsize=8)
+            ax6.legend(fontsize=11)
             ax6.grid(axis='y', alpha=0.3)
 
         fig.suptitle('Green Corridor Ammonia Bunkering Analysis Summary',
                     fontsize=16, fontweight='bold', y=0.98)
 
         plt.savefig(output_path / 'C4_summary_dashboard.png', bbox_inches='tight')
-        plt.savefig(output_path / 'C4_summary_dashboard.pdf', bbox_inches='tight')
         plt.close()
         print("  [OK] C4: Summary Dashboard")
+
+    # =========================================================================
+    # Discount Rate Sensitivity Figures (Fig11-Fig12)
+    # =========================================================================
+
+    def _load_discount_rate_data(self) -> Dict[str, pd.DataFrame]:
+        """Load discount rate analysis data for Fig11/Fig12."""
+        data = {}
+        dr_dir = self.results_dir / "discount_rate_analysis" / "data"
+        # Comparison summary
+        comparison_path = dr_dir / "discount_rate_comparison.csv"
+        if comparison_path.exists():
+            data['comparison'] = pd.read_csv(comparison_path)
+        # Yearly data per case
+        for case_id in ['case_1', 'case_2', 'case_3']:
+            yearly_path = dr_dir / f"discount_rate_yearly_{case_id}.csv"
+            if yearly_path.exists():
+                data[f'yearly_{case_id}'] = pd.read_csv(yearly_path)
+        return data
+
+    def fig_11_discount_rate_sensitivity(self, output_path: Path) -> None:
+        """Fig11: Discount rate sensitivity - NPC/LCO vs discount rate for all cases."""
+        dr_data = self._load_discount_rate_data()
+
+        if 'comparison' not in dr_data:
+            print("  [WARN] Fig11: No discount rate comparison data available")
+            print("         Run: python scripts/run_discount_rate_analysis.py")
+            return
+
+        df = dr_data['comparison']
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.5))
+        fig.suptitle('Discount Rate Sensitivity Analysis',
+                     fontsize=16, fontweight='bold')
+
+        cases_in_data = [c for c in ['case_1', 'case_2', 'case_3']
+                         if c in df['Case'].unique()]
+
+        for case_id in cases_in_data:
+            cdf = df[df['Case'] == case_id].sort_values('Discount_Rate')
+            color = COLORS.get(case_id, '#333333')
+            label = CASE_SHORT.get(case_id, case_id)
+
+            # Left panel: NPC
+            ax1.plot(cdf['Discount_Rate'] * 100, cdf['NPC_Total_USDm'],
+                     marker='o', linewidth=2.5, markersize=8,
+                     color=color, label=label)
+
+            # Annotate shuttle size at each point
+            for _, row in cdf.iterrows():
+                ax1.annotate(f"{int(row['Optimal_Shuttle_cbm'])} m3",
+                             xy=(row['Discount_Rate'] * 100, row['NPC_Total_USDm']),
+                             xytext=(5, 10), textcoords='offset points',
+                             fontsize=11, color=color, alpha=0.8)
+
+            # Right panel: LCO
+            ax2.plot(cdf['Discount_Rate'] * 100, cdf['LCO_USD_per_ton'],
+                     marker='s', linewidth=2.5, markersize=8,
+                     color=color, label=label)
+
+        ax1.set_xlabel('Discount Rate (%)', fontsize=13)
+        ax1.set_ylabel('20-Year NPC (Million USD)', fontsize=13)
+        ax1.set_title('(a) Total Cost vs Discount Rate', fontweight='bold', fontsize=14)
+        ax1.legend(loc='best', fontsize=10)
+        ax1.grid(True, alpha=0.3)
+        ax1.tick_params(axis='both', labelsize=11)
+
+        ax2.set_xlabel('Discount Rate (%)', fontsize=13)
+        ax2.set_ylabel('LCO (USD/ton)', fontsize=13)
+        ax2.set_title('(b) Levelized Cost vs Discount Rate', fontweight='bold', fontsize=14)
+        ax2.legend(loc='best', fontsize=10)
+        ax2.grid(True, alpha=0.3)
+        ax2.tick_params(axis='both', labelsize=11)
+
+        plt.tight_layout()
+        plt.savefig(output_path / 'Fig11_discount_rate_sensitivity.png', bbox_inches='tight')
+        plt.close()
+        print("  [OK] Fig11: Discount Rate Sensitivity")
+
+    def fig_12_discount_rate_fleet(self, output_path: Path) -> None:
+        """Fig12: Fleet expansion timeline under different discount rates."""
+        dr_data = self._load_discount_rate_data()
+
+        # Need yearly data for at least one case
+        yearly_keys = [k for k in dr_data if k.startswith('yearly_')]
+        if not yearly_keys:
+            print("  [WARN] Fig12: No discount rate yearly data available")
+            print("         Run: python scripts/run_discount_rate_analysis.py")
+            return
+
+        cases_in_data = []
+        for case_id in ['case_1', 'case_2', 'case_3']:
+            if f'yearly_{case_id}' in dr_data:
+                cases_in_data.append(case_id)
+
+        n_cases = len(cases_in_data)
+        if n_cases == 0:
+            print("  [WARN] Fig12: No yearly data found")
+            return
+
+        fig, axes = plt.subplots(1, n_cases, figsize=(5.5 * n_cases, 5))
+        if n_cases == 1:
+            axes = [axes]
+        fig.suptitle('Fleet Expansion Under Different Discount Rates',
+                     fontsize=16, fontweight='bold')
+
+        rate_styles = {0.0: '-', 0.05: '--', 0.08: ':'}
+
+        for ax_idx, case_id in enumerate(cases_in_data):
+            ax = axes[ax_idx]
+            color = COLORS.get(case_id, '#333333')
+            ydf_all = dr_data[f'yearly_{case_id}']
+
+            rates = sorted(ydf_all['Discount_Rate'].unique())
+            for rate in rates:
+                ydf = ydf_all[ydf_all['Discount_Rate'] == rate].sort_values('Year')
+                style = rate_styles.get(rate, '-.')
+                label = f'r={rate:.0%}'
+                ax.plot(ydf['Year'], ydf['Total_Shuttles'],
+                        linestyle=style, linewidth=2.0, marker='o', markersize=4,
+                        color=color, label=label, alpha=0.9)
+
+            ax.set_xlabel('Year', fontsize=13)
+            if ax_idx == 0:
+                ax.set_ylabel('Total Shuttles', fontsize=13)
+            panel_label = chr(ord('a') + ax_idx)
+            ax.set_title(f'({panel_label}) {CASE_SHORT.get(case_id, case_id)}',
+                         fontweight='bold', fontsize=14)
+            ax.legend(loc='upper left', fontsize=10)
+            ax.grid(True, alpha=0.3)
+            ax.tick_params(axis='both', labelsize=11)
+            ax.set_xlim(2029, 2051)
+            ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
+        plt.tight_layout()
+        plt.savefig(output_path / 'Fig12_discount_rate_fleet.png', bbox_inches='tight')
+        plt.close()
+        print("  [OK] Fig12: Fleet Expansion Timeline")
+
+    # =========================================================================
+    # Yang & Lam DES Comparison Figures (Fig13-Fig14)
+    # =========================================================================
+
+    def _load_yang_lam_data(self) -> Dict[str, pd.DataFrame]:
+        """Load Yang & Lam comparison data for Fig13/Fig14."""
+        data = {}
+        yl_dir = self.results_dir / "yang_lam_des_comparison" / "data"
+
+        for name in ['service_time_comparison', 'flow_rate_sensitivity_comparison',
+                     'sensitivity_summary_comparison']:
+            path = yl_dir / f"{name}.csv"
+            if path.exists():
+                data[name] = pd.read_csv(path)
+        return data
+
+    def fig_13_yang_lam_service_time(self, output_path: Path) -> None:
+        """Fig13: Yang & Lam DES vs MILP service time comparison (2 panels)."""
+        yl_data = self._load_yang_lam_data()
+
+        if 'service_time_comparison' not in yl_data:
+            print("  [WARN] Fig13: No Yang & Lam service time data available")
+            print("         Run: python scripts/run_yang_lam_comparison.py")
+            return
+
+        df = yl_data['service_time_comparison']
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.5))
+        fig.suptitle('Service Time Cross-Validation: Yang & Lam DES vs MILP',
+                     fontsize=16, fontweight='bold')
+
+        # --- Panel (a): Grouped bar chart ---
+        x = np.arange(len(df))
+        width = 0.22
+
+        bars1 = ax1.bar(x - width, df['Yang_Actual_h'], width,
+                        label='Yang & Lam Actual', color='#d62728', alpha=0.85)
+        bars2 = ax1.bar(x, df['Yang_DES_h'], width,
+                        label='Yang & Lam DES', color='#ff7f0e', alpha=0.85)
+        bars3 = ax1.bar(x + width, df['Our_MILP_Adjusted_h'], width,
+                        label='Our MILP (adjusted)', color='#1f77b4', alpha=0.85)
+
+        # Add value labels on bars
+        for bars in [bars1, bars2, bars3]:
+            for bar in bars:
+                height = bar.get_height()
+                ax1.annotate(f'{height:.1f}h',
+                             xy=(bar.get_x() + bar.get_width() / 2, height),
+                             xytext=(0, 4), textcoords='offset points',
+                             ha='center', fontsize=11)
+
+        labels = [f"{int(row['Volume_tons']):,}t\n@{int(row['Flow_Rate_tph'])} t/h"
+                  for _, row in df.iterrows()]
+        ax1.set_xticks(x)
+        ax1.set_xticklabels(labels, fontsize=11)
+        ax1.set_ylabel('Service Time (hours)', fontsize=13)
+        ax1.set_title('(a) Service Time by Validation Point', fontweight='bold', fontsize=14)
+        ax1.legend(loc='upper left', fontsize=10)
+        ax1.grid(True, axis='y', alpha=0.3)
+        ax1.set_ylim(0, max(df['Yang_DES_h'].max(), df['Yang_Actual_h'].max()) * 1.2)
+        ax1.tick_params(axis='y', labelsize=11)
+
+        # --- Panel (b): Parity scatter plot ---
+        ax2.scatter(df['Yang_DES_h'], df['Our_MILP_Adjusted_h'],
+                    s=150, color='#1f77b4', edgecolors='black', linewidth=1.5,
+                    zorder=5, label='Validation points')
+
+        # 45-degree reference line
+        all_vals = list(df['Yang_DES_h']) + list(df['Our_MILP_Adjusted_h'])
+        line_min = min(all_vals) * 0.9
+        line_max = max(all_vals) * 1.1
+        ax2.plot([line_min, line_max], [line_min, line_max],
+                 'k--', alpha=0.5, linewidth=1.5, label='Perfect agreement')
+
+        # Annotate each point
+        for _, row in df.iterrows():
+            ax2.annotate(f"{int(row['Volume_tons']):,}t",
+                         xy=(row['Yang_DES_h'], row['Our_MILP_Adjusted_h']),
+                         xytext=(8, -5), textcoords='offset points',
+                         fontsize=10, color='#333333')
+
+        ax2.set_xlabel('Yang & Lam DES Service Time (hours)', fontsize=13)
+        ax2.set_ylabel('Our MILP Adjusted Service Time (hours)', fontsize=13)
+        ax2.set_title('(b) Parity Plot (DES vs MILP)', fontweight='bold', fontsize=14)
+        ax2.legend(loc='upper left', fontsize=10)
+        ax2.grid(True, alpha=0.3)
+        ax2.set_xlim(line_min, line_max)
+        ax2.set_ylim(line_min, line_max)
+        ax2.set_aspect('equal', adjustable='box')
+        ax2.tick_params(axis='both', labelsize=11)
+
+        plt.tight_layout()
+        plt.savefig(output_path / 'Fig13_yang_lam_service_time.png', bbox_inches='tight')
+        plt.close()
+        print("  [OK] Fig13: Yang & Lam Service Time Comparison")
+
+    def fig_14_yang_lam_sensitivity(self, output_path: Path) -> None:
+        """Fig14: Yang & Lam DES vs MILP sensitivity comparison (2 panels)."""
+        yl_data = self._load_yang_lam_data()
+
+        has_flow = 'flow_rate_sensitivity_comparison' in yl_data
+        has_sens = 'sensitivity_summary_comparison' in yl_data
+
+        if not has_flow and not has_sens:
+            print("  [WARN] Fig14: No Yang & Lam sensitivity data available")
+            print("         Run: python scripts/run_yang_lam_comparison.py")
+            return
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.5))
+        fig.suptitle('Sensitivity Comparison: Yang & Lam DES vs MILP',
+                     fontsize=16, fontweight='bold')
+
+        # --- Panel (a): Flow rate vs service time ---
+        if has_flow:
+            df_flow = yl_data['flow_rate_sensitivity_comparison']
+
+            for pset, color, marker, ls in [
+                ('Our_Case1', '#1f77b4', 'o', '-'),
+                ('Yang_Matched', '#2ca02c', 's', '--'),
+            ]:
+                subset = df_flow[df_flow['Parameter_Set'] == pset].sort_values('Flow_Multiplier')
+                label = subset.iloc[0]['Label'] if not subset.empty else pset
+                ax1.plot(subset['Flow_Multiplier'] * 100, subset['Service_Time_h'],
+                         marker=marker, linewidth=2.0, markersize=7,
+                         color=color, linestyle=ls, label=f'MILP: {label}')
+
+            # Add Yang & Lam DES reference point (mode flow rate)
+            # Yang DES: at base flow, service_time ~ our Yang-matched base + overhead
+            yang_base_flow_pct = 100  # 100% = base
+            yang_base_svc = 7.3  # MFO average service time from Yang
+            ax1.axhline(y=yang_base_svc, color='#ff7f0e', linestyle=':', linewidth=1.5,
+                        alpha=0.7, label=f'Yang DES avg ({yang_base_svc}h)')
+
+            ax1.set_xlabel('Flow Rate (% of base)', fontsize=13)
+            ax1.set_ylabel('Service Time (hours)', fontsize=13)
+            ax1.set_title('(a) Flow Rate Sensitivity', fontweight='bold', fontsize=14)
+            ax1.legend(loc='upper right', fontsize=11)
+            ax1.grid(True, alpha=0.3)
+            ax1.tick_params(axis='both', labelsize=11)
+        else:
+            ax1.text(0.5, 0.5, 'No flow rate data', transform=ax1.transAxes,
+                     ha='center', va='center', fontsize=14)
+
+        # --- Panel (b): Multi-dimension sensitivity horizontal bars ---
+        if has_sens:
+            df_sens = yl_data['sensitivity_summary_comparison']
+
+            # Filter to dimensions that have both Yang and Our values
+            plot_dims = []
+            yang_vals = []
+            our_vals = []
+
+            for _, row in df_sens.iterrows():
+                yang_v = row['Yang_Impact_Pct']
+                our_v = row['Our_Impact_Pct']
+                has_yang = yang_v != '' and not (isinstance(yang_v, float) and np.isnan(yang_v))
+                has_our = our_v != '' and not (isinstance(our_v, float) and np.isnan(our_v))
+
+                if has_yang or has_our:
+                    plot_dims.append(row['Dimension'])
+                    yang_vals.append(float(yang_v) if has_yang else 0)
+                    our_vals.append(float(our_v) if has_our else 0)
+
+            if plot_dims:
+                y = np.arange(len(plot_dims))
+                height = 0.35
+
+                ax2.barh(y - height/2, yang_vals, height,
+                         label='Yang & Lam DES', color='#ff7f0e', alpha=0.85)
+                ax2.barh(y + height/2, our_vals, height,
+                         label='Our MILP', color='#1f77b4', alpha=0.85)
+
+                ax2.set_yticks(y)
+                ax2.set_yticklabels(plot_dims, fontsize=10)
+                ax2.set_xlabel('Impact (%)', fontsize=13)
+                ax2.set_title('(b) Multi-Dimension Sensitivity', fontweight='bold', fontsize=14)
+                ax2.legend(loc='lower right', fontsize=10)
+                ax2.grid(True, axis='x', alpha=0.3)
+                ax2.tick_params(axis='both', labelsize=11)
+                ax2.invert_yaxis()
+        else:
+            ax2.text(0.5, 0.5, 'No sensitivity data', transform=ax2.transAxes,
+                     ha='center', va='center', fontsize=14)
+
+        plt.tight_layout()
+        plt.savefig(output_path / 'Fig14_yang_lam_sensitivity.png', bbox_inches='tight')
+        plt.close()
+        print("  [OK] Fig14: Yang & Lam Sensitivity Comparison")
 
     # =========================================================================
     # Main Generation Method
@@ -1527,6 +2365,25 @@ class PaperFigureGenerator:
 
         # S7 can be generated independently (uses separate sensitivity data)
         self.fig_s7_pump_sensitivity(output_path)
+
+        # New Deterministic Sensitivity Figures (Fig7-Fig10, FigS4-S5)
+        print("\n[2.5/3] Generating Deterministic Sensitivity Figures (Fig7-10, FigS4-S5)...")
+        self.fig_7_tornado_deterministic(output_path)
+        self.fig_8_fuel_price_sensitivity(output_path)
+        self.fig_9_breakeven_distance(output_path)
+        self.fig_10_demand_scenarios(output_path)
+        self.fig_s4_twoway_deterministic(output_path)
+        self.fig_s5_bunker_volume_sensitivity(output_path)
+
+        # Discount Rate Sensitivity Figures (Fig11-Fig12)
+        print("\n[2.6/3] Generating Discount Rate Figures (Fig11-12)...")
+        self.fig_11_discount_rate_sensitivity(output_path)
+        self.fig_12_discount_rate_fleet(output_path)
+
+        # Yang & Lam DES Comparison Figures (Fig13-Fig14)
+        print("\n[2.7/3] Generating Yang & Lam Comparison Figures (Fig13-14)...")
+        self.fig_13_yang_lam_service_time(output_path)
+        self.fig_14_yang_lam_sensitivity(output_path)
 
         # Combined Figures
         print("\n[3/3] Generating Combined Figures (C1-C4)...")

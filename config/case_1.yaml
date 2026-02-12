@@ -53,7 +53,7 @@ operations:
   has_storage_at_busan: true
 
   # Fixed port pump rate (when loading from terminal tanks)
-  port_pump_rate_m3h: 1500.0
+  port_pump_rate_m3h: 700.0
 
 # Bunkering call definition
 bunkering:

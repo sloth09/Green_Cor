@@ -29,18 +29,18 @@ def test_optimizer_case1_with_new_modules():
     assert optimizer.cycle_calc is not None
     assert optimizer.shore_supply is not None
 
-    # Verify shore supply is enabled by default for Case 1
-    assert optimizer.shore_supply.is_enabled()
-    assert optimizer.shore_supply.pump_rate_m3ph == 1500.0
+    # Shore supply cost is disabled by default in base.yaml (enabled: false)
+    # but pump rate is still set and used for time calculations
+    assert optimizer.shore_supply.pump_rate_m3ph == 700.0
 
     print("[PASS] Optimizer Case 1 initialization with new modules")
 
 
 def test_optimizer_case2_ulsan_with_new_modules():
-    """Test optimizer with new modules for Case 2-2 (Ulsan)."""
+    """Test optimizer with new modules for Case 2 (Ulsan)."""
     # Load configuration
     config_loader = ConfigLoader()
-    config = config_loader.load_config("case_2_ulsan")
+    config = config_loader.load_config("case_2")
 
     # Create optimizer
     optimizer = BunkeringOptimizer(config)
@@ -50,7 +50,7 @@ def test_optimizer_case2_ulsan_with_new_modules():
     assert optimizer.shore_supply is not None
 
     # Verify shore supply pump rate
-    assert optimizer.shore_supply.get_pump_rate() == 1500.0
+    assert optimizer.shore_supply.get_pump_rate() == 700.0
 
     print("[PASS] Optimizer Case 2 (Ulsan) initialization with new modules")
 
@@ -82,7 +82,7 @@ def test_cycle_time_calculation_case1():
 def test_cycle_time_calculation_case2():
     """Test that cycle time is calculated correctly for Case 2."""
     config_loader = ConfigLoader()
-    config = config_loader.load_config("case_2_ulsan")
+    config = config_loader.load_config("case_2")
 
     optimizer = BunkeringOptimizer(config)
 

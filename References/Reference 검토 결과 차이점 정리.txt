@@ -1,0 +1,28 @@
+없음
+[16] | Kim, H., Kim, J. & Lee, S. | Technical-economic analysis for ammonia ocean transportation using an ammonia-fueled carrier | 2024 | - |
+[36] | Khan, M.S., Effendy, S. & Karimi, I.A. | Ammonia bunkering in the maritime sector: A review | 2025 | - |
+[38] | Wang, S.S. et al. | Optimization of ammonia bunkering network configurations | 2022 | 
+
+있는데 다운로드가 안됨
+[18] | Fan, H. et al. | Quantitative risk assessment for ammonia ship-to-ship bunkering based on Bayesian network | 2022 | - |
+[17] | Zhao, X. et al. | Toward green container liner shipping: Joint optimization of fleet deployment, speed, and fuel bunkering | 2025 | (검토 버전은 다운로드 받음)
+[23] | Fagerholt, K. et al. | Maritime inventory routing: Recent trends and future directions | 2023 | - |
+[25] | Pantuso, G., Fagerholt, K. & Wallace, S.W. | Uncertainty in fleet renewal: A case from maritime transportation | 2016 |
+
+정보와 불일치
+[12] | (Turkey LNG study) | Small-scale LNG supply chain optimization for LNG bunkering in Turkey | 2022 | O | (저자 다름)
+[27] | Park, N.K. & Park, S.K. | LNG bunkering infrastructure planning at port | 2024 | O | (저자 다름)
+ [29] | Karatsidadou, D. et al. | A stochastic modelling and optimization for the design of an LNG refuelling system | 2023 |(저자 다름)
+[21] | Trivyza, N.L. et al. | Ammonia-based green corridors for sustainable maritime transportation | 2022 | (저자, 년도 다름)
+[22] | Fullonton, A. et al. | Green ammonia adoption in shipping: Opportunities and challenges across the fuel supply chain | 2024 (년도 다름)
+[4] | Persson, T. & Johansson, B. | Ammonia as a marine fuel: A techno-economic review | 2021 | - | (저자, 제목, 년도 다름)
+[15] | Galan-Martin, A. et al. | Optimization of green ammonia distribution systems for intercontinental energy transport | 2021 | - | (저자가 다름)
+[20] | Kim, S., Yoon, C., Min, M. & Jung, S. | A system theoretic quantitative risk assessment for port ammonia bunkering operations | 2025 | - | (저자가 다름)
+[35] | Qu, Y. et al. | A framework for risk assessment of ammonia storage and bunkering at ports | 2024 |(저자가 다름)
+| Bialystocki, N. | On the estimation of ships fuel consumption and speed curve - A statistical approach | 2016 | O | (저자가 2명인데 1명만 되어 있음)
+| Seo, Y. & Han, S. | Economic Evaluation of an Ammonia-Fueled Ammonia Carrier Depending on Methods of Ammonia Fuel Storage | 2022 | O | (년도가 다름)
+ [14] | Bakkehaug, R. et al. | A stochastic programming formulation for strategic fleet renewal in shipping | 2017 |  (년도가 다름)
+
+
+
+

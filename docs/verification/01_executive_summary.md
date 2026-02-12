@@ -1,74 +1,61 @@
-# Executive Summary
+# 1. Executive Summary
 
-## Overview
+## 1.1 Purpose
 
-This report verifies the MILP optimization results for the Green Corridor ammonia bunkering infrastructure project (2030-2050). The optimization determines the minimum-cost configuration of shuttle vessels and bunkering equipment to meet ammonia fuel demand for vessels operating in the Korea-Japan green shipping corridor.
+This report verifies the MILP optimization model (v3.1.0) for ammonia bunkering infrastructure at Busan Port. All calculations are independently reproduced from config parameters and compared against CSV output from the optimization solver.
 
-**Project Period**: 2030-2050 (21 years)
-**Demand Growth**: 50 vessels (2030) to 500 vessels (2050), linear growth
-**Bunker Volume per Call**: 5,000 m3
+## 1.2 Model Overview
 
-**v5 MCR Update**: All results reflect Power Law MCR values (MCR = 17.17 x DWT^0.566).
+The model determines the optimal shuttle vessel size and fleet composition to minimize the 20-year Net Present Cost (NPC) of ammonia fuel supply for the Green Corridor initiative (2030-2050).
 
-## Optimal Configurations (v5 Results)
+**Key assumptions:**
+- Time horizon: 21 years (2030-2050 inclusive)
+- Fleet growth: 50 vessels (2030) to 500 vessels (2050), linear interpolation
+- Bunker volume per call: 5,000 m3
+- STS pump rate: 500 m3/h (fixed)
+- Discount rate: 0% (no time-value discounting)
+- Annualization interest rate: 7% (for asset cost annualization only)
 
-| Case | Route | Optimal Shuttle | NPC (20yr) | LCOAmmonia |
-|------|-------|-----------------|------------|------------|
-| **Case 1** | Busan Storage | 2,500 m3 | $249.80M | $1.06/ton |
-| **Case 2-1** | Yeosu -> Busan (86nm) | 10,000 m3 | $847.56M | $3.60/ton |
-| **Case 2-2** | Ulsan -> Busan (59nm) | 5,000 m3 | $667.70M | $2.83/ton |
+## 1.3 Key Results
 
-### v4 to v5 Changes
+### Optimal Configurations
 
-| Case | v4 Shuttle | v5 Shuttle | v4 NPC | v5 NPC | Change |
-|------|------------|------------|--------|--------|--------|
-| Case 1 | 1,000 m3 | **2,500 m3** | $238.39M | $249.80M | +4.8% |
-| Case 2-1 | 10,000 m3 | 10,000 m3 | $791.47M | $847.56M | +7.1% |
-| Case 2-2 | 5,000 m3 | 5,000 m3 | $650.60M | $667.70M | +2.6% |
+| Case | Description | Shuttle | NPC (USD M) | LCOA (USD/ton) |
+|------|-------------|---------|-------------|-----------------|
+| Case 1 | Busan Port with Storage | 1,000 m3 | 447.53 | 1.90 |
+| Case 2 | Ulsan -> Busan (59 nm) | 5,000 m3 | 906.80 | 3.85 |
+| Case 3 | Yeosu -> Busan (86 nm) | 5,000 m3 | 1,094.12 | 4.64 |
 
-**Key Change**: Case 1 optimal shifted from 1000 m3 to 2500 m3 due to corrected MCR values for small vessels.
+### Cost Structure (Optimal Scenarios)
 
-## Key Findings
+| Component | Case 1 (USD M) | Case 2 (USD M) | Case 3 (USD M) |
+|-----------|----------------|----------------|----------------|
+| Shuttle CAPEX (annualized) | 211.97 | 384.21 | 422.39 |
+| Bunkering CAPEX (annualized) | 15.06 | 16.24 | 17.86 |
+| Shuttle Fixed OPEX | 114.84 | 208.15 | 228.84 |
+| Bunkering Fixed OPEX | 8.16 | 8.80 | 9.67 |
+| Shuttle Variable OPEX | 80.84 | 275.01 | 400.97 |
+| Bunkering Variable OPEX | 16.67 | 14.39 | 14.39 |
+| **NPC Total** | **447.53** | **906.80** | **1,094.12** |
 
-### 1. Case 1 is Most Cost-Effective
-- **$1.06/ton LCOAmmonia** - lowest among all cases
-- Local storage at Busan Port minimizes shuttle travel time
-- Medium-small shuttles (2,500 m3) are optimal due to MCR correction for small vessels
-- v5 MCR update increased small shuttle fuel costs, shifting optimal from 1000 m3 to 2500 m3
+### NPC Component Verification
 
-### 2. Case 2-2 (Ulsan) Outperforms Case 2-1 (Yeosu)
-- **$2.83/ton** vs **$3.60/ton**
-- Shorter distance (59nm vs 86nm) reduces fuel and time costs
-- Medium-sized shuttles (5,000 m3) balance capacity and cycle efficiency
+| Case | Sum of Components | CSV NPC Total | Diff | Status |
+|------|-------------------|---------------|------|--------|
+| Case 1 | 211.97+15.06+0+114.84+8.16+0+80.84+16.67+0 = 447.54 | 447.53 | 0.00% | PASS |
+| Case 2 | 384.21+16.24+0+208.15+8.80+0+275.01+14.39+0 = 906.80 | 906.80 | 0.00% | PASS |
+| Case 3 | 422.39+17.86+0+228.84+9.67+0+400.97+14.39+0 = 1,094.12 | 1,094.12 | 0.00% | PASS |
 
-### 3. MCR Update Impact
-- Power Law formula `MCR = 17.17 x DWT^0.566` applied to all shuttle sizes
-- Small shuttles (500-2000 m3) experienced largest MCR corrections (+20-37%)
-- This shifted Case 1 optimal from 1000 m3 to 2500 m3
+## 1.4 Verification Scope
 
-## Cost Structure Overview (v5)
+This report verifies:
 
-| Case | CAPEX Share | Fixed OPEX Share | Variable OPEX Share |
-|------|-------------|------------------|---------------------|
-| Case 1 | 46.3% | 25.1% | 28.7% |
-| Case 2-1 | 41.3% | 22.4% | 36.3% |
-| Case 2-2 | 36.7% | 19.9% | 43.3% |
+1. **Input parameters** - All config values used in calculations (Chapter 2)
+2. **Cycle time calculations** - Time components for each case's optimal shuttle (Chapters 3-5)
+3. **Cost calculations** - CAPEX, OPEX, and NPC for each case (Chapters 3-5)
+4. **Cross-case comparison** - Relative cost structures and LCOA differences (Chapter 6)
+5. **Final checklist** - All verification items with PASS/FAIL status (Chapter 7)
 
-**Observation**: Variable OPEX (fuel costs) is the largest cost component in Case 2 scenarios due to longer travel distances and increased fuel consumption from higher MCR values.
+## 1.5 Verification Result
 
-## Recommendation
-
-Based on the verification results:
-
-1. **Primary Recommendation**: Case 1 (Busan Storage)
-   - Lowest LCOAmmonia at $1.06/ton
-   - Optimal shuttle: 2,500 m3 (updated from v4's 1,000 m3)
-   - Requires investment in local storage infrastructure
-
-2. **Alternative**: Case 2-2 (Ulsan Direct Supply)
-   - No local storage required
-   - Competitive at $2.83/ton if storage infrastructure is not feasible
-
-3. **Not Recommended**: Case 2-1 (Yeosu Direct Supply)
-   - Highest cost at $3.60/ton
-   - Only viable if Ulsan supply is unavailable
+All 13 verification items across 3 cases passed with differences below 1%. The MILP optimization model produces results consistent with independent manual calculations from config parameters.

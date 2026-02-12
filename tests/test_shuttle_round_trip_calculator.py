@@ -23,23 +23,23 @@ class TestShuttleRoundTripCalculatorBasics:
         # Case 1: Busan port (short travel time)
         self.calc_case1 = ShuttleRoundTripCalculator(
             travel_time_hours=2.0,
-            setup_time_hours=0.5
+            setup_time_hours=2.0
         )
-        # Case 2-2: Ulsan (medium travel time)
+        # Case 2: Ulsan (medium travel time)
         self.calc_case2_ulsan = ShuttleRoundTripCalculator(
             travel_time_hours=1.67,
-            setup_time_hours=0.5
+            setup_time_hours=2.0
         )
-        # Case 2-1: Yeosu (long travel time)
+        # Case 3: Yeosu (long travel time)
         self.calc_case2_yeosu = ShuttleRoundTripCalculator(
             travel_time_hours=5.63,
-            setup_time_hours=0.5
+            setup_time_hours=2.0
         )
 
     def test_initialization(self):
         """Test calculator initialization."""
         assert self.calc_case1.travel_time_hours == 2.0
-        assert self.calc_case1.setup_time_hours == 0.5
+        assert self.calc_case1.setup_time_hours == 2.0
 
     def test_basic_cycle_structure(self):
         """Test basic cycle structure."""
@@ -77,9 +77,9 @@ class TestShuttleRoundTripCalculatorBasics:
         assert pytest.approx(result['travel_outbound_h']) == 2.0
         assert pytest.approx(result['travel_return_h']) == 2.0
 
-        # Setup: 2 * 0.5 = 1.0 hour
-        assert pytest.approx(result['setup_inbound_h']) == 1.0
-        assert pytest.approx(result['setup_outbound_h']) == 1.0
+        # Setup: direct per-endpoint value = 2.0 hours
+        assert pytest.approx(result['setup_inbound_h']) == 2.0
+        assert pytest.approx(result['setup_outbound_h']) == 2.0
 
         # Pumping per vessel: 5000 / 1000 = 5 hours
         assert pytest.approx(result['pumping_per_vessel_h']) == 5.0
@@ -95,7 +95,8 @@ class TestShuttleRoundTripCalculatorBasics:
             pump_size_m3ph=1000.0,
             bunker_volume_per_call_m3=5000.0,
             num_vessels=5,
-            is_round_trip=True
+            is_round_trip=True,
+            has_storage_at_busan=False
         )
 
         # Travel time: Ulsan = 1.67 hours
@@ -131,11 +132,12 @@ class TestShuttleRoundTripCalculatorBasics:
             pump_size_m3ph=1000.0,
             bunker_volume_per_call_m3=5000.0,
             num_vessels=5,
-            is_round_trip=True
+            is_round_trip=True,
+            has_storage_at_busan=False
         )
 
-        # Shuttle delivers all 25000 m³ in one trip
-        assert result['trips_per_call'] == 1
+        # Shuttle delivers 5 vessels in one trip: trips_per_call = 1/5 = 0.2
+        assert pytest.approx(result['trips_per_call']) == 0.2
 
     def test_no_round_trip(self):
         """Test one-way cycle (no return travel)."""
@@ -150,10 +152,9 @@ class TestShuttleRoundTripCalculatorBasics:
         # Return travel should be 0
         assert result['travel_return_h'] == 0.0
 
-        # Basic cycle includes movement per vessel, not just pumping
-        # time_per_vessel_at_destination = movement(1) + setup_in(1) + pump(5) + setup_out(1) = 8
-        # basic_cycle = travel_out(2) + time_per_vessel(8) + travel_return(0) = 10
-        assert pytest.approx(result['basic_cycle_duration_h']) == 10.0
+        # time_per_vessel_at_destination = setup_in(2) + pump(5) + setup_out(2) = 9
+        # basic_cycle = travel_out(2) + time_per_vessel(9) + travel_return(0) = 11
+        assert pytest.approx(result['basic_cycle_duration_h']) == 11.0
 
     def test_same_core_logic_different_travel_times(self):
         """Test that core logic is identical for different travel times."""
@@ -166,7 +167,7 @@ class TestShuttleRoundTripCalculatorBasics:
             is_round_trip=True
         )
 
-        # Case 2-2 (Ulsan): short travel
+        # Case 2 (Ulsan): short travel
         result2 = self.calc_case2_ulsan.calculate(
             shuttle_size_m3=5000.0,
             pump_size_m3ph=1000.0,
@@ -216,7 +217,7 @@ class TestEdgeCases:
         """Setup for each test."""
         self.calc = ShuttleRoundTripCalculator(
             travel_time_hours=2.0,
-            setup_time_hours=0.5
+            setup_time_hours=2.0
         )
 
     def test_very_small_shuttle(self):
