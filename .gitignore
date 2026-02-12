@@ -39,6 +39,11 @@ results/
 # Reference PDFs (too large for git)
 References/
 
+# Archive folders (legacy, not needed in repo)
+docs/archive/
+docs/paper/archive/
+docs/verification/archives/
+
 # All files in docs/reports_docx/ should still be tracked
 !docs/reports_docx/
 !docs/reports_docx/**/*
