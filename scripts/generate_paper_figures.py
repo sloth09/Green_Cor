@@ -75,9 +75,12 @@ def main():
             'D7': generator.fig_d7_cycle_time,
             'D8': generator.fig_d8_fleet_evolution,
             'D9': generator.fig_d9_lco_comparison,
-            'D10': generator.fig_d10_case_npc_comparison,
+            # D10 removed in v5 (redundant with D1)
             'D11': generator.fig_d11_top_configurations,
             'D12': generator.fig_d12_npc_heatmap,
+            # V5 combined figures
+            'V5_COST': generator.fig_v5_cost_lcoa,
+            'V5_FLEET': generator.fig_v5_fleet_demand,
             # Stochastic figures (S1-S7)
             'S1': generator.fig_s1_npc_boxplot,
             'S2': generator.fig_s2_vss_evpi,
@@ -93,9 +96,9 @@ def main():
             'FIG10': generator.fig_10_demand_scenarios,
             'FIGS4': generator.fig_s4_twoway_deterministic,
             'FIGS5': generator.fig_s5_bunker_volume_sensitivity,
-            # Discount rate sensitivity figures (Fig11-Fig12)
+            # Discount rate sensitivity figures (Fig11 only; Fig12 removed in v5)
             'FIG11': generator.fig_11_discount_rate_sensitivity,
-            'FIG12': generator.fig_12_discount_rate_fleet,
+            # FIG12 removed in v5 (3 identical overlapping lines)
             # Yang & Lam DES comparison figures (Fig13-Fig14)
             'FIG13': generator.fig_13_yang_lam_service_time,
             'FIG14': generator.fig_14_yang_lam_sensitivity,

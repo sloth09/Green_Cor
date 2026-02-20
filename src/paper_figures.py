@@ -365,8 +365,10 @@ class PaperFigureGenerator:
             # Format x-axis with thousand separator
             ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1000:.0f}k' if x >= 1000 else f'{x:.0f}'))
 
-            # Set y-axis limits (0 to clean round number)
-            ax.set_ylim(0, Y_LIMITS_NPC.get(case_id, 1400))
+            # Set y-axis limits with padding so curves aren't cut off
+            data_max = max(npc_values.max(), capex.max(), fixed_opex.max(), var_opex.max())
+            y_upper = max(Y_LIMITS_NPC.get(case_id, 1400), data_max * 1.1)
+            ax.set_ylim(0, y_upper)
 
             # Place legend in upper left (where there's empty space)
             ax.legend(loc='upper left', fontsize=11, framealpha=0.9)
@@ -457,7 +459,10 @@ class PaperFigureGenerator:
             ax.tick_params(axis='y', labelcolor=color1, labelsize=12)
             ax.tick_params(axis='x', labelsize=12)
             ax.set_xlim(2030, 2050)
-            ax.set_ylim(0, Y_LIMITS_FLEET.get(case_id, 15))
+            # Fix y-axis: use data-driven max with padding so fleet curves are fully visible
+            fleet_max = max(fleet) if len(fleet) > 0 else 15
+            y_upper_fleet = max(Y_LIMITS_FLEET.get(case_id, 15), fleet_max * 1.15)
+            ax.set_ylim(0, y_upper_fleet)
             ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))  # Integer years only
             ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))  # Integer fleet size
 
@@ -545,7 +550,9 @@ class PaperFigureGenerator:
         ax.set_title('Fleet Utilization Rate (2030-2050) - Optimal Configurations',
                     fontsize=16, fontweight='bold')
         ax.set_xlim(2030, 2050)
-        ax.set_ylim(0, 110)
+        # Fix y-axis to clearly show full 0-100% range with padding above max capacity line
+        ax.set_ylim(0, 115)
+        ax.set_yticks([0, 20, 40, 60, 80, 100])
         ax.axhline(y=100, color='red', linestyle='--', alpha=0.5, label='Max Capacity')
         ax.tick_params(axis='both', labelsize=12)
         ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
@@ -864,6 +871,10 @@ class PaperFigureGenerator:
         ax.legend(loc='upper left')
         ax.grid(True, alpha=0.3)
         ax.set_xlim(2030, 2050)
+        # Fix y-axis to show full range of fleet sizes with padding
+        y_max_fleet = ax.get_ylim()[1]
+        ax.set_ylim(0, y_max_fleet * 1.1)
+        ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
         plt.tight_layout()
         plt.savefig(output_path / 'D8_fleet_evolution.png', bbox_inches='tight')
@@ -961,6 +972,175 @@ class PaperFigureGenerator:
         plt.savefig(output_path / 'D11_top_configurations.png', bbox_inches='tight')
         plt.close()
         print("  [OK] D11: Top Configurations")
+
+    # =========================================================================
+    # V5 Combined Figures
+    # =========================================================================
+
+    def fig_v5_cost_lcoa(self, output_path: Path) -> None:
+        """V5 Combined: (a) Cost breakdown + (b) LCOA comparison side by side."""
+        if not self.det_scenarios:
+            print("  [WARN] V5_cost_lcoa: No deterministic data available")
+            return
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+        fig.suptitle('Cost Analysis - Optimal Configurations',
+                     fontsize=16, fontweight='bold')
+
+        cases = list(self.det_scenarios.keys())
+
+        # --- Panel (a): Cost breakdown stacked bar chart (from D6) ---
+        x = np.arange(len(cases))
+        width = 0.6
+
+        capex_shuttle = []
+        capex_bunk = []
+        opex_fixed = []
+        opex_var = []
+
+        for case_id in cases:
+            opt = self._get_optimal(case_id)
+            row = opt['row']
+            capex_shuttle.append(row['NPC_Annualized_Shuttle_CAPEX_USDm'])
+            capex_bunk.append(row['NPC_Annualized_Bunkering_CAPEX_USDm'])
+            fixed = (row['NPC_Shuttle_fOPEX_USDm'] + row['NPC_Bunkering_fOPEX_USDm'] +
+                    row.get('NPC_Terminal_fOPEX_USDm', 0))
+            var = (row['NPC_Shuttle_vOPEX_USDm'] + row['NPC_Bunkering_vOPEX_USDm'] +
+                  row.get('NPC_Terminal_vOPEX_USDm', 0))
+            opex_fixed.append(fixed)
+            opex_var.append(var)
+
+        p1 = ax1.bar(x, capex_shuttle, width, label='Shuttle CAPEX', color='#1f77b4')
+        p2 = ax1.bar(x, capex_bunk, width, bottom=capex_shuttle,
+                   label='Bunkering CAPEX', color='#ff7f0e')
+        bottom2 = np.array(capex_shuttle) + np.array(capex_bunk)
+        p3 = ax1.bar(x, opex_fixed, width, bottom=bottom2,
+                   label='Fixed OPEX', color='#2ca02c')
+        bottom3 = bottom2 + np.array(opex_fixed)
+        p4 = ax1.bar(x, opex_var, width, bottom=bottom3,
+                   label='Variable OPEX', color='#d62728')
+
+        totals = np.array(capex_shuttle) + np.array(capex_bunk) + np.array(opex_fixed) + np.array(opex_var)
+        for i, total in enumerate(totals):
+            ax1.text(i, total + 5, f'${total:.1f}M', ha='center', fontweight='bold')
+
+        ax1.set_ylabel('20-Year NPC (Million USD)', fontsize=13)
+        ax1.set_xlabel('Supply Scenario', fontsize=13)
+        ax1.set_title('(a) Cost Structure Breakdown', fontweight='bold', fontsize=14)
+        ax1.set_xticks(x)
+        ax1.set_xticklabels([CASE_SHORT[c] for c in cases])
+        ax1.legend(loc='upper left', fontsize=10)
+        ax1.grid(axis='y', alpha=0.3)
+        ax1.tick_params(axis='both', labelsize=11)
+
+        # --- Panel (b): LCOA comparison bar chart (from D9) ---
+        lcos = [self._get_optimal(c)['lco'] for c in cases]
+        colors = [COLORS[c] for c in cases]
+
+        bars = ax2.bar(x, lcos, color=colors, edgecolor='black', linewidth=1.5, width=0.6)
+
+        for bar, v in zip(bars, lcos):
+            ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.05,
+                   f'${v:.2f}', ha='center', va='bottom', fontweight='bold')
+
+        ax2.set_ylabel('LCOA (USD/ton)', fontsize=13)
+        ax2.set_xlabel('Supply Scenario', fontsize=13)
+        ax2.set_title('(b) Levelized Cost of Ammonia', fontweight='bold', fontsize=14)
+        ax2.set_xticks(x)
+        ax2.set_xticklabels([CASE_SHORT[c] for c in cases])
+        ax2.grid(axis='y', alpha=0.3)
+        ax2.set_ylim(0, max(lcos) * 1.3)
+        ax2.tick_params(axis='both', labelsize=11)
+
+        plt.tight_layout()
+        plt.savefig(output_path / 'V5_cost_lcoa.png', bbox_inches='tight')
+        plt.close()
+        print("  [OK] V5: Cost Breakdown + LCOA Comparison")
+
+    def fig_v5_fleet_demand(self, output_path: Path) -> None:
+        """V5 Combined: (a) Fleet evolution + (b) Demand vs supply overlay."""
+        if not self.det_yearly:
+            print("  [WARN] V5_fleet_demand: No yearly data available")
+            return
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+        fig.suptitle('Fleet and Supply Evolution (2030-2050) - Optimal Configurations',
+                     fontsize=16, fontweight='bold')
+
+        # --- Panel (a): Fleet size evolution (from D8) ---
+        for case_id in self.det_yearly.keys():
+            df = self.det_yearly[case_id]
+            opt = self._get_optimal(case_id)
+
+            df_opt = df[(df['Shuttle_Size_cbm'] == opt['shuttle']) &
+                       (df['Pump_Size_m3ph'] == opt['pump'])]
+
+            if not df_opt.empty:
+                ax1.plot(df_opt['Year'], df_opt['Total_Shuttles'],
+                       marker='o', linewidth=2, markersize=6,
+                       color=COLORS[case_id], label=CASE_SHORT[case_id])
+                ax1.fill_between(df_opt['Year'], df_opt['Total_Shuttles'],
+                              alpha=0.2, color=COLORS[case_id])
+
+        ax1.set_xlabel('Year', fontsize=13)
+        ax1.set_ylabel('Total Fleet Size (Shuttles)', fontsize=13)
+        ax1.set_title('(a) Fleet Growth', fontweight='bold', fontsize=14)
+        ax1.legend(loc='upper left', fontsize=10)
+        ax1.grid(True, alpha=0.3)
+        ax1.set_xlim(2030, 2050)
+        # Fix y-axis to show full range with padding
+        y_max_fleet = ax1.get_ylim()[1]
+        ax1.set_ylim(0, y_max_fleet * 1.1)
+        ax1.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+        ax1.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+        ax1.tick_params(axis='both', labelsize=11)
+
+        # --- Panel (b): Demand vs supply overlay (from D3, using first case) ---
+        # Plot all cases on shared axes: fleet on primary, supply on secondary
+        case_ids = list(self.det_yearly.keys())
+        for case_id in case_ids:
+            df = self.det_yearly[case_id]
+            opt = self._get_optimal(case_id)
+
+            df_opt = df[(df['Shuttle_Size_cbm'] == opt['shuttle']) &
+                       (df['Pump_Size_m3ph'] == opt['pump'])].copy()
+
+            if df_opt.empty:
+                continue
+
+            years = df_opt['Year'].values
+            supply = df_opt['Supply_m3'].values / 1e6  # Convert to million m3
+
+            ax2.plot(years, supply, marker='o', linewidth=2, markersize=5,
+                    color=COLORS[case_id],
+                    label=f'{CASE_SHORT[case_id]} Supply')
+
+        # Add demand line if available (from first case)
+        first_case = case_ids[0] if case_ids else None
+        if first_case:
+            df = self.det_yearly[first_case]
+            opt = self._get_optimal(first_case)
+            df_opt = df[(df['Shuttle_Size_cbm'] == opt['shuttle']) &
+                       (df['Pump_Size_m3ph'] == opt['pump'])].copy()
+            if not df_opt.empty and 'Demand_m3' in df_opt.columns:
+                years = df_opt['Year'].values
+                demand = df_opt['Demand_m3'].values / 1e6
+                ax2.plot(years, demand, 'k--', linewidth=2.5, markersize=0,
+                        label='Demand (all cases)', alpha=0.7)
+
+        ax2.set_xlabel('Year', fontsize=13)
+        ax2.set_ylabel('Annual Volume (Million m$^3$)', fontsize=13)
+        ax2.set_title('(b) Supply vs Demand', fontweight='bold', fontsize=14)
+        ax2.legend(loc='upper left', fontsize=9)
+        ax2.grid(True, alpha=0.3)
+        ax2.set_xlim(2030, 2050)
+        ax2.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+        ax2.tick_params(axis='both', labelsize=11)
+
+        plt.tight_layout()
+        plt.savefig(output_path / 'V5_fleet_demand.png', bbox_inches='tight')
+        plt.close()
+        print("  [OK] V5: Fleet Evolution + Demand/Supply")
 
     # =========================================================================
     # Stochastic Figures (S1-S6)
@@ -1292,8 +1472,15 @@ class PaperFigureGenerator:
         ax.legend(loc='upper right', fontsize=11)
         ax.grid(True, alpha=0.3)
 
-        # Set x-axis limits with some padding
-        ax.set_xlim(300, 2100)
+        # Fix x-axis to match actual data range (100-1500 m3/h) with padding
+        all_rates = []
+        for df in pump_data.values():
+            if not df.empty:
+                all_rates.extend(df['Pump_Rate_m3ph'].tolist())
+        if all_rates:
+            ax.set_xlim(min(all_rates) * 0.9, max(all_rates) * 1.1)
+        else:
+            ax.set_xlim(50, 1600)
 
         plt.tight_layout()
         plt.savefig(output_path / 'S7_pump_sensitivity.png', bbox_inches='tight')
@@ -1450,9 +1637,10 @@ class PaperFigureGenerator:
             if case1_npc_val is None:
                 case1_npc_val = df[case1_col].iloc[0]
 
-            # Case 2 line (varies with distance)
+            # Case 2/3 line (NPC varies with distance)
             color = COLORS['case_2'] if name == 'ulsan' else COLORS['case_3']
-            label = 'Case 2: Ulsan' if name == 'ulsan' else 'Case 3: Yeosu'
+            label = 'Case 2: Ulsan (same shuttle, NPC vs distance)' if name == 'ulsan' \
+                else 'Case 3: Yeosu (same shuttle, NPC vs distance)'
             ax.plot(distances, case2_vals,
                     marker='o', linewidth=2.5, markersize=6,
                     color=color, label=label)
@@ -1474,10 +1662,10 @@ class PaperFigureGenerator:
                                     arrowprops=dict(arrowstyle='->', color=color, lw=1.5))
                         break
 
-        # Case 1 horizontal line (same-shuttle comparison)
+        # Case 1 horizontal line (fixed NPC, distance-independent)
         if case1_npc_val is not None:
             ax.axhline(y=case1_npc_val, color=COLORS['case_1'], linewidth=2.5,
-                       linestyle='--', label=f'Case 1 (same shuttle)')
+                       linestyle='--', label='Case 1: Busan Storage (fixed NPC)')
 
         # --- Optimal-vs-optimal overlay (dashed curves) ---
         optimal_data = self._load_breakeven_distance_optimal()
@@ -1502,7 +1690,8 @@ class PaperFigureGenerator:
                     opt_case1_npc_val = df[case1_col].iloc[0]
 
                 color = COLORS['case_2'] if name == 'ulsan' else COLORS['case_3']
-                label = 'Ulsan (optimal)' if name == 'ulsan' else 'Yeosu (optimal)'
+                label = 'Case 2: Ulsan (optimal shuttle)' if name == 'ulsan' \
+                    else 'Case 3: Yeosu (optimal shuttle)'
                 ax.plot(distances, case2_vals,
                         linestyle='--', linewidth=2.0, markersize=0,
                         color=color, alpha=0.7, label=label)
@@ -1530,13 +1719,13 @@ class PaperFigureGenerator:
             if opt_case1_npc_val is not None and opt_case1_npc_val != case1_npc_val:
                 ax.axhline(y=opt_case1_npc_val, color=COLORS['case_1'], linewidth=2.0,
                            linestyle=':', alpha=0.7,
-                           label=f'Case 1 (optimal, 2500 m3)')
+                           label='Case 1: Busan Storage (optimal shuttle, fixed NPC)')
 
         ax.set_xlabel('Supply Distance (nautical miles)', fontsize=13)
         ax.set_ylabel('21-Year NPC (Million USD)', fontsize=13)
         ax.set_title('Break-even Distance: Storage vs Direct Supply',
                      fontsize=15, fontweight='bold')
-        ax.legend(loc='upper left', fontsize=10)
+        ax.legend(loc='upper left', fontsize=9, framealpha=0.9)
         ax.grid(True, alpha=0.3)
         ax.tick_params(axis='both', labelsize=11)
         ax.set_xlim(0, None)
@@ -2345,9 +2534,12 @@ class PaperFigureGenerator:
             self.fig_d7_cycle_time(output_path)
             self.fig_d8_fleet_evolution(output_path)
             self.fig_d9_lco_comparison(output_path)
-            self.fig_d10_case_npc_comparison(output_path)
+            # fig_d10_case_npc_comparison removed in v5 (redundant with D1)
             self.fig_d11_top_configurations(output_path)
             self.fig_d12_npc_heatmap(output_path)
+            # V5 combined figures
+            self.fig_v5_cost_lcoa(output_path)
+            self.fig_v5_fleet_demand(output_path)
         else:
             print("  [WARN] No deterministic data available")
 
@@ -2375,10 +2567,10 @@ class PaperFigureGenerator:
         self.fig_s4_twoway_deterministic(output_path)
         self.fig_s5_bunker_volume_sensitivity(output_path)
 
-        # Discount Rate Sensitivity Figures (Fig11-Fig12)
-        print("\n[2.6/3] Generating Discount Rate Figures (Fig11-12)...")
+        # Discount Rate Sensitivity Figures (Fig11 only; Fig12 removed in v5 - 3 identical lines)
+        print("\n[2.6/3] Generating Discount Rate Figures (Fig11)...")
         self.fig_11_discount_rate_sensitivity(output_path)
-        self.fig_12_discount_rate_fleet(output_path)
+        # fig_12_discount_rate_fleet removed in v5 (3 overlapping lines)
 
         # Yang & Lam DES Comparison Figures (Fig13-Fig14)
         print("\n[2.7/3] Generating Yang & Lam Comparison Figures (Fig13-14)...")
